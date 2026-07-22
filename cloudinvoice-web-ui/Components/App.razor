@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <script src="assets/js/head.js"></script>
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" id="app-style" />
+    <!--Plugins css-->
+    <link href="assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/libs/dropzone/min/dropzone.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/libs/quill/quill.core.css" rel="stylesheet" type="text/css" />
+    <link href="assets/libs/quill/quill.snow.css" rel="stylesheet" type="text/css" />
+    <link href="assets/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/libs/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/libs/datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/libs/datatables.net-select-bs5/css//select.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- App css -->
+    <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
+    <!-- Icons css -->
+    <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    
+    <!-- Blazor DEVE carregar PRIMEIRO -->
+    <script src="_framework/blazor.web.js"></script>
+    
+    <!-- Depois carregue os outros scripts -->
+    <script src="assets/js/vendor.min.js"></script>
+    
+
+    <!-- Plugins js-->
+
+    <script src="assets/libs/select2/js/select2.min.js"></script>
+    <script src="assets/libs/dropzone/min/dropzone.min.js"></script>
+    <script src="assets/libs/quill/quill.min.js"></script>
+    <script src="assets/libs/jquery-mask-plugin/jquery.mask.min.js"></script>
+    <script src="assets/libs/autonumeric/autoNumeric.min.js"></script>
+    <script src="assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="assets/libs/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="assets/libs/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="assets/libs/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+    <script src="assets/libs/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="assets/libs/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js"></script>
+    <script src="assets/libs/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="assets/libs/datatables.net-buttons/js/buttons.flash.min.js"></script>
+    <script src="assets/libs/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="assets/libs/datatables.net-keytable/js/dataTables.keyTable.min.js"></script>
+    <script src="assets/libs/datatables.net-select/js/dataTables.select.min.js"></script>
+    <script src="assets/libs/pdfmake/build/pdfmake.min.js"></script>
+    <script src="assets/libs/pdfmake/build/vfs_fonts.js"></script>
+
+    <script>
+            // Função cirúrgica para carregar init.js apenas em páginas específicas
+    window.carregarScriptLocal = function(scriptUrl) {
+        // 1. Limpa o script se ele já existir de uma visita anterior a esta página
+        var oldScript = document.querySelector('script[src="' + scriptUrl + '"]');
+        if (oldScript) {
+            oldScript.remove();
+        }
+
+        // 2. Injeta o script fresco para ele correr imediatamente
+        var script = document.createElement('script');
+        script.src = scriptUrl;
+        document.body.appendChild(script);
+    }; 
+    </script>
+    <script >
+        window.recarregarScriptsDoTemplate = function() {
+            // 1. Apaga o script antigo
+            var oldScript = document.getElementById('template-app-js');
+            if (oldScript) {
+                oldScript.remove();
+            }
+
+            // 2. Cria o novo script
+            var newScript = document.createElement('script');
+            newScript.id = 'template-app-js';
+            newScript.src = '/assets/js/app.min.js';
+
+            // 3. Quando o script carregar, tentar forçar a reinicialização (se o template suportar)
+            newScript.onload = function() {
+                if (typeof window.InitApp !== 'undefined') {
+                    window.InitApp(); // Alguns templates têm esta função global
+                }
+                // Força o SimpleBar a recalcular, se existir
+                var scrollElements = document.querySelectorAll('[data-simplebar]');
+                if (scrollElements.length > 0 && typeof SimpleBar !== 'undefined') {
+                    scrollElements.forEach(function(el) {
+                        new SimpleBar(el);
+                    });
+                }
+            };
+
+            document.body.appendChild(newScript);
+        };
+
+    window.iniciarMinhaDataTable = function(tabelaId) {
+        var $table = $(tabelaId);
+
+        // 1. REGRA DE OURO DO BLAZOR: Destruir a tabela anterior se ela já existir
+        // Isto impede que o Blazor e o DataTables se atropelem ao mudar de página
+        if ($.fn.DataTable.isDataTable($table)) {
+            $table.DataTable().destroy();
+        }
+
+        // 2. Inicializar a DataTables com a tradução e os estilos do Ubold
+        $table.DataTable({
+            language: {
+                // Aqui colocas o caminho exato para o teu ficheiro JSON de português!
+                url: '/assets/libs/datatables.net/lang/pt.json'
+            },
+            pageLength: 10,
+            drawCallback: function() {
+                // Garante que a paginação fica com as bordas arredondadas (Estilo do template)
+                $('.dataTables_paginate > .pagination').addClass('pagination-rounded');
+            }
+        });
+    };
+    </script>
+</body>
+
+</html>

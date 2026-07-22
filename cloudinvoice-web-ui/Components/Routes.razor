@@ -1,0 +1,11 @@
+﻿<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)">
+            <p role="alert">Lamento, mas esta página não existe no Invoice Cloud.</p>
+        </LayoutView>
+    </NotFound>
+</Router>

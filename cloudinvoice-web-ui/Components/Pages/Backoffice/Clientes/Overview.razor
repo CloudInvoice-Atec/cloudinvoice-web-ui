@@ -1,0 +1,258 @@
+﻿@layout Layout.AdminLayout
+@inject IJSRuntime JS
+@page "/backoffice/clientes"
+@using cloudinvoice_web_ui.Components.Modals
+
+<!-- Start Content-->
+<div class="container-fluid">
+
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <!-- Botão de Adicionar Cliente movido para o topo direito -->
+                    <button data-bs-toggle="modal" data-bs-target="#modalNovoCliente"  class="btn btn-blue waves-effect waves-light">
+                        <i class="mdi mdi-plus-circle me-1"></i> Adicionar Cliente
+                    </button>
+                </div>
+                <h4 class="page-title">Visão Geral de Clientes</h4>
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+    <!-- Cartões de Estatísticas -->
+    <div class="row">
+        <div class="col-md-6 col-xl-3">
+            <div class="widget-rounded-circle card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="avatar-lg rounded-circle bg-soft-primary border-primary border">
+                                <i class="fe-users font-22 avatar-title text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-end">
+                                <h3 class="text-dark mt-1"><span>@estatisticas.TotalClientes</span></h3>
+                                <p class="text-muted mb-1 text-truncate">Total Clientes</p>
+                            </div>
+                        </div>
+                    </div> <!-- end row-->
+                </div>
+            </div> <!-- end widget-rounded-circle-->
+        </div> <!-- end col-->
+
+        <div class="col-md-6 col-xl-3">
+            <div class="widget-rounded-circle card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="avatar-lg rounded-circle bg-soft-success border-success border">
+                                <i class="fe-user-check font-22 avatar-title text-success"></i>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-end">
+                                <h3 class="text-dark mt-1"><span>@estatisticas.ClientesAtivos</span></h3>
+                                <p class="text-muted mb-1 text-truncate">Ativos</p>
+                            </div>
+                        </div>
+                    </div> <!-- end row-->
+                </div>
+            </div> <!-- end widget-rounded-circle-->
+        </div> <!-- end col-->
+
+        <div class="col-md-6 col-xl-3">
+            <div class="widget-rounded-circle card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="avatar-lg rounded-circle bg-soft-info border-info border">
+                                <i class="fe-user-plus font-22 avatar-title text-info"></i>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-end">
+                                <h3 class="text-dark mt-1"><span>@estatisticas.NovosEsteMes</span></h3>
+                                <p class="text-muted mb-1 text-truncate">Novos (Mês)</p>
+                            </div>
+                        </div>
+                    </div> <!-- end row-->
+                </div>
+            </div> <!-- end widget-rounded-circle-->
+        </div> <!-- end col-->
+
+        <div class="col-md-6 col-xl-3">
+            <div class="widget-rounded-circle card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="avatar-lg rounded-circle bg-soft-warning border-warning border">
+                                <i class="fe-alert-triangle font-22 avatar-title text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-end">
+                                <h3 class="text-dark mt-1">€<span>@estatisticas.TotalEmDivida</span></h3>
+                                <p class="text-muted mb-1 text-truncate">Em Dívida</p>
+                            </div>
+                        </div>
+                    </div> <!-- end row-->
+                </div>
+            </div> <!-- end widget-rounded-circle-->
+        </div> <!-- end col-->
+    </div>
+    <!-- end row-->
+    <!-- Tabela de Listagem de Clientes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="dropdown float-end">
+                        <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a href="javascript:void(0);" class="dropdown-item">Exportar Excel</a>
+                            <a href="javascript:void(0);" class="dropdown-item">Imprimir Lista</a>
+                        </div>
+                    </div>
+
+                    <h4 class="header-title mb-3">Listagem de Clientes</h4>
+
+                    <div class="table-responsive">
+                        <table id="tabela-clientes" class="table table-borderless table-hover table-nowrap table-centered m-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="2">Cliente / Empresa</th>
+                                    <th>NIF</th>
+                                    <th>Email</th>
+                                    <th>Estado</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var cliente in meusClientes)
+                                {
+                                    <tr>
+                                        <td style="width: 36px;">
+                                            <!-- Um pequeno truque: se não houver foto, podes gerar um avatar com as iniciais futuramente -->
+                                            <div class="avatar-sm">
+                                                <span class="avatar-title bg-soft-secondary text-secondary rounded-circle">
+                                                    @cliente.Nome.Substring(0, 1)
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <h5 class="m-0 fw-normal">@cliente.Nome</h5>
+                                            <p class="mb-0 text-muted"><small>Tel: @cliente.Telemovel</small></p>
+                                        </td>
+                                        <td>
+                                            @cliente.Nif
+                                        </td>
+                                        <td>
+                                            @cliente.Email
+                                        </td>
+                                        <td>
+                                            @if (cliente.IsAtivo)
+                                            {
+                                                <span class="badge bg-soft-success text-success">Ativo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-soft-danger text-danger">Inativo</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <!-- Botão para ir para o Perfil Completo que desenhámos anteriormente -->
+                                            <a href="/backoffice/clientes/@cliente.Id" class="btn btn-xs btn-light" title="Ver Perfil">
+                                                <i class="mdi mdi-eye"></i>
+                                            </a>
+                                            <!-- Botão de Edição Rápida -->
+                                            <a href="/backoffice/clientes/editar/@cliente.Id" class="btn btn-xs btn-light" title="Editar">
+                                                <i class="mdi mdi-pencil"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div> <!-- end card-body-->
+            </div> <!-- end card-->
+        </div> <!-- end col -->
+    </div>
+    <!-- end row -->
+
+
+    
+
+</div> <!-- container -->
+@code {
+	// --- CLASSES LOCAIS PARA SIMULAÇÃO (Depois passas para a pasta DTOs) ---
+
+	private DTOs.Clientes.InserirClienteDto InserirClienteDto = new DTOs.Clientes.InserirClienteDto();
+	public class ClienteSimuladoDto
+	{
+		public int Id { get; set; }
+		public string Nome { get; set; }
+		public string Nif { get; set; }
+		public string Email { get; set; }
+		public string Telemovel { get; set; }
+		public bool IsAtivo { get; set; }
+	}
+
+	public class EstatisticasClientesDto
+	{
+		public int TotalClientes { get; set; }
+		public int ClientesAtivos { get; set; }
+		public int NovosEsteMes { get; set; }
+		public string TotalEmDivida { get; set; } // String para facilitar a formatação monetária por agora
+	}
+
+	// --- VARIÁVEIS DE ESTADO DA PÁGINA ---
+	private List<ClienteSimuladoDto> meusClientes = new List<ClienteSimuladoDto>();
+	private DTOs.Clientes.OverviewClientesDto estatisticas = new DTOs.Clientes.OverviewClientesDto();
+
+    protected override void OnInitialized()
+    {
+        // 1. Simular as Estatísticas do Topo
+        estatisticas = new DTOs.Clientes.OverviewClientesDto
+        {
+            TotalClientes = 124,
+            ClientesAtivos = 118,
+            NovosEsteMes = 12,
+			TotalEmDivida = 3250.75 // Formata como moeda com duas casas decimais
+        };
+
+        // 2. Simular a lista de Clientes
+        meusClientes = new List<ClienteSimuladoDto>
+        {
+            new ClienteSimuladoDto { Id = 1, Nome = "Tech Solutions Lda", Nif = "500123456", Email = "geral@tech.pt", Telemovel = "912345678", IsAtivo = true },
+            new ClienteSimuladoDto { Id = 2, Nome = "Padaria Central", Nif = "500987654", Email = "faturas@padariacentral.pt", Telemovel = "253111222", IsAtivo = true },
+            new ClienteSimuladoDto { Id = 3, Nome = "João Silva (Particular)", Nif = "211333444", Email = "joao.silva@gmail.com", Telemovel = "966555444", IsAtivo = false },
+            new ClienteSimuladoDto { Id = 4, Nome = "Construtora Horizonte", Nif = "501222333", Email = "financeiro@horizonte.com", Telemovel = "933222111", IsAtivo = true }
+        };
+    }
+
+    private async Task GravarDados()
+    {
+        // SE o código entrar aqui, é porque o formulário está 100% VÁLIDO!
+        // Não precisas de fazer "if (Empresa.Nome == null)". O Blazor já fez isso por ti.
+
+        // Podes chamar logo o teu serviço:
+        //await MeuServico.CriarEmpresaAsync(Empresa);
+
+        Console.WriteLine("Tudo válido! A gravar na base de dados...");
+    }
+    // Este evento dispara milissegundos depois de o HTML aparecer no ecrã
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Mandamos o browser ir buscar e executar o script de inicialização
+            await JS.InvokeVoidAsync("iniciarMinhaDataTable", "#tabela-clientes");
+        }
+    }
+}

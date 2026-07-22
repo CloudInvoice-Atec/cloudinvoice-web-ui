@@ -1,0 +1,71 @@
+﻿@using cloudinvoice_web_ui.DTOs.Clientes
+
+
+<div id="modalNovoCliente" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="standard-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="standard-modalLabel">Adicionar Novo Cliente</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <EditForm Model="@InserirClienteDto" OnValidSubmit="GravarCliente">
+            <div class="modal-body">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label">Nome da Empresa <span class="text-danger">*</span></label>
+                    <InputText @bind-Value="InserirClienteDto.Nome" class="form-control" placeholder="Ex: Tech Solutions" />
+                    <ValidationMessage For="@(() => InserirClienteDto.Nome)" class="text-danger mt-1" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">NIF/VAT <span class="text-danger">*</span></label>
+                    <InputText @bind-Value="InserirClienteDto.Nif" class="form-control" />
+                        <ValidationMessage For="@(() => InserirClienteDto.Nif)" class="text-danger mt-1" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Responsável da Empresa <span class="text-danger">*</span></label>
+                    <InputText @bind-Value="InserirClienteDto.Responsavel" class="form-control" placeholder="Ex: João Silva" />
+                    <ValidationMessage For="@(() => InserirClienteDto.Responsavel)" class="text-danger mt-1" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email da Empresa <span class="text-danger">*</span></label>
+                    <InputText @bind-Value="InserirClienteDto.Email" class="form-control" placeholder="Ex: joao.silva@empresa.com" />
+                    <ValidationMessage For="@(() => InserirClienteDto.Email)" class="text-danger mt-1" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Gravar Cliente</button>
+            </div>
+
+            </EditForm>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+@code {
+    private DTOs.Clientes.InserirClienteDto InserirClienteDto = new DTOs.Clientes.InserirClienteDto();
+    
+
+    // Método que o Layout vai chamar para abrir a modal!
+    public async Task Abrir()
+    {
+        // Limpa o formulário sempre que a modal abre
+        
+
+        // Usa JS para abrir a modal do Bootstrap 5
+        //await JS.InvokeVoidAsync("eval", "var myModal = new bootstrap.Modal(document.getElementById('modalNovoCliente')); myModal.show();");
+    }
+
+    private async Task GravarCliente()
+    {
+        // 1. Grava na API
+        // await ClienteService.CriarAsync(InserirClienteDto);
+
+        // 2. Fecha a Modal
+        //await JS.InvokeVoidAsync("eval", "var modalEl = document.getElementById('modalNovoCliente'); var modal = bootstrap.Modal.getInstance(modalEl); modal.hide();");
+
+        // 3. (Opcional) Redirecionar para o Perfil Completo do cliente recém-criado
+        // NavigationManager.NavigateTo($"/backoffice/clientes/{InserirClienteDto.Id}");
+    }
+}

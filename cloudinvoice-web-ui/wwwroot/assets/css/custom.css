@@ -1,0 +1,27 @@
+ul.nav.nav-pills.form-wizard-header{
+    flex-wrap: nowrap;
+}
+ul.nav.nav-pills.form-wizard-header .nav-link.active .d-none{
+    text-wrap: nowrap;
+}
+
+.nav-pills a {
+    color: var(--ct-gray-700);
+    font-weight: 600;
+}
+
+.toggle-checkbox{
+    cursor: pointer;
+}
+.toggle-checkbox.disabled{
+    background: #f2f2f2;
+}
+@media only screen and (max-width: 768px) {
+    ul.nav.nav-pills.form-wizard-header .nav-link.active .d-none{
+        display: block !important;
+    }
+
+    .nav.nav-pills.navtab-bg.nav-pills-tab.text-center{
+        flex-direction: column;
+    } 
+}
