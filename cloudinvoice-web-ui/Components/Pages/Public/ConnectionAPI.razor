@@ -1,0 +1,184 @@
+﻿@layout Layout.PublicLayout
+@inject IJSRuntime JS
+@page "/connection-api"
+
+<h4 class="mt-0">Teste de Ligação</h4>
+<p class="text-muted mb-4">Aqui pode verificar o estado de cada API integrada com a plataforma.</p>
+
+<div class="d-flex mb-3">
+    <div class="col-md-8">
+        <h5 class="font-size-14 mb-1">Billing API</h5>
+        <p class="text-muted font-size-13">Verifica a ligação com a Billing API.</p>
+    </div>
+    <div class="col-md-2 offset-md-2 text-center">
+        @if (!isBillingAPISuccess && !isBillingAPIFailure)
+        {
+            <button class="btn btn-primary" @onclick="TestBillingAPI">Testar</button>
+        }
+        @if (isBillingAPISuccess)
+        {
+            <div class="test-success">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                    <circle class="path circle" fill="none" stroke="#4bd396" stroke-width="6" stroke-miterlimit="10" cx="65.1" cy="65.1" r="62.1"/>
+                    <polyline class="path check" fill="none" stroke="#4bd396" stroke-width="6" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+                </svg>
+            </div>
+        }
+        @if (isBillingAPIFailure)
+        {
+            <div class="test-failure">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                    <circle class="path circle" fill="none" stroke="#f46a6a" stroke-width="6" stroke-miterlimit="10" cx="65.1" cy="65.1" r="62.1"/>
+                    <line class="path line" fill="none" stroke="#f46a6a" stroke-width="6" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+                    <line class="path line" fill="none" stroke="#f46a6a" stroke-width="6" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38.1" x2="34.4" y2="92.5"/>
+                </svg>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="d-flex mb-3">
+    <div class="col-md-8">
+        <h5 class="font-size-14 mb-1">Catalog API</h5>
+        <p class="text-muted font-size-13">Verifica a ligação com a Catalog API.</p>
+    </div>
+    <div class="col-md-2 offset-md-2 text-center">
+        @if (!isCatalogAPISuccess && !isCatalogAPIFailure)
+        {
+            <button class="btn btn-primary" @onclick="TestCatalogAPI">Testar</button>
+        }
+        @if (isCatalogAPISuccess)
+        {
+            <div class="test-success">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                    <circle class="path circle" fill="none" stroke="#4bd396" stroke-width="6" stroke-miterlimit="10" cx="65.1" cy="65.1" r="62.1"/>
+                    <polyline class="path check" fill="none" stroke="#4bd396" stroke-width="6" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+                </svg>
+            </div>
+        }
+        @if (isCatalogAPIFailure)
+        {
+            <div class="test-failure">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                    <circle class="path circle" fill="none" stroke="#f46a6a" stroke-width="6" stroke-miterlimit="10" cx="65.1" cy="65.1" r="62.1"/>
+                    <line class="path line" fill="none" stroke="#f46a6a" stroke-width="6" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+                    <line class="path line" fill="none" stroke="#f46a6a" stroke-width="6" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38.1" x2="34.4" y2="92.5"/>
+                </svg>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="d-flex mb-3">
+    <div class="col-md-8">
+        <h5 class="font-size-14 mb-1">Identity API</h5>
+        <p class="text-muted font-size-13">Verifica a ligação com a Identity API.</p>
+    </div>
+    <div class="col-md-2 offset-md-2 text-center">
+        @if (!isIdentityAPISuccess && !isIdentityAPIFailure)
+        {
+            <button class="btn btn-primary" @onclick="TestIdentityAPI">Testar</button>
+        }
+        @if (isIdentityAPISuccess)
+        {
+            <div class="test-success">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                    <circle class="path circle" fill="none" stroke="#4bd396" stroke-width="6" stroke-miterlimit="10" cx="65.1" cy="65.1" r="62.1"/>
+                    <polyline class="path check" fill="none" stroke="#4bd396" stroke-width="6" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+                </svg>
+            </div>
+        }
+        @if (isIdentityAPIFailure)
+        {
+            <div class="test-failure">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                    <circle class="path circle" fill="none" stroke="#f46a6a" stroke-width="6" stroke-miterlimit="10" cx="65.1" cy="65.1" r="62.1"/>
+                    <line class="path line" fill="none" stroke="#f46a6a" stroke-width="6" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+                    <line class="path line" fill="none" stroke="#f46a6a" stroke-width="6" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38.1" x2="34.4" y2="92.5"/>
+                </svg>
+            </div>
+        }
+    </div>
+</div>
+
+<footer class="footer footer-alt">
+    <p class="text-muted">@DateTime.Now.Year &copy; CloudInvoice</p>
+</footer>
+
+@code {
+	private bool isBillingAPISuccess = false;
+	private bool isBillingAPIFailure = false;
+
+	private bool isCatalogAPISuccess = false;
+	private bool isCatalogAPIFailure = false;
+
+	private bool isIdentityAPISuccess = false;
+	private bool isIdentityAPIFailure = false;
+
+	private async Task TestBillingAPI()
+	{
+		try
+		{
+			using var httpClient = new HttpClient();
+			var response = await httpClient.GetAsync("https://localhost:5005/api/system/health");
+			if (response.IsSuccessStatusCode)
+			{
+				isBillingAPISuccess = true;
+                isBillingAPIFailure = false;
+            }
+            else
+            {
+                isBillingAPISuccess = false;
+                isBillingAPIFailure = true;
+            }
+        }
+        catch
+        {
+            isBillingAPISuccess = false;
+            isBillingAPIFailure = true;
+        }
+        StateHasChanged();
+    }
+
+    private async Task TestCatalogAPI()
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetAsync("https://localhost:5003/api/system/health");
+            if (response.IsSuccessStatusCode)
+            {
+                isCatalogAPISuccess = true;
+                isCatalogAPIFailure = false;
+            }
+            else
+            {
+                isCatalogAPISuccess = false;
+                isCatalogAPIFailure = true;
+            }
+        }
+        catch
+        {
+            isCatalogAPISuccess = false;
+            isCatalogAPIFailure = true;
+        }
+        StateHasChanged();
+    }
+
+    private async Task TestIdentityAPI()
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetAsync("https://localhost:5001/api/system/health");
+            isIdentityAPISuccess = response.IsSuccessStatusCode;
+            isIdentityAPIFailure = !response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            isIdentityAPISuccess = false;
+            isIdentityAPIFailure = true;
+        }
+        StateHasChanged();
+    }
+}

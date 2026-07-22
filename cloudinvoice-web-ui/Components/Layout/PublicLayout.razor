@@ -1,22 +1,80 @@
-﻿@inherits LayoutComponentBase 
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+@implements IDisposable
 
-<div class="page">
-    <div class="sidebar">
-    </div>
+<div class="auth-fluid-pages pb-0">
+    <div class="auth-fluid">
+        <!--Auth fluid left content -->
+        <div class="auth-fluid-form-box">
+            <div class="align-items-center d-flex h-100">
+                <div class="p-3">
+                    <!-- Logo -->
+                    <div class="auth-brand text-center text-lg-start">
+                        <div class="auth-brand">
+                            <a href="/" class="logo logo-dark text-center">
+                                <span class="logo-lg">
+                                    <img src="assets/images/logo-horizontal.png" alt="" height="60">
+                                </span>
+                            </a>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">Abffout</a>
+                            <a href="/" class="logo logo-light text-center">
+                                <span class="logo-lg">
+                                    <img src="assets/images/logo-horizontal-dark.png" alt="" height="60">
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                    @Body
+                </div>
+            </div>
         </div>
+        <!-- end auth-fluid-form-box-->
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+        <!-- Auth fluid right content -->
+        <div class="auth-fluid-right text-center">
+            <div class="auth-user-testimonial">
+                <h2 class="mb-3 text-white">I love the color!</h2>
+                <p class="lead"><i class="mdi mdi-format-quote-open"></i> I've been using your theme from the previous developer for our web app, once I knew new version is out, I immediately bought with no hesitation. Great themes, good documentation with lots of customization available and sample app that really fit our need. <i class="mdi mdi-format-quote-close"></i>
+                </p>
+                <h5 class="text-white">
+                    - Fadlisaad (Ubold Admin User)
+                </h5>
+            </div> <!-- end auth-user-testimonial-->
+        </div>
+        <!-- end Auth fluid right content -->
+    </div>
+    <!-- end auth-fluid-->
 </div>
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+@code {
+    // Referência para podermos falar com a modal
+
+    
+    // 1. Quando o Layout arranca, ficamos à escuta de mudanças de URL
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    // 2. Quando o Blazor acaba de desenhar o ecrã pela primeira vez, recarrega o JS
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("recarregarScriptsDoTemplate");
+        }
+    }
+
+    // 3. Sempre que o utilizador clica num link do menu e muda de página, recarrega o JS
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        await JS.InvokeVoidAsync("recarregarScriptsDoTemplate");
+    }
+
+    // 4. Limpeza de memória (Boas práticas de Arquitetura)
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+    }
+}

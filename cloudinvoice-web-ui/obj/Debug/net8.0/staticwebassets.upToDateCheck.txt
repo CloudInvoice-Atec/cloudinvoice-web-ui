@@ -3710,4 +3710,4 @@ wwwroot\assets\libs\x-editable\LICENSE-MIT
 wwwroot\bootstrap\bootstrap.min.css
 wwwroot\bootstrap\bootstrap.min.css.map
 wwwroot\favicon.png
-C:\Users\jorge\OneDrive - ATEC - Academia de Formação\C#\WEBAPI\cloudinvoice-web-ui\cloudinvoice-web-ui\wwwroot\assets\libs\autonumeric\autoNumeric.min.js
+C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\wwwroot\assets\libs\autonumeric\autoNumeric.min.js
