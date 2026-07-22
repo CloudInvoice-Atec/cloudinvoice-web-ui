@@ -1,0 +1,62 @@
+﻿@layout Layout.PublicLayout
+@inject IJSRuntime JS
+@page "/"
+
+<h4 class="mt-0">Login</h4>
+<p class="text-muted mb-4">Introduza o seu email e password para aceder à sua conta.</p>
+
+<!-- form -->
+<form action="#">
+    <div class="mb-3">
+        <label for="emailaddress" class="form-label">Endereço de email</label>
+        <input class="form-control" type="email" id="emailaddress" required="" placeholder="Introduza o seu email">
+    </div>
+    <div class="mb-3">
+        <a href="auth-recoverpw-2.html" class="text-muted float-end"><small>Esqueceu a sua password?</small></a>
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group input-group-merge">
+            <input type="password" id="password" class="form-control" placeholder="Introduza a sua password">
+            <div class="input-group-text" data-password="false">
+                <span class="password-eye"></span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="checkbox-signin">
+            <label class="form-check-label" for="checkbox-signin">Lembrar-me</label>
+        </div>
+    </div>
+    <div class="text-center d-grid">
+        <button class="btn btn-primary" type="submit">Iniciar Sessão</button>
+    </div>
+    <!-- social-->
+    <div class="text-center mt-4">
+        <p class="text-muted font-16">Iniciar sessão com</p>
+        <ul class="social-list list-inline mt-3">
+            <li class="list-inline-item">
+                <a href="javascript: void(0);" class="social-list-item border-primary text-primary"><i class="mdi mdi-facebook"></i></a>
+            </li>
+            <li class="list-inline-item">
+                <a href="javascript: void(0);" class="social-list-item border-danger text-danger"><i class="mdi mdi-google"></i></a>
+            </li>
+            <li class="list-inline-item">
+                <a href="javascript: void(0);" class="social-list-item border-info text-info"><i class="mdi mdi-twitter"></i></a>
+            </li>
+            <li class="list-inline-item">
+                <a href="javascript: void(0);" class="social-list-item border-secondary text-secondary"><i class="mdi mdi-github"></i></a>
+            </li>
+        </ul>
+    </div>
+</form>
+<!-- end form-->
+
+<!-- Footer-->
+<footer class="footer footer-alt">
+    <p class="text-muted">Testar as ligações às API's?  <a href="/connection-api" class="text-muted ms-1"><b>Testar aqui</b></a></p>
+</footer>
+
+@code {
+   
+}

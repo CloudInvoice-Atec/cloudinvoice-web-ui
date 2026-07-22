@@ -63,8 +63,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQdWJsaWNcQ29ubmVjdGlvbkFQSS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/jorge/source/repos/cloudinvoice-web-ui/cloudinvoice-web-ui/Components/Pages/Public/Home.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQdWJsaWNcSG9tZS5yYXpvcg==
+[C:/Users/jorge/source/repos/cloudinvoice-web-ui/cloudinvoice-web-ui/Components/Pages/Public/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQdWJsaWNcTG9naW4ucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/jorge/source/repos/cloudinvoice-web-ui/cloudinvoice-web-ui/Components/Routes.razor]
