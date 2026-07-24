@@ -1,7 +1,8 @@
 ﻿################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
-
+/cloudinvoice-web-ui/obj/
+/cloudinvoice-web-ui/bin/
 /.vs
 # Ignorar pastas de compilação e debug do .NET
 [Bb]in/
