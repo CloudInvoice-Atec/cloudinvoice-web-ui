@@ -1,4 +1,5 @@
 using cloudinvoice_web_ui.Components;
+using Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddTransient<JwtAuthorizationHandler>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // HttpClient para a Identity.API
 builder.Services.AddHttpClient("IdentityAPI", client =>

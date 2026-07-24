@@ -1,37 +1,67 @@
-﻿@layout Layout.PublicLayout
+﻿@page "/"
+@using cloudinvoice_web_ui.Models.Auth
+@using cloudinvoice_web_ui.Services
+@layout Layout.PublicLayout
 @inject IJSRuntime JS
-@page "/"
+@* Vamos precisar do NavigationManager para redirecionar após o login *@
+@inject NavigationManager NavigationManager
+@inject IAuthService AuthService
 
 <h4 class="mt-0">Login</h4>
 <p class="text-muted mb-4">Introduza o seu email e password para aceder à sua conta.</p>
 
-<!-- form -->
-<form action="#">
+@* Alerta para mostrar mensagens de erro da API *@
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<!-- Substituímos o <form> pelo EditForm do Blazor -->
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+
     <div class="mb-3">
         <label for="emailaddress" class="form-label">Endereço de email</label>
-        <input class="form-control" type="email" id="emailaddress" required="" placeholder="Introduza o seu email">
+        <!-- Trocámos o input normal por InputText e ligámos ao modelo -->
+        <InputText @bind-Value="loginModel.Email" class="form-control" id="emailaddress" placeholder="Introduza o seu email" />
+        <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" />
     </div>
+
     <div class="mb-3">
         <a href="auth-recoverpw-2.html" class="text-muted float-end"><small>Esqueceu a sua password?</small></a>
         <label for="password" class="form-label">Password</label>
         <div class="input-group input-group-merge">
-            <input type="password" id="password" class="form-control" placeholder="Introduza a sua password">
+            <!-- Ligámos a password ao modelo -->
+            <InputText @bind-Value="loginModel.Password" type="password" id="password" class="form-control" placeholder="Introduza a sua password" />
             <div class="input-group-text" data-password="false">
                 <span class="password-eye"></span>
             </div>
         </div>
+        <ValidationMessage For="@(() => loginModel.Password)" class="text-danger" />
     </div>
-    
+
     <div class="mb-3">
         <div class="form-check">
             <input type="checkbox" class="form-check-input" id="checkbox-signin">
             <label class="form-check-label" for="checkbox-signin">Lembrar-me</label>
         </div>
     </div>
+
     <div class="text-center d-grid">
-        <button class="btn btn-primary" type="submit">Iniciar Sessão</button>
+        <button class="btn btn-primary" type="submit" disabled="@isLoading">
+            @if (isLoading)
+            {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span>A iniciar sessão</span>
+            }
+            else
+            {
+                <span>Iniciar Sessão</span>
+            }
+        </button>
     </div>
-    <!-- social-->
+
+    <!-- social (mantive exatamente igual ao teu) -->
     <div class="text-center mt-4">
         <p class="text-muted font-16">Iniciar sessão com</p>
         <ul class="social-list list-inline mt-3">
@@ -49,14 +79,45 @@
             </li>
         </ul>
     </div>
-</form>
+</EditForm>
 <!-- end form-->
-
 <!-- Footer-->
 <footer class="footer footer-alt">
     <p class="text-muted">Testar as ligações às API's?  <a href="/connection-api" class="text-muted ms-1"><b>Testar aqui</b></a></p>
 </footer>
 
 @code {
-   
+    private LoginRequest loginModel = new LoginRequest();
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            // Chama a API real!
+            var result = await AuthService.LoginAsync(loginModel);
+
+            if (result.IsSuccess)
+            {
+                // SUCESSO! Aqui vamos guardar o Token e avisar o sistema...
+                NavigationManager.NavigateTo("/dashboard");
+            }
+            else
+            {
+                errorMessage = result.Message ?? "Credenciais inválidas.";
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Ocorreu um erro ao contactar o servidor.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
 }
