@@ -3,3 +3,19 @@
 ################################################################################
 
 /.vs
+/cloudinvoice-web-ui/bin/Debug/net8.0/cloudinvoice-web-ui.dll
+/cloudinvoice-web-ui/bin/Debug/net8.0/cloudinvoice-web-ui.exe
+/cloudinvoice-web-ui/bin/Debug/net8.0/cloudinvoice-web-ui.pdb
+/cloudinvoice-web-ui/obj/Debug/net8.0/ref/cloudinvoice-web-ui.dll
+/cloudinvoice-web-ui/obj/Debug/net8.0/refint/cloudinvoice-web-ui.dll
+/cloudinvoice-web-ui/obj/Debug/net8.0/apphost.exe
+/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.AssemblyInfo.cs
+/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.AssemblyInfoInputs.cache
+/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.csproj.CoreCompileInputs.cache
+/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.dll
+/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.GeneratedMSBuildEditorConfig.editorconfig
+/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.pdb
+/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.sourcelink.json
+/cloudinvoice-web-ui/obj/Debug/net8.0/rjsmcshtml.dswa.cache.json
+/cloudinvoice-web-ui/obj/Debug/net8.0/rjsmrazor.dswa.cache.json
+/cloudinvoice-web-ui/obj/Debug/net8.0/rpswa.dswa.cache.json

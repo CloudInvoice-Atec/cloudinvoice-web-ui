@@ -14,7 +14,7 @@ namespace cloudinvoice_web_ui.DTOs.Clientes
         [Required(ErrorMessage = "O email é obrigatório.")]
         public string Email { get; set; }
         
-        public int Ativo { get; set; } = 0;
+        public int Ativo { get; set; }
 
     }
 }

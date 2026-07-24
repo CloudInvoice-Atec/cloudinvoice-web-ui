@@ -1,8 +1,14 @@
-﻿@layout Layout.AdminLayout
-@inject IJSRuntime JS
-
-@page "/backoffice/clientes/{Id:guid}"
+﻿@page "/backoffice/clientes/{Id:guid}"
 @page "/backoffice/clientes/perfil-teste"
+
+@using cloudinvoice_web_ui.DTOs.Clientes
+@using cloudinvoice_web_ui.DTOs.Invoices
+@using cloudinvoice_web_ui.Services.Customers
+@using cloudinvoice_web_ui.Services.Invoices 
+
+@inject ICustomerService CustomerService
+@inject IInvoiceService InvoiceService
+
 
 <div class="container-fluid">
 
@@ -16,7 +22,6 @@
                     <a href="/backoffice/clientes" class="btn btn-secondary waves-effect waves-light me-1">
                         <i class="mdi mdi-arrow-left me-1"></i> Voltar à Lista
                     </a>
-                    <!-- Botão de Editar -->
                     <a href="/backoffice/clientes/editar/@(customer?.Id)" class="btn btn-primary waves-effect waves-light">
                         <i class="mdi mdi-pencil me-1"></i> Editar Cliente
                     </a>
@@ -40,10 +45,10 @@
             <div class="col-xl-4 col-lg-5">
                 <div class="card text-center">
                     <div class="card-body">
-                        <!-- Avatar / Iniciais do Cliente -->
+                        <!-- Avatar -->
                         <div class="avatar-xl mx-auto mb-3">
                             <span class="avatar-title bg-soft-primary text-primary rounded-circle font-24">
-                                @customer.Name.Substring(0, 1).ToUpper()
+                                @(string.IsNullOrEmpty(customer.Name) ? "?" : customer.Name.Substring(0, 1).ToUpper())
                             </span>
                         </div>
 
@@ -63,9 +68,9 @@
 
                         <div class="text-start mt-4 pt-2 border-top">
                             <h4 class="font-13 text-uppercase mb-3">Resumo Financeiro</h4>
-                            <p class="text-muted mb-2 font-13"><strong>Em Dívida:</strong> <span class="ms-2 text-danger">@customer.CurrentDebt.ToString("C")</span></p>
-                            <p class="text-muted mb-2 font-13"><strong>Limite Crédito:</strong> <span class="ms-2">@customer.CreditLimit.ToString("C")</span></p>
-                            <p class="text-muted mb-2 font-13"><strong>Total Faturado:</strong> <span class="ms-2 text-success">@customer.TotalInvoiced.ToString("C")</span></p>
+                            <p class="text-muted mb-2 font-13"><strong>Em Dívida:</strong> <span class="ms-2 text-danger">@customer.CurrentDebt</span></p>
+                            <p class="text-muted mb-2 font-13"><strong>Limite Crédito:</strong> <span class="ms-2">@customer.CreditLimit</span></p>
+                            <p class="text-muted mb-2 font-13"><strong>Total Faturado:</strong> <span class="ms-2 text-success">@customer.TotalInvoiced</span></p>
                             <p class="text-muted mb-2 font-13"><strong>Condições Pag.:</strong> <span class="ms-2">@customer.PaymentTermsDays Dias</span></p>
                         </div>
 
@@ -87,7 +92,7 @@
                 </div>
             </div>
 
-            <!-- COLUNA DIREITA: Separadores com a Informação Densa -->
+            <!-- COLUNA DIREITA -->
             <div class="col-xl-8 col-lg-7">
                 <div class="card">
                     <div class="card-body">
@@ -108,9 +113,8 @@
                         <!-- Conteúdo das Tabs -->
                         <div class="tab-content mt-3">
 
-                            <!-- TAB 1: Detalhes (Apenas Leitura) -->
+                            <!-- TAB 1: Detalhes -->
                             <div class="tab-pane show active" id="detalhes">
-                                
                                 <h5 class="mb-3 text-uppercase bg-light p-2"><i class="mdi mdi-office-building me-1"></i> Informação Geral</h5>
                                 <div class="row mb-4">
                                     <div class="col-md-6 mb-2">
@@ -158,7 +162,6 @@
                                         <h6 class="font-14 mt-1">@customer.DefaultDiscount%</h6>
                                     </div>
                                 </div>
-
                             </div>
 
                             <!-- TAB 2: Faturas -->
@@ -231,7 +234,6 @@
                                     </table>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -249,103 +251,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Simular um atraso de rede
-        await Task.Delay(500);
+        var customerId = Id ?? Guid.NewGuid();
 
-        // Mock dos dados do cliente
-        customer = new CustomerProfileDto
-        {
-            Id = this.Id ?? Guid.NewGuid(),
-            Name = "Tech Solutions, Lda",
-            TradeName = "TechSol",
-            TaxId = "500123456",
-            IsActive = true,
-            CurrentDebt = 1250.00m,
-            CreditLimit = 5000.00m,
-            TotalInvoiced = 14500.00m,
-            PaymentTermsDays = 30,
-            Email = "geral@techsolutions.pt",
-            Phone = "+351 253 111 222",
-            Website = "https://www.techsolutions.pt",
-            Address = "Rua da Inovação, Lote 45, Edifício A",
-            City = "Guimarães",
-            PostalCode = "4800-000",
-            Country = "Portugal",
-            DefaultDiscount = 5.0m,
-            CreatedAt = new DateTime(2022, 5, 10),
+        // 1. Obter Perfil do Cliente via CustomerService
+        customer = await CustomerService.GetCustomerProfileAsync(customerId);
 
-            // Contacto Responsável
-            ContactPersonName = "João Silva",
-            ContactPersonRole = "Diretor Financeiro",
-            ContactPersonEmail = "joao.silva@techsolutions.pt",
-            ContactPersonPhone = "+351 912 345 678"
-        };
-
-        // Mock das faturas
-        customerInvoices = new List<InvoiceSummaryDto>
-        {
-            new InvoiceSummaryDto 
-            { 
-                InvoiceNumber = "FT 2026/0045", 
-                IssueDate = DateTime.Now.AddDays(-5), 
-                DueDate = DateTime.Now.AddDays(25), 
-                TotalAmount = 750.00m, 
-                Status = "Unpaid" 
-            },
-            new InvoiceSummaryDto 
-            { 
-                InvoiceNumber = "FT 2026/0012", 
-                IssueDate = DateTime.Now.AddDays(-40), 
-                DueDate = DateTime.Now.AddDays(-10), 
-                TotalAmount = 500.00m, 
-                Status = "Overdue" 
-            },
-            new InvoiceSummaryDto 
-            { 
-                InvoiceNumber = "FT 2026/0003", 
-                IssueDate = DateTime.Now.AddDays(-60), 
-                DueDate = DateTime.Now.AddDays(-30), 
-                TotalAmount = 1250.00m, 
-                Status = "Paid" 
-            }
-        };
-    }
-
-    // --- DTOs (Agora em Inglês) ---
-    public class CustomerProfileDto
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string TradeName { get; set; }
-        public string TaxId { get; set; }
-        public bool IsActive { get; set; }
-        public decimal? CurrentDebt { get; set; }
-        public decimal? CreditLimit { get; set; }
-        public decimal? TotalInvoiced { get; set; }
-        public int? PaymentTermsDays { get; set; }
-        public string? Email { get; set; }
-        public string? Phone { get; set; }
-        public string? Website { get; set; }
-        public string? Address { get; set; }
-        public string? City { get; set; }
-        public string? PostalCode { get; set; }
-        public string? Country { get; set; }
-        public decimal DefaultDiscount { get; set; }
-        public DateTime CreatedAt { get; set; }
-
-        // Responsável Principal
-        public string ContactPersonName { get; set; }
-        public string ContactPersonRole { get; set; }
-        public string ContactPersonEmail { get; set; }
-        public string ContactPersonPhone { get; set; }
-    }
-
-    public class InvoiceSummaryDto
-    {
-        public string InvoiceNumber { get; set; }
-        public DateTime IssueDate { get; set; }
-        public DateTime DueDate { get; set; }
-        public decimal TotalAmount { get; set; }
-        public string Status { get; set; } // Paid, Unpaid, Overdue
+        // 2. Obter as últimas 5 Faturas via InvoiceService
+        customerInvoices = await InvoiceService.GetRecentCustomerInvoicesAsync(customerId, count: 5);
     }
 }

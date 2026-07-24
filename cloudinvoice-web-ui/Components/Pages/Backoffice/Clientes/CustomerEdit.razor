@@ -1,0 +1,271 @@
+﻿@page "/backoffice/clientes/editar/{Id:guid}"
+@page "/backoffice/clientes/editar-teste"
+@layout Layout.AdminLayout
+@inject NavigationManager Navigation
+
+@using cloudinvoice_web_ui.DTOs.Clientes
+@using cloudinvoice_web_ui.Services.Customers
+@using cloudinvoice_web_ui.Enums
+@inject ICustomerService CustomerService
+
+<div class="container-fluid">
+
+<!-- Cabeçalho da Página -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-flex align-items-center justify-content-between">
+            <h4 class="page-title mb-0 font-size-18">Editar Cliente</h4>
+
+            <div class="page-title-right">
+            <!-- Voltar atrás cancela a edição -->
+            <button type="button" class="btn btn-secondary waves-effect waves-light" @onclick="GoBack">
+                <i class="mdi mdi-arrow-left me-1"></i> Cancelar
+            </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    @if (_isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2">A carregar dados do cliente...</p>
+    </div>
+}
+else if (customer != null)
+{
+    <EditForm Model="@customer" OnValidSubmit="SaveChanges">
+        <DataAnnotationsValidator />
+
+        <div class="row mt-3">
+
+            <!-- COLUNA ESQUERDA -->
+            <div class="col-xl-6">
+                <!-- DADOS GERAIS -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-office-building me-1"></i> Dados Gerais</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Nome Completo <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="customer.Name" class="form-control" placeholder="Nome da Empresa" />
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="form-check form-switch mb-2">
+                                    <InputCheckbox @bind-Value="customer.IsActive" class="form-check-input" id="isActiveSwitch" />
+                                    <label class="form-check-label" for="isActiveSwitch">Cliente Ativo</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nome Comercial (Marca)</label>
+                                <InputText @bind-Value="customer.TradeName" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">NIF <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="customer.TaxId" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MORADA -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-map-marker me-1"></i> Localização</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label">Morada <span class="text-danger">*</span></label>
+                            <InputText @bind-Value="customer.Address" class="form-control" />
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Cód. Postal <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="customer.PostalCode" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Cidade <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="customer.City" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                    <label for="company-country" class="form-label">País <span class="text-danger">*</span></label>
+                                    <InputSelect id="company-country" class="form-select select2" @bind-Value="customer.Country">
+                                        <option value="">Selecione um país...</option>
+
+                                        @foreach (var country in Enum.GetValues<CountryEnum>())
+                                        {
+                                            <option value="@country.ToString()">@country.ToString()</option>
+                                        }
+
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => customer.Country)" class="text-danger mt-1" />
+                            </div>  
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUNA DIREITA -->
+            <div class="col-xl-6">
+                <!-- CONTACTOS DA EMPRESA -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-phone me-1"></i> Contactos Gerais</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Email Principal <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="customer.Email" class="form-control" type="email" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Telefone Principal</label>
+                                <InputText @bind-Value="customer.Phone" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Website</label>
+                            <InputText @bind-Value="customer.Website" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PESSOA RESPONSÁVEL -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-account-tie me-1"></i> Pessoa Responsável</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nome</label>
+                                <InputText @bind-Value="customer.ContactPersonName" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Cargo</label>
+                                <InputText @bind-Value="customer.ContactPersonRole" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Email Direto</label>
+                                <InputText @bind-Value="customer.ContactPersonEmail" class="form-control" type="email" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Telefone Direto</label>
+                                <InputText @bind-Value="customer.ContactPersonPhone" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DADOS FINANCEIROS -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-currency-eur me-1"></i> Faturação e Financeiro</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Limite de Crédito (€)</label>
+                                <InputNumber @bind-Value="customer.CreditLimit" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Condições Pag. (Dias)</label>
+                                <InputNumber @bind-Value="customer.PaymentTermsDays" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Desconto Padrão (%)</label>
+                                <InputNumber @bind-Value="customer.DefaultDiscount" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÕES DE AÇÃO -->
+        <div class="row mb-5">
+            <div class="col-12 text-end">
+                <button type="button" class="btn btn-light me-2 waves-effect" @onclick="GoBack">Cancelar</button>
+
+                @if (_isSaving)
+                {
+                    <button type="button" class="btn btn-success waves-effect waves-light" disabled>
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        A gravar...
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" class="btn btn-success waves-effect waves-light">
+                        <i class="mdi mdi-content-save me-1"></i> Guardar Alterações
+                    </button>
+                }
+            </div>
+        </div>
+    </EditForm>
+}
+else
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        Não foi possível carregar os dados do cliente.
+    </div>
+}
+</div>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; } // Agora é opcional (Guid?)
+
+    private CustomerProfileDto customer;
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+
+        // Se abrires a rota de teste (/editar-teste), o Id vem nulo.
+        // Usamos um Guid temporário para o serviço carregar os dados Fake.
+        var customerId = Id ?? Guid.NewGuid();
+
+        customer = await CustomerService.GetCustomerProfileAsync(customerId);
+
+        _isLoading = false;
+    }
+
+    private async Task SaveChanges()
+    {
+        _isSaving = true;
+
+        var targetId = Id ?? customer.Id;
+        var success = await CustomerService.UpdateCustomerAsync(targetId, customer);
+
+        _isSaving = false;
+
+        // Redireciona de volta para a página de perfil (ou perfil de teste)
+        if (Id.HasValue)
+        {
+            Navigation.NavigateTo($"/backoffice/clientes/{Id.Value}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/backoffice/clientes/perfil-teste");
+        }
+    }
+
+    private void GoBack()
+    {
+        if (Id.HasValue)
+        {
+            Navigation.NavigateTo($"/backoffice/clientes/{Id.Value}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/backoffice/clientes/perfil-teste");
+        }
+    }
+}

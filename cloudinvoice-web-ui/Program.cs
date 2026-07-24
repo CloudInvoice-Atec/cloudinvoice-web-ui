@@ -1,4 +1,7 @@
 using cloudinvoice_web_ui.Components;
+using cloudinvoice_web_ui.Services.Customers;
+using cloudinvoice_web_ui.Services.Invoices;
+using cloudinvoice_web_ui.Services.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
