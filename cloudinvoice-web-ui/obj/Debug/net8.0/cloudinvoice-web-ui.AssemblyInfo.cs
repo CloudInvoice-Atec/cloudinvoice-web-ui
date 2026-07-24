@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("cloudinvoice-web-ui")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d461b486e10d9612eaa7cd57eab6d42e265325e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cac26eecfd2ebdc36809c9ff6a78b45e045d54f4")]
 [assembly: System.Reflection.AssemblyProductAttribute("cloudinvoice-web-ui")]
 [assembly: System.Reflection.AssemblyTitleAttribute("cloudinvoice-web-ui")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
