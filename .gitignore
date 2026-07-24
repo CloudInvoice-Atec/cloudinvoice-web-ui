@@ -1,5 +1,21 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/.vs
+﻿# Visual Studio / .NET Core / C# ignore file
+[Oo]bj/
+[Bb]in/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+project.lock.json
+project.fragment.lock.json
+artifacts/
+TestResults/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+pack/
+publish/
+*.log
