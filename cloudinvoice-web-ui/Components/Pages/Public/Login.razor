@@ -1,6 +1,6 @@
 ﻿@page "/"
+@using Services.Auth
 @using cloudinvoice_web_ui.Models.Auth
-@using cloudinvoice_web_ui.Services
 @layout Layout.PublicLayout
 @inject IJSRuntime JS
 @* Vamos precisar do NavigationManager para redirecionar após o login *@
@@ -104,7 +104,8 @@
             if (result.IsSuccess)
             {
                 // SUCESSO! Aqui vamos guardar o Token e avisar o sistema...
-                NavigationManager.NavigateTo("/dashboard");
+                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+                NavigationManager.NavigateTo("/backoffice");
             }
             else
             {
