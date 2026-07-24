@@ -1,21 +1,19 @@
 ﻿################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
-
+/cloudinvoice-web-ui/obj/
+/cloudinvoice-web-ui/bin/
 /.vs
-/cloudinvoice-web-ui/bin/Debug/net8.0/cloudinvoice-web-ui.dll
-/cloudinvoice-web-ui/bin/Debug/net8.0/cloudinvoice-web-ui.exe
-/cloudinvoice-web-ui/bin/Debug/net8.0/cloudinvoice-web-ui.pdb
-/cloudinvoice-web-ui/obj/Debug/net8.0/ref/cloudinvoice-web-ui.dll
-/cloudinvoice-web-ui/obj/Debug/net8.0/refint/cloudinvoice-web-ui.dll
-/cloudinvoice-web-ui/obj/Debug/net8.0/apphost.exe
+# Ignorar pastas de compilação e debug do .NET
+[Bb]in/
+[Oo]bj/
 /cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.AssemblyInfo.cs
 /cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.AssemblyInfoInputs.cache
-/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.csproj.CoreCompileInputs.cache
-/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.dll
+/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.assets.cache
 /cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.GeneratedMSBuildEditorConfig.editorconfig
-/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.pdb
-/cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.sourcelink.json
-/cloudinvoice-web-ui/obj/Debug/net8.0/rjsmcshtml.dswa.cache.json
-/cloudinvoice-web-ui/obj/Debug/net8.0/rjsmrazor.dswa.cache.json
+/cloudinvoice-web-ui/obj/Debug/net8.0/staticwebassets.removed.txt
 /cloudinvoice-web-ui/obj/Debug/net8.0/rpswa.dswa.cache.json
+/cloudinvoice-web-ui/obj/cloudinvoice-web-ui.csproj.nuget.g.props
+/cloudinvoice-web-ui/obj/cloudinvoice-web-ui.csproj.nuget.dgspec.json
+/cloudinvoice-web-ui/obj/project.assets.json
+/cloudinvoice-web-ui/obj/project.nuget.cache
