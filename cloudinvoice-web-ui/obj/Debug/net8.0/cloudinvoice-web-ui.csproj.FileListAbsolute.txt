@@ -30,9 +30,7 @@ C:\Users\jorge\OneDrive - ATEC - Academia de Formação\C#\WEBAPI\cloudinvoice-w
 C:\Users\jorge\OneDrive - ATEC - Academia de Formação\C#\WEBAPI\cloudinvoice-web-ui\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.pdb
 C:\Users\jorge\OneDrive - ATEC - Academia de Formação\C#\WEBAPI\cloudinvoice-web-ui\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.genruntimeconfig.cache
 C:\Users\jorge\OneDrive - ATEC - Academia de Formação\C#\WEBAPI\cloudinvoice-web-ui\cloudinvoice-web-ui\obj\Debug\net8.0\ref\cloudinvoice-web-ui.dll
-C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\bin\Debug\net8.0\cloudinvoice-web-ui.staticwebassets.endpoints.json
-C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\bin\Debug\net8.0\appsettings.json
 C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\bin\Debug\net8.0\cloudinvoice-web-ui.staticwebassets.runtime.json
 C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\bin\Debug\net8.0\cloudinvoice-web-ui.exe
 C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\bin\Debug\net8.0\cloudinvoice-web-ui.deps.json

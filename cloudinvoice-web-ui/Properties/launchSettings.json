@@ -22,7 +22,7 @@
         "commandName": "Project",
         "dotnetRunMessages": true,
         "launchBrowser": true,
-        "launchUrl": "connection-api",
+        "launchUrl": "backoffice/configuracoes/empresa",
         "applicationUrl": "https://localhost:7085;http://localhost:5118",
         "environmentVariables": {
           "ASPNETCORE_ENVIRONMENT": "Development"

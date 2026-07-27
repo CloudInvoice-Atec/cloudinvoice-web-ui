@@ -1,6 +1,7 @@
-﻿@page "/backoffice/clientes/editar/{Id:guid}"
+﻿@layout Layout.AdminLayout
+@page "/backoffice/clientes/editar/{Id:guid}"
 @page "/backoffice/clientes/editar-teste"
-@layout Layout.AdminLayout
+
 @inject NavigationManager Navigation
 
 @using cloudinvoice_web_ui.DTOs.Clientes
@@ -18,9 +19,9 @@
 
             <div class="page-title-right">
             <!-- Voltar atrás cancela a edição -->
-            <button type="button" class="btn btn-secondary waves-effect waves-light" @onclick="GoBack">
+            <a href="/backoffice/clientes/@(Id)" type="button" class="btn btn-secondary waves-effect waves-light">
                 <i class="mdi mdi-arrow-left me-1"></i> Cancelar
-            </button>
+            </a>
             </div>
         </div>
     </div>
@@ -189,7 +190,7 @@ else if (customer != null)
         <!-- BOTÕES DE AÇÃO -->
         <div class="row mb-5">
             <div class="col-12 text-end">
-                <button type="button" class="btn btn-light me-2 waves-effect" @onclick="GoBack">Cancelar</button>
+                <button type="button" class="btn btn-light me-2 waves-effect">Cancelar</button>
 
                 @if (_isSaving)
                 {
@@ -257,15 +258,5 @@ else
         }
     }
 
-    private void GoBack()
-    {
-        if (Id.HasValue)
-        {
-            Navigation.NavigateTo($"/backoffice/clientes/{Id.Value}");
-        }
-        else
-        {
-            Navigation.NavigateTo("/backoffice/clientes/perfil-teste");
-        }
-    }
+    
 }

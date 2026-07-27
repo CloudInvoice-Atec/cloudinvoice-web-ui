@@ -15,39 +15,17 @@ namespace cloudinvoice_web_ui.Services.Settings
         {
             try
             {
-                // Usa o client adequado (ex: IdentityAPI, CoreAPI, etc.)
+                // Ajusta "IdentityAPI" ou "BillingAPI" conforme o nome que deste no Program.cs
                 var client = _httpClientFactory.CreateClient("BillingAPI");
 
-                var empresa = await client.GetFromJsonAsync<EmpresaDto>("api/settings/company");
-                if (empresa != null)
-                {
-                    return empresa;
-                }
+                // Faz o GET apontando diretamente para o ID 1
+                return await client.GetFromJsonAsync<EmpresaDto>("api/Companies/1");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao obter definições da empresa: {ex.Message}. A carregar dados fictícios.");
+                Console.WriteLine($"Erro ao obter dados da empresa: {ex.Message}");
+                return null; // Retorna nulo se falhar, a UI tratará o erro
             }
-
-            // FAKE DATA de Fallback para a página renderizar sem erros
-            return new EmpresaDto
-            {
-                Name = "A Minha Empresa Fictícia, Lda",
-                TaxNumber = "500999888",
-                Address = "Rua do Comércio, 123",
-                City = "Guimarães",
-                PostalCode = "4800-123",
-                Country = "Portugal",
-                Email = "geral@minhaempresa.pt",
-                Phone = "+351 253 000 000",
-                Website = "https://www.minhaempresa.pt",
-                RegistryOffice = "Conservatória de Guimarães",
-                CommercialRegistrationNumber = "500999888",
-                ShareCapital = 50000,
-                BankName = "Banco Fictício",
-                Iban = "PT50 0000 0000 1234 5678 901 23",
-                Swift = "BFPTPTPL"
-            };
         }
 
         public async Task<bool> SaveCompanySettingsAsync(EmpresaDto empresa)

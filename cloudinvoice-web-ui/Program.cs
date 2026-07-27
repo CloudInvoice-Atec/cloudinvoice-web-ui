@@ -2,6 +2,7 @@ using cloudinvoice_web_ui.Components;
 using cloudinvoice_web_ui.Services.Customers;
 using cloudinvoice_web_ui.Services.Invoices;
 using cloudinvoice_web_ui.Services.Settings;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,30 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddTransient<JwtAuthorizationHandler>();
+
+// Adiciona suporte para acesso ao HttpContext (muito comum precisar disto junto com sessões)
+builder.Services.AddHttpContextAccessor();
+
+// Configura o armazenamento em memória para a sessão
+builder.Services.AddDistributedMemoryCache();
+
+// Regista o serviço de Sessão
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60); // Tempo para a sessão expirar
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true; // Necessário para funcionar mesmo sem consentimento de cookies GDPR
+});
+// No Frontend, a autenticação principal entre o Browser e o Servidor Blazor faz-se por Cookies.
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "CloudInvoice_Session";
+        options.LoginPath = "/login"; // Quando não tiverem acesso, vão parar aqui
+        options.AccessDeniedPath = "/acesso-negado";
+    });
+
+builder.Services.AddAuthorization();
 
 // HttpClient para a Identity.API
 builder.Services.AddHttpClient("IdentityAPI", client =>
@@ -31,6 +56,10 @@ builder.Services.AddHttpClient("BillingAPI", client =>
 })
     .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
+
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -43,8 +72,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+app.UseRouting();
+
+// TEM DE ESTAR AQUI!
+app.UseSession();
+
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
+
+app.UseStaticFiles();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
