@@ -2,6 +2,9 @@ using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Services.Auth;
+using cloudinvoice_web_ui.Services.Customers;
+using cloudinvoice_web_ui.Services.Invoices;
+using cloudinvoice_web_ui.Services.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 

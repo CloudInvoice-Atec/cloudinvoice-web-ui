@@ -5,6 +5,7 @@ namespace cloudinvoice_web_ui.DTOs.Configuracoes
 {
     public class EmpresaDto
     {
+        public int id { get; set; } = 1;
         // --- 1. Identity ---
         [Required(ErrorMessage = "O nome é obrigatório.")]
         public string Name { get; set; }
@@ -24,7 +25,7 @@ namespace cloudinvoice_web_ui.DTOs.Configuracoes
         [Required(ErrorMessage = "A localidade é obrigatória.")]
         public string City { get; set; }
 
-        public Guid CountryId { get; set; }
+        public string Country { get; set; }
 
         // logo
         public IBrowserFile Logo { get; set; }

@@ -2,6 +2,7 @@
 @inject IJSRuntime JS
 @page "/backoffice/configuracoes/empresa"
 @using cloudinvoice_web_ui.DTOs.Configuracoes
+@using cloudinvoice_web_ui.Enums
 
 
 
@@ -59,11 +60,16 @@
                         </div>
                         <div class="mb-3">
                             <label for="company-country" class="form-label">País <span class="text-danger">*</span></label>
-                            <InputSelect id="company-country" class="form-select select2" @bind-Value="_empresaDto.CountryId">
-                                <option value="1">Portugal</option>
-                                <option value="2">Espanha</option>
+                            <InputSelect id="company-country" class="form-select select2" @bind-Value="_empresaDto.Country">
+                                <option value="">Selecione um país...</option>
+
+                                @foreach (var country in Enum.GetValues<CountryEnum>())
+                                {
+                                    <option value="@country.ToString()">@country.ToString()</option>
+                                }
+
                             </InputSelect>
-                            <ValidationMessage For="@(() => _empresaDto.CountryId)" class="text-danger mt-1" />
+                            <ValidationMessage For="@(() => _empresaDto.Country)" class="text-danger mt-1" />
                         </div>
                     </div>
                 </div> <!-- end card -->
