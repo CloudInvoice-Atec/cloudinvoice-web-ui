@@ -1,22 +1,35 @@
 ﻿using cloudinvoice_web_ui.DTOs.Configuracoes;
+using cloudinvoice_web_ui.Auth;
+using System.Net.Http.Headers;
 
 namespace cloudinvoice_web_ui.Services.Settings
 {
     public class CompanyService : ICompanyService
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly TokenProvider _tokenProvider;
 
-        public CompanyService(IHttpClientFactory httpClientFactory)
+        public CompanyService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
+            _tokenProvider = tokenProvider;
+        }
+
+        private HttpClient CreateAuthenticatedClient(string clientName)
+        {
+            var client = _httpClientFactory.CreateClient(clientName);
+            if (!string.IsNullOrEmpty(_tokenProvider.Token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _tokenProvider.Token);
+            }
+            return client;
         }
 
         public async Task<EmpresaDto> GetCompanySettingsAsync()
         {
             try
             {
-                // Ajusta "IdentityAPI" ou "BillingAPI" conforme o nome que deste no Program.cs
-                var client = _httpClientFactory.CreateClient("BillingAPI");
+                var client = CreateAuthenticatedClient("BillingAPI");
 
                 // Faz o GET apontando diretamente para o ID 1
                 return await client.GetFromJsonAsync<EmpresaDto>("api/Companies/1");
@@ -32,7 +45,7 @@ namespace cloudinvoice_web_ui.Services.Settings
         {
             try
             {
-                var client = _httpClientFactory.CreateClient("IdentityAPI");
+                var client = CreateAuthenticatedClient("IdentityAPI");
 
                 // NOTA: Como tens um ficheiro (IBrowserFile Logo), o ideal num cenário real 
                 // é usar MultipartFormDataContent em vez de PostAsJsonAsync.
