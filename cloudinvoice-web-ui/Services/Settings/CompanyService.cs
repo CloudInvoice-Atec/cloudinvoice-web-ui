@@ -8,11 +8,13 @@ namespace cloudinvoice_web_ui.Services.Settings
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
+        private readonly HttpClient _httpClientBilling;
 
         public CompanyService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
+            _httpClientBilling = CreateAuthenticatedClient("BillingAPI");
         }
 
         private HttpClient CreateAuthenticatedClient(string clientName)
@@ -28,11 +30,9 @@ namespace cloudinvoice_web_ui.Services.Settings
         public async Task<EmpresaDto> GetCompanySettingsAsync()
         {
             try
-            {
-                var client = CreateAuthenticatedClient("BillingAPI");
-
+            { 
                 // Faz o GET apontando diretamente para o ID 1
-                return await client.GetFromJsonAsync<EmpresaDto>("api/Companies/1");
+                return await _httpClientBilling.GetFromJsonAsync<EmpresaDto>("api/Companies/1");
             }
             catch (Exception ex)
             {

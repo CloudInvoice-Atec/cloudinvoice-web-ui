@@ -5,7 +5,8 @@
 @using cloudinvoice_web_ui.Enums
 @using cloudinvoice_web_ui.Services.Settings
 @inject ICompanyService CompanyService
-
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
 
 <div class="container-fluid">
 
