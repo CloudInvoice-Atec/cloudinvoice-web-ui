@@ -1,4 +1,6 @@
 ﻿using System.Net.Http.Json;
+using System.Net.Http.Headers;
+using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.DTOs.Invoices;
 
 namespace cloudinvoice_web_ui.Services.Invoices
@@ -6,17 +8,29 @@ namespace cloudinvoice_web_ui.Services.Invoices
     public class InvoiceService : IInvoiceService
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly TokenProvider _tokenProvider;
 
-        public InvoiceService(IHttpClientFactory httpClientFactory)
+        public InvoiceService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
+            _tokenProvider = tokenProvider;
+        }
+
+        private HttpClient CreateAuthenticatedClient()
+        {
+            var client = _httpClientFactory.CreateClient("BillingAPI");
+            if (!string.IsNullOrEmpty(_tokenProvider.Token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _tokenProvider.Token);
+            }
+            return client;
         }
 
         public async Task<List<InvoiceSummaryDto>> GetRecentCustomerInvoicesAsync(Guid customerId, int count)
         {
             try
             {
-                var client = _httpClientFactory.CreateClient("BillingAPI");
+                var client = CreateAuthenticatedClient();
 
                 // Passamos o count como query parameter para a API limitar os resultados
                 var invoices = await client.GetFromJsonAsync<List<InvoiceSummaryDto>>($"api/customers/{customerId}/invoices?count={count}");

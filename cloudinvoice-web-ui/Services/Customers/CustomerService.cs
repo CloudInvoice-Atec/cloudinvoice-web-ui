@@ -1,23 +1,37 @@
 ﻿using cloudinvoice_web_ui.DTOs.Clientes;
 using cloudinvoice_web_ui.DTOs.Invoices;
+using cloudinvoice_web_ui.Auth;
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
+
 namespace cloudinvoice_web_ui.Services.Customers
 {
     public class CustomerService : ICustomerService
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly TokenProvider _tokenProvider;
 
-        public CustomerService(IHttpClientFactory httpClientFactory)
+        public CustomerService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
+            _tokenProvider = tokenProvider;
+        }
+
+        private HttpClient CreateAuthenticatedClient()
+        {
+            var client = _httpClientFactory.CreateClient("BillingAPI");
+            if (!string.IsNullOrEmpty(_tokenProvider.Token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _tokenProvider.Token);
+            }
+            return client;
         }
 
         public async Task<CustomerProfileDto> GetCustomerProfileAsync(Guid id)
         {
             try
             {
-                // Usa o nome do client que configuraste no Program.cs / appsettings.json
-                var client = _httpClientFactory.CreateClient("BillingAPI"); // ou "CustomersAPI"
+                var client = CreateAuthenticatedClient();
 
                 var customer = await client.GetFromJsonAsync<CustomerProfileDto>($"api/customers/{id}");
                 if (customer != null)
@@ -62,9 +76,7 @@ namespace cloudinvoice_web_ui.Services.Customers
         {
             try
             {
-                var client = _httpClientFactory.CreateClient("BillingAPI");
-
-                var invoices = await client.GetFromJsonAsync<List<InvoiceSummaryDto>>($"api/customers/{id}/invoices");
+                var client = CreateAuthenticatedClient();                var invoices = await client.GetFromJsonAsync<List<InvoiceSummaryDto>>($"api/customers/{id}/invoices");
                 if (invoices != null)
                 {
                     return invoices;
@@ -88,7 +100,7 @@ namespace cloudinvoice_web_ui.Services.Customers
         {
             try
             {
-                var client = _httpClientFactory.CreateClient("BillingAPI"); // ou "CustomersAPI"
+                var client = CreateAuthenticatedClient(); // ou "CustomersAPI"
 
                 // Faz o PUT para a API
                 var response = await client.PutAsJsonAsync($"api/customers/{id}", customer);
