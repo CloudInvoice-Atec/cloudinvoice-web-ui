@@ -1,11 +1,11 @@
 using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Services.Auth;
 using cloudinvoice_web_ui.Services.Customers;
 using cloudinvoice_web_ui.Services.Invoices;
 using cloudinvoice_web_ui.Services.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using cloudinvoice_web_ui.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddScoped<cloudinvoice_web_ui.Auth.TokenProvider>();
+builder.Services.AddScoped<TokenProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Define "Cookies" como o esquema padrão para lidar com os redirecionamentos do [Authorize]
@@ -41,14 +41,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true; // Necessário para funcionar mesmo sem consentimento de cookies GDPR
 });
-// No Frontend, a autenticação principal entre o Browser e o Servidor Blazor faz-se por Cookies.
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.Cookie.Name = "CloudInvoice_Session";
-        options.LoginPath = "/login"; // Quando não tiverem acesso, vão parar aqui
-        options.AccessDeniedPath = "/acesso-negado";
-    });
+
 
 builder.Services.AddAuthorization();
 

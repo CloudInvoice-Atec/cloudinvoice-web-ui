@@ -1,6 +1,6 @@
 ﻿using cloudinvoice_web_ui.Models.Auth;
 
-namespace Services.Auth
+namespace cloudinvoice_web_ui.Services.Auth
 {
     public interface IAuthService
     {

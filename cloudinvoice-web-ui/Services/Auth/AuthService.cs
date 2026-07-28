@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Json;
 using cloudinvoice_web_ui.Models.Auth;
 
-namespace Services.Auth
+namespace cloudinvoice_web_ui.Services.Auth
 {
     public class AuthService : IAuthService
     {
