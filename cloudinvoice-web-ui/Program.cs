@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<cloudinvoice_web_ui.Auth.TokenProvider>();
 builder.Services.AddTransient<JwtAuthorizationHandler>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
