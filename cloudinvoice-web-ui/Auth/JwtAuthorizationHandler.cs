@@ -12,8 +12,16 @@ public class JwtAuthorizationHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        // 1. Vais buscar o token JWT onde quer que o estejas a guardar (ex: LocalStorage)
-        var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+        string? token = null;
+        try
+        {
+            // 1. Vais buscar o token JWT ao LocalStorage do browser
+            token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+        }
+        catch (InvalidOperationException)
+        {
+            // Ignora se o JS interop falhar (ex: durante o pré-render no servidor)
+        }
 
         // 2. Se o token existir, adicionas-o ao cabeçalho do pedido
         if (!string.IsNullOrEmpty(token))
@@ -21,7 +29,7 @@ public class JwtAuthorizationHandler : DelegatingHandler
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
-        // 3. Deixes o pedido seguir viagem para a API
+        // 3. Deixa o pedido seguir viagem para a API
         return await base.SendAsync(request, cancellationToken);
     }
 }
