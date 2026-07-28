@@ -61,3 +61,10 @@ C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\obj\Debug\ne
 C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.pdb
 C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.genruntimeconfig.cache
 C:\Users\jorge\source\repos\cloudinvoice-web-ui\cloudinvoice-web-ui\obj\Debug\net8.0\ref\cloudinvoice-web-ui.dll
+C:\Users\Tiago.Borges\source\copilot-worktrees\cloudinvoice-web-ui\tborgescegid-ubiquitous-fishstick\cloudinvoice-web-ui\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\Tiago.Borges\source\copilot-worktrees\cloudinvoice-web-ui\tborgescegid-ubiquitous-fishstick\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Tiago.Borges\source\copilot-worktrees\cloudinvoice-web-ui\tborgescegid-ubiquitous-fishstick\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.AssemblyInfoInputs.cache
+C:\Users\Tiago.Borges\source\copilot-worktrees\cloudinvoice-web-ui\tborgescegid-ubiquitous-fishstick\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.AssemblyInfo.cs
+C:\Users\Tiago.Borges\source\copilot-worktrees\cloudinvoice-web-ui\tborgescegid-ubiquitous-fishstick\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.csproj.CoreCompileInputs.cache
+C:\Users\Tiago.Borges\source\copilot-worktrees\cloudinvoice-web-ui\tborgescegid-ubiquitous-fishstick\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Tiago.Borges\source\copilot-worktrees\cloudinvoice-web-ui\tborgescegid-ubiquitous-fishstick\cloudinvoice-web-ui\obj\Debug\net8.0\cloudinvoice-web-ui.sourcelink.json
