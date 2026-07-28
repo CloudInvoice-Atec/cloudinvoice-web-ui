@@ -3,41 +3,46 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 
-namespace cloudinvoice_web_ui.Auth // Ajusta para o teu namespace correto
+namespace cloudinvoice_web_ui.Auth
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
         private readonly IJSRuntime _jsRuntime;
-        private const string TokenKey = "authToken"; // A chave que usas para guardar o token no localStorage
+        private readonly TokenProvider _tokenProvider;
+        private const string TokenKey = "authToken";
 
-        public CustomAuthenticationStateProvider(IJSRuntime jsRuntime)
+        public CustomAuthenticationStateProvider(IJSRuntime jsRuntime, TokenProvider tokenProvider)
         {
             _jsRuntime = jsRuntime;
+            _tokenProvider = tokenProvider;
         }
 
-        // Este método é chamado pelo Blazor para saber quem é o utilizador atual
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            string? token = null;
-            try
-            {
-                // Tenta ir buscar o token JWT ao localStorage do browser
-                token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", TokenKey);
-            }
-            catch
-            {
-                // Ignora se o JS interop falhar (ex: durante o pré-render no servidor)
-            }
+            string? token = _tokenProvider.Token;
 
-            // Se não houver token, o utilizador está anónimo (não logado)
+            // Se o TokenProvider ainda não tem o token, tenta ir buscar ao localStorage
             if (string.IsNullOrWhiteSpace(token))
             {
-                var anonymousIdentity = new ClaimsIdentity();
-                var anonymousUser = new ClaimsPrincipal(anonymousIdentity);
-                return new AuthenticationState(anonymousUser);
+                try
+                {
+                    token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", TokenKey);
+                    if (!string.IsNullOrWhiteSpace(token))
+                    {
+                        _tokenProvider.Token = token;
+                    }
+                }
+                catch
+                {
+                    // Ignora se o JS interop falhar (ex: durante o pré-render no servidor)
+                }
             }
 
-            // Se houver token, criamos a identidade com base nas claims do JWT
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            }
+
             var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
             return new AuthenticationState(authenticatedUser);
         }

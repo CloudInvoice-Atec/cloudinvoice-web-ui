@@ -6,6 +6,7 @@
 @* Vamos precisar do NavigationManager para redirecionar após o login *@
 @inject NavigationManager NavigationManager
 @inject IAuthService AuthService
+@inject cloudinvoice_web_ui.Auth.TokenProvider TokenProvider
 
 <h4 class="mt-0">Login</h4>
 <p class="text-muted mb-4">Introduza o seu email e password para aceder à sua conta.</p>
@@ -103,7 +104,9 @@
 
             if (result.IsSuccess)
             {
-                // SUCESSO! Aqui vamos guardar o Token e avisar o sistema...
+                // Guarda o token em memória (para os services/handlers usarem)
+                TokenProvider.Token = result.Token;
+                // Guarda também no localStorage (para persistir entre recarregamentos)
                 await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
                 NavigationManager.NavigateTo("/backoffice");
             }

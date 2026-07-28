@@ -1,35 +1,25 @@
 ﻿using System.Net.Http.Headers;
-using Microsoft.JSInterop; // Se guardares o token no LocalStorage
+using cloudinvoice_web_ui.Auth;
 
 public class JwtAuthorizationHandler : DelegatingHandler
 {
-    private readonly IJSRuntime _jsRuntime;
+    private readonly TokenProvider _tokenProvider;
 
-    public JwtAuthorizationHandler(IJSRuntime jsRuntime)
+    public JwtAuthorizationHandler(TokenProvider tokenProvider)
     {
-        _jsRuntime = jsRuntime;
+        _tokenProvider = tokenProvider;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        string? token = null;
-        try
-        {
-            // 1. Vais buscar o token JWT ao LocalStorage do browser
-            token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
-        }
-        catch (InvalidOperationException)
-        {
-            // Ignora se o JS interop falhar (ex: durante o pré-render no servidor)
-        }
+        // Lê o token do TokenProvider (guardado em memória no circuito Blazor)
+        var token = _tokenProvider.Token;
 
-        // 2. Se o token existir, adicionas-o ao cabeçalho do pedido
         if (!string.IsNullOrEmpty(token))
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
-        // 3. Deixa o pedido seguir viagem para a API
         return await base.SendAsync(request, cancellationToken);
     }
 }
