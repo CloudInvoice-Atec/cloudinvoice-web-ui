@@ -1,11 +1,12 @@
 using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.Components;
-using Microsoft.AspNetCore.Components.Authorization;
+using cloudinvoice_web_ui.Services.Auth;
+using cloudinvoice_web_ui.Services.Catalog;
 using cloudinvoice_web_ui.Services.Customers;
 using cloudinvoice_web_ui.Services.Invoices;
 using cloudinvoice_web_ui.Services.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using cloudinvoice_web_ui.Services.Auth;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,7 @@ builder.Services.AddHttpClient("BillingAPI", client =>
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

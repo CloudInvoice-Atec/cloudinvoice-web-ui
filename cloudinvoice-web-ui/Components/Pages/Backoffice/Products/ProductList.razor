@@ -1,0 +1,205 @@
+﻿@page "/backoffice/products"
+@layout Layout.AdminLayout
+@using cloudinvoice_web_ui.Models.Catalog
+@using cloudinvoice_web_ui.Services.Catalog
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-flex align-items-center justify-content-between">
+                <h4 class="page-title">Products</h4>
+                
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <div class="page-title-right">
+                            <button class="btn btn-primary" @onclick="NavigateToCreate">
+                                <i class="fa fa-plus me-1"></i> New Product
+                            </button>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Loading products...</p>
+        </div>
+    }
+    else if (_loadError)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            Unable to load products. Please check your API connection.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-hover table-centered mb-0">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Base Price</th>
+                            <th>Tax Rate</th>
+                            <th>Status</th>
+                            
+                            <AuthorizeView Roles="Admin">
+                                <Authorized>
+                                    <th class="text-end">Actions</th>
+                                </Authorized>
+                            </AuthorizeView>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!_products.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center">No products found.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var product in _products)
+                            {
+                                <tr>
+                                    <td>@product.Code</td>
+                                    <td>@product.Description</td>
+                                    <td>@product.CategoryName</td>
+                                    <td>@product.BasePrice.ToString("C")</td>
+                                    <td>@product.TaxRate.ToString("0.00")%</td>
+                                    <td>
+                                        @if (product.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
+                                    </td>
+                                    
+                                    <AuthorizeView Roles="Admin">
+                                        <Authorized>
+                                            <td class="text-end">
+                                                <button class="btn btn-sm btn-light me-1" @onclick="() => NavigateToEdit(product.Id)">
+                                                    Edit
+                                                </button>
+                                                
+                                                <button class="btn btn-sm btn-warning me-1" @onclick="() => DeactivateProduct(product.Id)" disabled="@_isProcessing">
+                                                    Deactivate
+                                                </button>
+
+                                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteProduct(product.Id)" disabled="@_isProcessing">
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </Authorized>
+                                    </AuthorizeView>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+                <!-- Controlo básico de Paginação através de estado C# -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <button class="btn btn-sm btn-secondary" @onclick="PreviousPage" disabled="@(_queryParams.Page <= 1)">
+                        Previous
+                    </button>
+                    <span>Page @_queryParams.Page</span>
+                    <button class="btn btn-sm btn-secondary" @onclick="NextPage">
+                        Next
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private IEnumerable<ProductDto> _products = new List<ProductDto>();
+    private ProductQueryParameters _queryParams = new ProductQueryParameters { Page = 1, PageSize = 10 };
+    
+    private bool _isLoading = true;
+    private bool _loadError = false;
+    private bool _isProcessing = false; // Bloqueia botões para evitar duplo clique
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        var result = await ProductService.GetProductsAsync(_queryParams);
+        
+        if (result != null)
+        {
+            _products = result;
+        }
+        else
+        {
+            _loadError = true;
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task NextPage()
+    {
+        _queryParams.Page++;
+        await LoadDataAsync();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (_queryParams.Page > 1)
+        {
+            _queryParams.Page--;
+            await LoadDataAsync();
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        Navigation.NavigateTo("/backoffice/products/edit");
+    }
+
+    private void NavigateToEdit(Guid id)
+    {
+        Navigation.NavigateTo($"/backoffice/products/edit/{id}");
+    }
+
+    private async Task DeactivateProduct(Guid id)
+    {
+        _isProcessing = true;
+        var success = await ProductService.DeactivateProductAsync(id);
+        
+        if (success) await LoadDataAsync();
+        
+        _isProcessing = false;
+    }
+
+    private async Task DeleteProduct(Guid id)
+    {
+        _isProcessing = true;
+        var success = await ProductService.DeleteProductAsync(id);
+        
+        if (success) await LoadDataAsync();
+        
+        _isProcessing = false;
+    }
+}
