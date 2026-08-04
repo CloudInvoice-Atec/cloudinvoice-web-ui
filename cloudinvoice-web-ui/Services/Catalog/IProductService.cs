@@ -9,7 +9,7 @@ namespace cloudinvoice_web_ui.Services.Catalog
         Task<bool> CreateProductAsync(ProductCreateDto productDto);
         Task<bool> UpdateProductAsync(Guid id, ProductUpdateDto productDto);
         Task<bool> DeleteProductAsync(Guid id);
-        Task<bool> DeactivateProductAsync(Guid id);
+        Task<bool> ToggleProductStatusAsync(Guid id);
         Task<IEnumerable<CategoryDto>> GetCategoriesAsync();
     }
 }

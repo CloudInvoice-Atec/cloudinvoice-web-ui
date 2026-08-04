@@ -3,9 +3,10 @@
     // Enumeração para as unidades de medida
     public enum UnitOfMeasure
     {
-        Unit,
-        Kilogram,
-        Liter,
-        Hour
+        Unidade,
+        Kg,
+        Litro,
+        Hora,
+        Metro
     }
 }

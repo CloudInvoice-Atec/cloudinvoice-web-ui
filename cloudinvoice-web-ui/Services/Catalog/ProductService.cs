@@ -1,7 +1,10 @@
 ﻿using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.Models.Catalog;
+using Models.Catalog_web_ui.Models.Catalog;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace cloudinvoice_web_ui.Services.Catalog
 {
@@ -34,12 +37,12 @@ namespace cloudinvoice_web_ui.Services.Catalog
         {
             try
             {
-                // Construção da query string com base nos parâmetros
+                // Construção dinâmica da query string
                 var query = new List<string>
-                {
-                    $"page={parameters.Page}",
-                    $"pageSize={parameters.PageSize}"
-                };
+        {
+            $"page={parameters.Page}",
+            $"pageSize={parameters.PageSize}"
+        };
 
                 if (parameters.CategoryId.HasValue) query.Add($"categoryId={parameters.CategoryId.Value}");
                 if (!string.IsNullOrEmpty(parameters.Search)) query.Add($"search={Uri.EscapeDataString(parameters.Search)}");
@@ -49,13 +52,24 @@ namespace cloudinvoice_web_ui.Services.Catalog
 
                 var queryString = string.Join("&", query);
 
-                return await _httpClientCatalog.GetFromJsonAsync<IEnumerable<ProductDto>>($"api/products?{queryString}")
-                       ?? new List<ProductDto>();
+                // 1. Criar as opções de configuração do JSON
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true, // Ignora diferenças de Maiúsculas/Minúsculas
+                    Converters = { new JsonStringEnumConverter() } // Ensina o Blazor a converter Strings para Enums
+                };
+
+                // 2. Passar as opções diretamente no GetFromJsonAsync
+                var response = await _httpClientCatalog.GetFromJsonAsync<PagedResultDto<ProductDto>>($"api/products?{queryString}", jsonOptions);
+
+                // Devolve apenas a lista de items para a UI, ou uma lista vazia como fallback de segurança
+                return response?.Items ?? new List<ProductDto>();
             }
             catch (Exception ex)
             {
+                // Regra de Ouro: Propagar erro silenciosamente e não usar mocks
                 Console.WriteLine($"Error fetching products: {ex.Message}");
-                return new List<ProductDto>(); // Propaga estado vazio para a UI tratar
+                return new List<ProductDto>();
             }
         }
 
@@ -63,12 +77,18 @@ namespace cloudinvoice_web_ui.Services.Catalog
         {
             try
             {
-                return await _httpClientCatalog.GetFromJsonAsync<ProductDto>($"api/products/{id}");
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true, // Ignora diferenças de Maiúsculas/Minúsculas
+                    Converters = { new JsonStringEnumConverter() } // Ensina o Blazor a converter Strings para Enums
+                };
+                // Certifica-te de que passas o _jsonOptions como segundo argumento!
+                return await _httpClientCatalog.GetFromJsonAsync<ProductDto>($"api/products/{id}", jsonOptions);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching product {id}: {ex.Message}");
-                return null;
+                return null; // Faz com que a UI apanhe o erro e mostre a caixa vermelha da imagem
             }
         }
 
@@ -114,16 +134,16 @@ namespace cloudinvoice_web_ui.Services.Catalog
             }
         }
 
-        public async Task<bool> DeactivateProductAsync(Guid id)
+        public async Task<bool> ToggleProductStatusAsync(Guid id)
         {
             try
             {
-                var response = await _httpClientCatalog.PatchAsync($"api/products/{id}/deactivate", null);
+                var response = await _httpClientCatalog.PatchAsync($"api/products/{id}/toggle-status", null);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error deactivating product {id}: {ex.Message}");
+                Console.WriteLine($"Error toggling status for product {id}: {ex.Message}");
                 return false;
             }
         }

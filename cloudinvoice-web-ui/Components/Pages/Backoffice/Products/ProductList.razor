@@ -95,9 +95,20 @@
                                                     Edit
                                                 </button>
                                                 
-                                                <button class="btn btn-sm btn-warning me-1" @onclick="() => DeactivateProduct(product.Id)" disabled="@_isProcessing">
-                                                    Deactivate
-                                                </button>
+                                                @if (product.IsActive)
+                                                {
+                                                    <!-- Se está ativo, mostra o botão para desativar -->
+                                                    <button class="btn btn-sm btn-warning me-1" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
+                                                        Deactivate
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <!-- Se está inativo, mostra o botão para ativar -->
+                                                    <button class="btn btn-sm btn-success me-1" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
+                                                        Activate
+                                                    </button>
+                                                }
 
                                                 <button class="btn btn-sm btn-danger" @onclick="() => DeleteProduct(product.Id)" disabled="@_isProcessing">
                                                     Delete
@@ -183,13 +194,17 @@
         Navigation.NavigateTo($"/backoffice/products/edit/{id}");
     }
 
-    private async Task DeactivateProduct(Guid id)
+    private async Task ToggleProductStatus(Guid id)
     {
         _isProcessing = true;
-        var success = await ProductService.DeactivateProductAsync(id);
-        
-        if (success) await LoadDataAsync();
-        
+
+        var success = await ProductService.ToggleProductStatusAsync(id);
+
+        if (success)
+        {
+            await LoadDataAsync(); // Recarrega os dados reais da base de dados
+        }
+
         _isProcessing = false;
     }
 
