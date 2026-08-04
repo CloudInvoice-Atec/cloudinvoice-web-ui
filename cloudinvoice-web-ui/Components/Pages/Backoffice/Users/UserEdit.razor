@@ -1,0 +1,180 @@
+﻿@page "/backoffice/users/detalhes/{Id}"
+@layout Layout.AdminLayout
+@attribute [Authorize(Roles = "Admin")]
+
+@using cloudinvoice_web_ui.DTOs.Identity
+@using cloudinvoice_web_ui.Services.Identity
+@using Microsoft.AspNetCore.Authorization
+
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<div class="container-fluid">
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="javascript: void(0);" @onclick='() => Navigation.NavigateTo("/backoffice")'>Backoffice</a></li>
+                        <li class="breadcrumb-item"><a href="javascript: void(0);" @onclick='() => Navigation.NavigateTo("/backoffice/users")'>Utilizadores</a></li>
+                        <li class="breadcrumb-item active">Detalhes</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Detalhes do Utilizador</h4>
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <!-- Botões de Ação Global -->
+            <button class="btn btn-light waves-effect waves-light me-1" @onclick="NavigateToUsers">
+                <i class="mdi mdi-arrow-left me-1"></i> Voltar à Lista
+            </button>
+            <button class="btn btn-primary waves-effect waves-light" @onclick="NavigateToEdit" disabled="@(_user == null)">
+                <i class="mdi mdi-pencil me-1"></i> Editar Utilizador
+            </button>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">A carregar detalhes do utilizador...</p>
+        </div>
+    }
+    else if (_loadError || _user == null)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            Não foi possível carregar os dados deste utilizador ou ele não existe. Verifique a ligação à API.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-xl-4 col-lg-5">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <!-- Placeholder de Imagem -->
+                        <img src="assets/images/users/avatar-placeholder.png" class="rounded-circle avatar-lg img-thumbnail" alt="profile-image">
+
+                        <h4 class="mb-0 mt-2">@_user.FirstName @_user.LastName</h4>
+
+                        <!-- Badge de Role (A usar a mesma lógica de cores do teu index) -->
+                        <p class="text-muted font-14 mt-1">
+                            <span class="badge @(_user.Role == "Admin" ? "bg-danger" : "bg-success")">
+                                @_user.Role
+                            </span>
+                        </p>
+
+                        <div class="text-start mt-3">
+                            <h4 class="font-13 text-uppercase">Informação de Contacto :</h4>
+                            <p class="text-muted mb-2 font-13">
+                                <strong>Nome Completo :</strong> <span class="ms-2">@_user.FirstName @_user.LastName</span>
+                            </p>
+                            <p class="text-muted mb-2 font-13">
+                                <strong>Email :</strong> <span class="ms-2">@_user.Email</span>
+                            </p>
+                            <p class="text-muted mb-1 font-13">
+                                <strong>ID de Sistema :</strong> <span class="ms-2 user-select-all">@_user.Id</span>
+                            </p>
+                        </div>
+                    </div> <!-- end card-body -->
+                </div> <!-- end card -->
+            </div> <!-- end col -->
+
+            <div class="col-xl-8 col-lg-7">
+                <div class="card">
+                    <div class="card-body">
+                        <ul class="nav nav-pills bg-nav-pills nav-justified mb-3">
+                            <li class="nav-item">
+                                <a href="#historico" data-bs-toggle="tab" aria-expanded="true" class="nav-link rounded-0 active">
+                                    Histórico de Atividade
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#permissoes" data-bs-toggle="tab" aria-expanded="false" class="nav-link rounded-0">
+                                    Permissões
+                                </a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- Separador Histórico -->
+                            <div class="tab-pane show active" id="historico">
+                                <h5 class="text-uppercase"><i class="mdi mdi-briefcase me-1"></i> Resumo de Ações</h5>
+                                <p class="text-muted mt-2">
+                                    <em>Nenhum histórico de atividade recente encontrado para este utilizador no CloudInvoice. (Área para futura integração de logs ou faturas criadas).</em>
+                                </p>
+                            </div>
+
+                            <!-- Separador Permissões -->
+                            <div class="tab-pane" id="permissoes">
+                                <h5 class="text-uppercase"><i class="mdi mdi-shield-account me-1"></i> Nível de Acesso</h5>
+                                @if (_user.Role == "Admin")
+                                {
+                                    <p class="text-muted mt-2">Este utilizador tem permissões totais no sistema. Pode gerir utilizadores, visualizar todos os relatórios e alterar configurações do sistema.</p>
+                                }
+                                else
+                                {
+                                    <p class="text-muted mt-2">Este utilizador tem permissões de Contabilista. Tem acesso à gestão financeira, emissão de faturas e relatórios standard, mas não pode gerir contas de outros utilizadores.</p>
+                                }
+                            </div>
+                        </div>
+                    </div> <!-- end card-body -->
+                </div> <!-- end card -->
+            </div> <!-- end col -->
+        </div> <!-- end row -->
+    }
+</div> <!-- Fim do container-fluid -->
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private UserResponseDto? _user;
+    private bool _isLoading = true;
+    private bool _loadError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        try
+        {
+            // Substitui isto pelo método correto da tua interface IUserService,
+            // caso se chame GetUserAsync em vez de GetUserByIdAsync.
+            _user = await UserService.GetUserByIdAsync(Id);
+
+            if (_user == null)
+            {
+                _loadError = true;
+            }
+        }
+        catch (Exception)
+        {
+            _loadError = true;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void NavigateToUsers()
+    {
+        Navigation.NavigateTo("/backoffice/users");
+    }
+
+    private void NavigateToEdit()
+    {
+        if (_user != null)
+        {
+            // O forceLoad=true obriga o browser a recarregar a página do zero, como tens no teu index
+            Navigation.NavigateTo($"/backoffice/users/edit/{_user.Id}", forceLoad: true);
+        }
+    }
+}

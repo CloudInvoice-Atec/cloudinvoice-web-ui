@@ -1,11 +1,10 @@
 using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using cloudinvoice_web_ui.Services.Customers;
+using cloudinvoice_web_ui.Services.Identity;
 using cloudinvoice_web_ui.Services.Invoices;
 using cloudinvoice_web_ui.Services.Settings;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using cloudinvoice_web_ui.Services.Auth;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,16 +15,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddScoped<TokenProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-
-// Define "Cookies" como o esquema padrão para lidar com os redirecionamentos do [Authorize]
-builder.Services.AddAuthentication("Cookies")
-    .AddCookie("Cookies", options =>
-    {
-        // Define para onde o utilizador é atirado caso tente aceder a uma página protegida sem login
-        options.LoginPath = "/"; // Se o teu login for noutra rota (ex: "/public/login"), altera aqui
-    });
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddCascadingAuthenticationState();
-
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 // Adiciona suporte para acesso ao HttpContext (muito comum precisar disto junto com sessões)
@@ -43,6 +34,7 @@ builder.Services.AddSession(options =>
 });
 
 
+builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
 // HttpClient para a Identity.API
@@ -81,11 +73,12 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 // TEM DE ESTAR AQUI!
 app.UseSession();
 
-app.UseAuthentication();
-app.UseAuthorization();
 app.UseAntiforgery();
 
 app.UseStaticFiles();

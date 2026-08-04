@@ -36,7 +36,7 @@
 }
 else if (customer != null)
 {
-    <EditForm Model="@customer" OnValidSubmit="SaveChanges">
+    <EditForm Model="@customer" OnValidSubmit="@SaveChanges">
         <DataAnnotationsValidator />
 
         <div class="row mt-3">
@@ -95,7 +95,7 @@ else if (customer != null)
                             </div>
                             <div class="col-md-4">
                                     <label for="company-country" class="form-label">País <span class="text-danger">*</span></label>
-                                    <InputSelect id="company-country" class="form-select select2" @bind-Value="customer.Country">
+                                    <InputSelect TValue="string" id="company-country" class="form-select select2" @bind-Value="customer.Country">
                                         <option value="">Selecione um país...</option>
 
                                         @foreach (var country in Enum.GetValues<CountryEnum>())
@@ -171,15 +171,15 @@ else if (customer != null)
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label class="form-label">Limite de Crédito (€)</label>
-                                <InputNumber @bind-Value="customer.CreditLimit" class="form-control" />
+                                <InputNumber TValue="decimal?" @bind-Value="customer.CreditLimit" class="form-control" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Condições Pag. (Dias)</label>
-                                <InputNumber @bind-Value="customer.PaymentTermsDays" class="form-control" />
+                                <InputNumber TValue="int?" @bind-Value="customer.PaymentTermsDays" class="form-control" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Desconto Padrão (%)</label>
-                                <InputNumber @bind-Value="customer.DefaultDiscount" class="form-control" />
+                                <InputNumber TValue="decimal?" @bind-Value="customer.DefaultDiscount" class="form-control" />
                             </div>
                         </div>
                     </div>
@@ -221,7 +221,7 @@ else
     [Parameter]
     public Guid? Id { get; set; } // Agora é opcional (Guid?)
 
-    private CustomerProfileDto customer;
+    private CustomerProfileDto customer = new();
     private bool _isLoading = true;
     private bool _isSaving = false;
 
