@@ -7,6 +7,16 @@ using cloudinvoice_web_ui.Services.Invoices;
 using cloudinvoice_web_ui.Services.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Globalization;
+
+
+var supportedCultures = new[] { new CultureInfo("pt-PT") };
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("pt-PT"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+};
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +88,8 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseRequestLocalization(localizationOptions);
 
 app.UseHttpsRedirection();
 

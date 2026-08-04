@@ -39,10 +39,10 @@ namespace cloudinvoice_web_ui.Services.Catalog
             {
                 // Construção dinâmica da query string
                 var query = new List<string>
-        {
-            $"page={parameters.Page}",
-            $"pageSize={parameters.PageSize}"
-        };
+                {
+                    $"page={parameters.Page}",
+                    $"pageSize={parameters.PageSize}"
+                };
 
                 if (parameters.CategoryId.HasValue) query.Add($"categoryId={parameters.CategoryId.Value}");
                 if (!string.IsNullOrEmpty(parameters.Search)) query.Add($"search={Uri.EscapeDataString(parameters.Search)}");

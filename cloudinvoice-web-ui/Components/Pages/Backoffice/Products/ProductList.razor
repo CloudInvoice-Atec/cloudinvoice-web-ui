@@ -11,13 +11,13 @@
     <div class="row">
         <div class="col-12">
             <div class="page-title-box d-flex align-items-center justify-content-between">
-                <h4 class="page-title">Products</h4>
+                <h4 class="page-title">Produtos</h4>
                 
                 <AuthorizeView Roles="Admin">
                     <Authorized>
                         <div class="page-title-right">
                             <button class="btn btn-primary" @onclick="NavigateToCreate">
-                                <i class="fa fa-plus me-1"></i> New Product
+                                <i class="fa fa-plus me-1"></i> Novo Produto
                             </button>
                         </div>
                     </Authorized>
@@ -26,17 +26,53 @@
         </div>
     </div>
 
+    <!-- Secção de Filtros baseada nos QueryParameters -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Pesquisa</label>
+                    <input type="text" class="form-control" placeholder="Código ou Descrição..." @bind="_queryParams.Search" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Estado</label>
+                    <select class="form-select" @bind="_statusFilter">
+                        <option value="">Todos</option>
+                        <option value="true">Ativo</option>
+                        <option value="false">Inativo</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Preço Mínimo</label>
+                    <input type="number" step="0.01" class="form-control" @bind="_queryParams.MinPrice" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Preço Máximo</label>
+                    <input type="number" step="0.01" class="form-control" @bind="_queryParams.MaxPrice" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button class="btn btn-secondary w-50" @onclick="ApplyFilters">
+                        <i class="fa fa-search me-1"></i> Filtrar
+                    </button>
+                    <button class="btn btn-light w-50" @onclick="ResetFilters">
+                        Limpar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @if (_isLoading)
     {
         <div class="text-center mt-5">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Loading products...</p>
+            <p class="mt-2">A carregar produtos...</p>
         </div>
     }
     else if (_loadError)
     {
         <div class="alert alert-danger mt-3" role="alert">
-            Unable to load products. Please check your API connection.
+            Não foi possível carregar os produtos. Verifique a ligação à API.
         </div>
     }
     else
@@ -46,25 +82,20 @@
                 <table class="table table-hover table-centered mb-0">
                     <thead>
                         <tr>
-                            <th>Code</th>
-                            <th>Description</th>
-                            <th>Category</th>
-                            <th>Base Price</th>
-                            <th>Tax Rate</th>
-                            <th>Status</th>
-                            
-                            <AuthorizeView Roles="Admin">
-                                <Authorized>
-                                    <th class="text-end">Actions</th>
-                                </Authorized>
-                            </AuthorizeView>
+                            <th>Código</th>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th>Preço Base</th>
+                            <th>Taxa de IVA</th>
+                            <th>Estado</th>
+                            <th class="text-center" style="width: 160px;">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (!_products.Any())
                         {
                             <tr>
-                                <td colspan="7" class="text-center">No products found.</td>
+                                <td colspan="7" class="text-center">Nenhum produto encontrado.</td>
                             </tr>
                         }
                         else
@@ -80,57 +111,76 @@
                                     <td>
                                         @if (product.IsActive)
                                         {
-                                            <span class="badge bg-success">Active</span>
+                                            <span class="badge bg-success">Ativo</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger">Inactive</span>
+                                            <span class="badge bg-danger">Inativo</span>
                                         }
                                     </td>
+                    
+                                    <td class="text-center">
+                                        <AuthorizeView Roles="Admin">
+                                            <Authorized>
+                                                <div class="d-inline-flex gap-1 justify-content-center align-items-center">
+                                                    <!-- Botão Editar (Lápis) -->
+                                                    <button class="btn btn-sm btn-light" title="Editar" @onclick="() => NavigateToEdit(product.Id)">
+                                                        <i class="fa fa-pencil-alt"></i>
+                                                    </button>
                                     
-                                    <AuthorizeView Roles="Admin">
-                                        <Authorized>
-                                            <td class="text-end">
-                                                <button class="btn btn-sm btn-light me-1" @onclick="() => NavigateToEdit(product.Id)">
-                                                    Edit
-                                                </button>
-                                                
-                                                @if (product.IsActive)
-                                                {
-                                                    <!-- Se está ativo, mostra o botão para desativar -->
-                                                    <button class="btn btn-sm btn-warning me-1" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
-                                                        Deactivate
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <!-- Se está inativo, mostra o botão para ativar -->
-                                                    <button class="btn btn-sm btn-success me-1" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
-                                                        Activate
-                                                    </button>
-                                                }
+                                                    @if (product.IsActive)
+                                                    {
+                                                        <!-- Botão Desativar (Ícone de Bloqueio/Ban amarelo) -->
+                                                        <button class="btn btn-sm btn-warning text-white" title="Desativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
+                                                            <i class="fa fa-ban"></i>
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <!-- Botão Ativar (Ícone de Círculo com Confirmação verde) -->
+                                                        <button class="btn btn-sm btn-success" title="Ativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
+                                                            <i class="fa fa-check-circle"></i>
+                                                        </button>
+                                                    }
 
-                                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteProduct(product.Id)" disabled="@_isProcessing">
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </Authorized>
-                                    </AuthorizeView>
+                                                    <!-- Botão Eliminar (Caixote do Lixo vermelho) -->
+                                                    <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => DeleteProduct(product.Id)" disabled="@_isProcessing">
+                                                        <i class="fa fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </td>
                                 </tr>
                             }
                         }
                     </tbody>
                 </table>
 
-                <!-- Controlo básico de Paginação através de estado C# -->
+                <!-- Controlo completo de Paginação -->
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                    <button class="btn btn-sm btn-secondary" @onclick="PreviousPage" disabled="@(_queryParams.Page <= 1)">
-                        Previous
-                    </button>
-                    <span>Page @_queryParams.Page</span>
-                    <button class="btn btn-sm btn-secondary" @onclick="NextPage">
-                        Next
-                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <span>Mostrar:</span>
+                        <select class="form-select form-select-sm w-auto" @bind="_queryParams.PageSize" @bind:after="LoadDataAsync">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                        <span>registos por página</span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <span>Página @_queryParams.Page</span>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-secondary" @onclick="PreviousPage" disabled="@(_queryParams.Page <= 1)">
+                                Anterior
+                            </button>
+                            <button class="btn btn-sm btn-secondary" @onclick="NextPage">
+                                Seguinte
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -141,9 +191,12 @@
     private IEnumerable<ProductDto> _products = new List<ProductDto>();
     private ProductQueryParameters _queryParams = new ProductQueryParameters { Page = 1, PageSize = 10 };
     
+    // Variável auxiliar temporária para gerizar o select do estado booleano nos filtros
+    private string? _statusFilter { get; set; }
+
     private bool _isLoading = true;
     private bool _loadError = false;
-    private bool _isProcessing = false; // Bloqueia botões para evitar duplo clique
+    private bool _isProcessing = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -154,6 +207,16 @@
     {
         _isLoading = true;
         _loadError = false;
+
+        // Converter o filtro de texto do select para o booleano do QueryParameters
+        if (bool.TryParse(_statusFilter, out var parsedStatus))
+        {
+            _queryParams.IsActive = parsedStatus;
+        }
+        else
+        {
+            _queryParams.IsActive = null;
+        }
 
         var result = await ProductService.GetProductsAsync(_queryParams);
         
@@ -167,6 +230,19 @@
         }
 
         _isLoading = false;
+    }
+
+    private async Task ApplyFilters()
+    {
+        _queryParams.Page = 1; // Reset para a primeira página ao filtrar
+        await LoadDataAsync();
+    }
+
+    private async Task ResetFilters()
+    {
+        _queryParams = new ProductQueryParameters { Page = 1, PageSize = 10 };
+        _statusFilter = null;
+        await LoadDataAsync();
     }
 
     private async Task NextPage()
@@ -202,7 +278,7 @@
 
         if (success)
         {
-            await LoadDataAsync(); // Recarrega os dados reais da base de dados
+            await LoadDataAsync();
         }
 
         _isProcessing = false;
@@ -213,7 +289,10 @@
         _isProcessing = true;
         var success = await ProductService.DeleteProductAsync(id);
         
-        if (success) await LoadDataAsync();
+        if (success) 
+        {
+            await LoadDataAsync();
+        }
         
         _isProcessing = false;
     }
