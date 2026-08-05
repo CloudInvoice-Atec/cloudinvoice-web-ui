@@ -1,0 +1,226 @@
+﻿@page "/backoffice/users"
+@inject IJSRuntime JS
+@layout Layout.AdminLayout
+@using cloudinvoice_web_ui.DTOs.Identity
+@using cloudinvoice_web_ui.Services.Users
+@inject IUserService UserService
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@using cloudinvoice_web_ui.Components.Modals
+
+<div class="container-fluid">
+
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">Backoffice</a></li>
+                        <li class="breadcrumb-item active">Utilizadores</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Gestão de Utilizadores</h4>
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <!-- Usar o NavigationManager em vez de uma tag <a> normal, conforme as tuas regras -->
+            <button class="btn btn-primary waves-effect waves-light" @onclick="NavigateToCreate">
+                <i class="mdi mdi-plus-circle me-1"></i> Adicionar Novo
+            </button>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">A carregar lista de utilizadores...</p>
+        </div>
+    }
+    else if (_loadError)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            Não foi possível carregar os dados dos utilizadores. Verifique a ligação à API.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-centered table-nowrap table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                        <th>Perfil (Role)</th>
+                                        <th style="width: 120px;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (_users != null && _users.Any())
+                                    {
+                                        @foreach (var user in _users)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <h5 class="m-0 fw-normal">@user.FirstName @user.LastName</h5>
+                                                </td>
+                                                <td>@user.Email</td>
+                                                <td>
+                                                    <span class="badge @(user.Role == "Admin" ? "bg-danger" : "bg-success")">
+                                                        @user.Role
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex gap-1">
+                                                        <!-- Botão Detalhes -->
+                                                        <button type="button" class="btn btn-xs btn-info" @onclick="() => NavigateToDetails(user.Id)" title="Ver Detalhes">
+                                                            <i class="mdi mdi-eye"></i>
+                                                        </button>
+
+                                                        <!-- Botão Editar -->
+                                                        <button type="button" class="btn btn-xs btn-light" @onclick="() => NavigateToEdit(user.Id)" title="Editar">
+                                                            <i class="mdi mdi-pencil text-secondary"></i>
+                                                        </button>
+
+                                                        <!-- Botão Eliminar: Sem "waves-effect" e sem "waves-light" -->
+                                                        <button type="button" class="btn btn-xs btn-danger" @onclick="() => AbrirModalEliminar(user)" title="Eliminar">
+                                                            <i class="mdi mdi-trash-can"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-muted">
+                                                Nenhum utilizador encontrado.
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> <!-- end card -->
+            </div> <!-- end col -->
+        </div> <!-- end row -->
+    }
+    <!-- Chamada do componente Modal -->
+    <DeleteUser IsVisible="_mostrarModalEliminar"
+                User="_utilizadorAEliminar"
+                OnCancel="FecharModalEliminar"
+                OnConfirm="ConfirmarEliminacaoDefinitiva" />
+
+</div> <!-- Fim do container-fluid -->
+@code {
+    private List<UserResponseDto> _users = new();
+
+    // Variáveis de controlo da interface
+    private bool _isLoading = true;
+    private bool _loadError = false;
+
+    private bool _mostrarModalEliminar = false;
+    private UserResponseDto? _utilizadorAEliminar;
+
+    private void AbrirModalEliminar(UserResponseDto user)
+    {
+        _utilizadorAEliminar = user;
+        _mostrarModalEliminar = true;
+    }
+
+    private void FecharModalEliminar()
+    {
+        _mostrarModalEliminar = false;
+        _utilizadorAEliminar = null;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        var result = await UserService.GetUsersAsync();
+
+        if (result != null)
+        {
+            _users = result;
+        }
+        else
+        {
+            // Mostra erro caso a API devolva null (falha na ligação)
+            _loadError = true;
+        }
+
+        _isLoading = false;
+    }
+
+    private void NavigateToCreate()
+    {
+        // O forceLoad=true obriga o browser a recarregar a página do zero
+        Navigation.NavigateTo("/backoffice/users/create");
+    }
+
+    private void NavigateToEdit(string id)
+    {
+        // O forceLoad=true obriga o browser a recarregar a página do zero
+        Navigation.NavigateTo($"/backoffice/users/edit/{id}");
+    }
+
+    private void NavigateToDetails(string id)
+    {
+        // Tem de ser sem o forceLoad: true!
+        Navigation.NavigateTo($"/backoffice/users/detalhes/{id}");
+    }
+
+    private async Task ConfirmDelete(string id, string nome)
+    {
+        // Futuramente, podes chamar aqui o SweetAlert (JS) para confirmar se quer mesmo apagar
+        // E depois chamar: await UserService.DeleteUserAsync(id);
+
+        Console.WriteLine($"Ação disparada: Apagar utilizador {nome} (ID: {id})");
+
+        // Exemplo simples temporário (se quiseres testar o JS runtime)
+        bool confirm = await JS.InvokeAsync<bool>("confirm", $"Tem a certeza que deseja eliminar o utilizador {nome}?");
+        if (confirm)
+        {
+            // Lógica para apagar na API virá aqui
+            Console.WriteLine("Utilizador confirmou a eliminação.");
+        }
+    }
+
+    private async Task ConfirmarEliminacaoDefinitiva(UserResponseDto utilizador)
+    {
+        // 1. Chama o serviço para apagar na API
+        var (sucesso, mensagem) = await UserService.DeleteUserAsync(utilizador.Id);
+
+        if (sucesso)
+        {
+            // 2. Se a API confirmou o sucesso, remove da lista local
+            _users.Remove(utilizador);
+
+            // Mostra mensagem de sucesso (usa SweetAlert se tiveres)
+            await JS.InvokeVoidAsync("alert", mensagem);
+        }
+        else
+        {
+            // Mostra mensagem de erro
+            await JS.InvokeVoidAsync("alert", mensagem);
+        }
+
+        // 3. Fecha o modal
+        FecharModalEliminar();
+    }
+
+}
