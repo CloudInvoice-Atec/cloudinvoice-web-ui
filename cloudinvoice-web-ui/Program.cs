@@ -1,11 +1,22 @@
 using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.Components;
-using Microsoft.AspNetCore.Components.Authorization;
+using cloudinvoice_web_ui.Services.Auth;
+using cloudinvoice_web_ui.Services.Catalog;
 using cloudinvoice_web_ui.Services.Customers;
 using cloudinvoice_web_ui.Services.Invoices;
 using cloudinvoice_web_ui.Services.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using cloudinvoice_web_ui.Services.Auth;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Globalization;
+
+
+var supportedCultures = new[] { new CultureInfo("pt-PT") };
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("pt-PT"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+};
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +78,7 @@ builder.Services.AddHttpClient("BillingAPI", client =>
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -76,6 +88,8 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseRequestLocalization(localizationOptions);
 
 app.UseHttpsRedirection();
 

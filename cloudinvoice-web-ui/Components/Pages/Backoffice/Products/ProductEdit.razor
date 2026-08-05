@@ -1,0 +1,194 @@
+﻿@page "/backoffice/products/edit"
+@page "/backoffice/products/edit/{Id:guid}"
+@layout Layout.AdminLayout
+@using cloudinvoice_web_ui.Models.Catalog
+@using cloudinvoice_web_ui.Services.Catalog
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">@(IsEditMode ? "Editar Produto" : "Novo Produto")</h4>
+            </div>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">A carregar dados...</p>
+        </div>
+    }
+    else if (_loadError)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            Erro ao carregar os dados. Por favor, tente novamente.
+        </div>
+    }
+    else
+    {
+        <EditForm Model="@_formModel" OnValidSubmit="SaveDataAsync">
+            <DataAnnotationsValidator />
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Código <span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="_formModel.Code" />
+                            <ValidationMessage For="@(() => _formModel.Code)" class="text-danger mt-1" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Descrição <span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="_formModel.Description" />
+                            <ValidationMessage For="@(() => _formModel.Description)" class="text-danger mt-1" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Preço Base <span class="text-danger">*</span></label>
+                            <InputNumber class="form-control" @bind-Value="_formModel.BasePrice" />
+                            <ValidationMessage For="@(() => _formModel.BasePrice)" class="text-danger mt-1" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Taxa de IVA (%) <span class="text-danger">*</span></label>
+                            <InputNumber class="form-control" @bind-Value="_formModel.TaxRate" />
+                            <ValidationMessage For="@(() => _formModel.TaxRate)" class="text-danger mt-1" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Categoria <span class="text-danger">*</span></label>
+                            <InputSelect class="form-select" @bind-Value="_formModel.CategoryId">
+                                <option value="">Selecione uma categoria...</option>
+                                @foreach (var category in _categories)
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => _formModel.CategoryId)" class="text-danger mt-1" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Unidade de Medida <span class="text-danger">*</span></label>
+                            <InputSelect class="form-select" @bind-Value="_formModel.UnitOfMeasure">
+                                @foreach (var unit in Enum.GetValues<UnitOfMeasure>())
+                                {
+                                    <option value="@unit">@unit.ToString()</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => _formModel.UnitOfMeasure)" class="text-danger mt-1" />
+                        </div>
+                    </div>
+
+                    <div class="text-end mt-3">
+                        <button type="button" class="btn btn-light me-2" @onclick="NavigateBack">Cancelar</button>
+
+                        @if (_isSaving)
+                        {
+                            <button type="button" class="btn btn-success" disabled>
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                A guardar...
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-success">Guardar Produto</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private ProductUpdateDto _formModel = new ProductUpdateDto();
+    private IEnumerable<CategoryDto> _categories = new List<CategoryDto>();
+
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+    private bool _loadError = false;
+
+    private bool IsEditMode => Id.HasValue && Id.Value != Guid.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        _categories = await ProductService.GetCategoriesAsync();
+
+        if (IsEditMode)
+        {
+            var productRead = await ProductService.GetProductByIdAsync(Id.Value);
+            if (productRead != null)
+            {
+                _formModel = new ProductUpdateDto
+                {
+                    Code = productRead.Code,
+                    Description = productRead.Description,
+                    BasePrice = productRead.BasePrice,
+                    TaxRate = productRead.TaxRate,
+                    CategoryId = productRead.CategoryId,
+                    UnitOfMeasure = productRead.UnitOfMeasure
+                };
+            }
+            else
+            {
+                _loadError = true;
+            }
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task SaveDataAsync()
+    {
+        _isSaving = true;
+        bool success;
+
+        if (IsEditMode)
+        {
+            success = await ProductService.UpdateProductAsync(Id.Value, _formModel);
+        }
+        else
+        {
+            var createDto = new ProductCreateDto
+            {
+                Code = _formModel.Code,
+                Description = _formModel.Description,
+                BasePrice = _formModel.BasePrice,
+                TaxRate = _formModel.TaxRate,
+                CategoryId = _formModel.CategoryId,
+                UnitOfMeasure = _formModel.UnitOfMeasure
+            };
+
+            success = await ProductService.CreateProductAsync(createDto);
+        }
+
+        _isSaving = false;
+
+        if (success)
+        {
+            NavigateBack();
+        }
+        else
+        {
+            Console.WriteLine("Error saving the product.");
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/backoffice/products");
+    }
+}
