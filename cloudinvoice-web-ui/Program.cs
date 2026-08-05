@@ -9,6 +9,16 @@ using cloudinvoice_web_ui.Services.Settings;
 using cloudinvoice_web_ui.Services.Users;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Globalization;
+
+
+var supportedCultures = new[] { new CultureInfo("pt-PT") };
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("pt-PT"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+};
 
 var builder = WebApplication.CreateBuilder(args);
 

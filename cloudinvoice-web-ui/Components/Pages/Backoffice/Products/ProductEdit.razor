@@ -6,15 +6,13 @@
 @inject IProductService ProductService
 @inject NavigationManager Navigation
 @using Microsoft.AspNetCore.Authorization
-
-<!-- Bloqueia o acesso total à página para não-Admins -->
 @attribute [Authorize(Roles = "Admin")]
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
-                <h4 class="page-title">@(IsEditMode ? "Edit Product" : "New Product")</h4>
+                <h4 class="page-title">@(IsEditMode ? "Editar Produto" : "Novo Produto")</h4>
             </div>
         </div>
     </div>
@@ -23,13 +21,13 @@
     {
         <div class="text-center mt-5">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Loading data...</p>
+            <p class="mt-2">A carregar dados...</p>
         </div>
     }
     else if (_loadError)
     {
         <div class="alert alert-danger mt-3" role="alert">
-            Error loading data. Please try again.
+            Erro ao carregar os dados. Por favor, tente novamente.
         </div>
     }
     else
@@ -41,33 +39,33 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Code <span class="text-danger">*</span></label>
+                            <label class="form-label">Código <span class="text-danger">*</span></label>
                             <InputText class="form-control" @bind-Value="_formModel.Code" />
                             <ValidationMessage For="@(() => _formModel.Code)" class="text-danger mt-1" />
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Description <span class="text-danger">*</span></label>
+                            <label class="form-label">Descrição <span class="text-danger">*</span></label>
                             <InputText class="form-control" @bind-Value="_formModel.Description" />
                             <ValidationMessage For="@(() => _formModel.Description)" class="text-danger mt-1" />
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Base Price <span class="text-danger">*</span></label>
+                            <label class="form-label">Preço Base <span class="text-danger">*</span></label>
                             <InputNumber class="form-control" @bind-Value="_formModel.BasePrice" />
                             <ValidationMessage For="@(() => _formModel.BasePrice)" class="text-danger mt-1" />
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Tax Rate (%) <span class="text-danger">*</span></label>
+                            <label class="form-label">Taxa de IVA (%) <span class="text-danger">*</span></label>
                             <InputNumber class="form-control" @bind-Value="_formModel.TaxRate" />
                             <ValidationMessage For="@(() => _formModel.TaxRate)" class="text-danger mt-1" />
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Category <span class="text-danger">*</span></label>
+                            <label class="form-label">Categoria <span class="text-danger">*</span></label>
                             <InputSelect class="form-select" @bind-Value="_formModel.CategoryId">
-                                <option value="">Select a category...</option>
+                                <option value="">Selecione uma categoria...</option>
                                 @foreach (var category in _categories)
                                 {
                                     <option value="@category.Id">@category.Name</option>
@@ -77,7 +75,7 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Unit of Measure <span class="text-danger">*</span></label>
+                            <label class="form-label">Unidade de Medida <span class="text-danger">*</span></label>
                             <InputSelect class="form-select" @bind-Value="_formModel.UnitOfMeasure">
                                 @foreach (var unit in Enum.GetValues<UnitOfMeasure>())
                                 {
@@ -89,18 +87,18 @@
                     </div>
 
                     <div class="text-end mt-3">
-                        <button type="button" class="btn btn-light me-2" @onclick="NavigateBack">Cancel</button>
-                        
+                        <button type="button" class="btn btn-light me-2" @onclick="NavigateBack">Cancelar</button>
+
                         @if (_isSaving)
                         {
                             <button type="button" class="btn btn-success" disabled>
                                 <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                Saving...
+                                A guardar...
                             </button>
                         }
                         else
                         {
-                            <button type="submit" class="btn btn-success">Save Product</button>
+                            <button type="submit" class="btn btn-success">Guardar Produto</button>
                         }
                     </div>
                 </div>
@@ -134,7 +132,6 @@
             var productRead = await ProductService.GetProductByIdAsync(Id.Value);
             if (productRead != null)
             {
-                // Converte DTO de Leitura no modelo do Formulário
                 _formModel = new ProductUpdateDto
                 {
                     Code = productRead.Code,
@@ -165,7 +162,6 @@
         }
         else
         {
-            // Mapeamento manual do formulário para o DTO de criação correspondente ao backend
             var createDto = new ProductCreateDto
             {
                 Code = _formModel.Code,
@@ -175,7 +171,7 @@
                 CategoryId = _formModel.CategoryId,
                 UnitOfMeasure = _formModel.UnitOfMeasure
             };
-            
+
             success = await ProductService.CreateProductAsync(createDto);
         }
 
@@ -187,7 +183,6 @@
         }
         else
         {
-            // Tratar mensagem de erro ou feedback visual (a implementar via Toast na UI futuramente)
             Console.WriteLine("Error saving the product.");
         }
     }
