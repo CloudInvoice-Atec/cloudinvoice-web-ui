@@ -29,6 +29,7 @@ namespace cloudinvoice_web_ui.Auth
                     token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", TokenKey);
                     if (!string.IsNullOrWhiteSpace(token))
                     {
+                        // Repõe o token na memória para usos futuros rápidos
                         _tokenProvider.Token = token;
                     }
                 }
@@ -43,7 +44,8 @@ namespace cloudinvoice_web_ui.Auth
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
 
-            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
+            var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", "name", "role");
+            var authenticatedUser = new ClaimsPrincipal(identity);
             return new AuthenticationState(authenticatedUser);
         }
 

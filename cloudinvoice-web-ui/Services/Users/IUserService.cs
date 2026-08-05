@@ -1,6 +1,6 @@
 ﻿using cloudinvoice_web_ui.DTOs.Identity;
 
-namespace cloudinvoice_web_ui.Services.Identity
+namespace cloudinvoice_web_ui.Services.Users
 {
     public interface IUserService
     {

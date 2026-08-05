@@ -1,9 +1,9 @@
 ﻿@page "/backoffice/users/detalhes/{Id}"
 @layout Layout.AdminLayout
-@attribute [Authorize(Roles = "Admin")]
+@* @attribute [Authorize(Roles = "Admin")] *@
 
 @using cloudinvoice_web_ui.DTOs.Identity
-@using cloudinvoice_web_ui.Services.Identity
+@using cloudinvoice_web_ui.Services.Users
 @using Microsoft.AspNetCore.Authorization
 
 @inject IUserService UserService

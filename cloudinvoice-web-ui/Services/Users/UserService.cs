@@ -4,7 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace cloudinvoice_web_ui.Services.Identity
+namespace cloudinvoice_web_ui.Services.Users
 {
     public class UserService : IUserService
     {

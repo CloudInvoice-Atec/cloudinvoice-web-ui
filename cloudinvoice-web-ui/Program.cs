@@ -1,10 +1,23 @@
 using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.Components;
+using cloudinvoice_web_ui.Services.Identity;
 using cloudinvoice_web_ui.Services.Customers;
 using cloudinvoice_web_ui.Services.Identity;
 using cloudinvoice_web_ui.Services.Invoices;
 using cloudinvoice_web_ui.Services.Settings;
+using cloudinvoice_web_ui.Services.Users;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Globalization;
+
+
+var supportedCultures = new[] { new CultureInfo("pt-PT") };
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("pt-PT"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+};
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +28,16 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddScoped<TokenProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
+
+// Define "Cookies" como o esquema padrão para lidar com os redirecionamentos do [Authorize]
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies", options =>
+    {
+        // Define para onde o utilizador é atirado caso tente aceder a uma página protegida sem login
+        options.LoginPath = "/"; // Se o teu login for noutra rota (ex: "/public/login"), altera aqui
+    });
 builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 // Adiciona suporte para acesso ao HttpContext (muito comum precisar disto junto com sessões)
@@ -34,7 +55,6 @@ builder.Services.AddSession(options =>
 });
 
 
-builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
 // HttpClient para a Identity.API
@@ -59,6 +79,7 @@ builder.Services.AddHttpClient("BillingAPI", client =>
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IUserService, UserService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -69,16 +90,17 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseRequestLocalization(localizationOptions);
+
 app.UseHttpsRedirection();
 
 app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
 // TEM DE ESTAR AQUI!
 app.UseSession();
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 
 app.UseStaticFiles();
