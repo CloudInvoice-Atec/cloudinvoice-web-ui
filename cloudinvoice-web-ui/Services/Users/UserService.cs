@@ -3,6 +3,7 @@ using cloudinvoice_web_ui.DTOs.Identity;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.JSInterop;
 
 namespace cloudinvoice_web_ui.Services.Users
 {
@@ -11,11 +12,13 @@ namespace cloudinvoice_web_ui.Services.Users
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
         private readonly HttpClient _httpClientIdentity;
+        private readonly IJSRuntime _jsRuntime;
 
-        public UserService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
+        public UserService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IJSRuntime jsRuntime)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
+            _jsRuntime = jsRuntime;
 
             // Aponta estritamente para a IdentityAPI
             _httpClientIdentity = CreateAuthenticatedClient("IdentityAPI");
@@ -96,11 +99,22 @@ namespace cloudinvoice_web_ui.Services.Users
         {
             try
             {
-                // _httpClientIdentity é o cliente que já tens configurado
+                // 1. Ir buscar o token guardado (via JSRuntime/localStorage ou TokenProvider)
+                // Nota: Precisas de ter o IJSRuntime injetado no construtor do teu UserService
+                var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+                // 2. Adicionar o token ao cabeçalho de Autorização do HttpClient
+                if (!string.IsNullOrWhiteSpace(token))
+                {
+                    _httpClientIdentity.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                }
+
+                // 3. Fazer o pedido à API já com o token incluído
                 return await _httpClientIdentity.GetFromJsonAsync<UserResponseDto>($"api/Users/{id}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // Opcional: Podes fazer um Console.WriteLine(ex.Message) aqui para veres no F12 se houver outros erros
                 return null;
             }
         }

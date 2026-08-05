@@ -1,6 +1,5 @@
 using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.Components;
-using cloudinvoice_web_ui.Services.Auth;
 using cloudinvoice_web_ui.Services.Catalog;
 using cloudinvoice_web_ui.Services.Customers;
 using cloudinvoice_web_ui.Services.Identity;
@@ -82,7 +81,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseRequestLocalization(localizationOptions);
 
 app.UseHttpsRedirection();
 

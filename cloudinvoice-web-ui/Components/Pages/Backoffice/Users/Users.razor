@@ -169,19 +169,19 @@
     private void NavigateToCreate()
     {
         // O forceLoad=true obriga o browser a recarregar a página do zero
-        Navigation.NavigateTo("/backoffice/users/edit", forceLoad: true);
+        Navigation.NavigateTo("/backoffice/users/create");
     }
 
     private void NavigateToEdit(string id)
     {
         // O forceLoad=true obriga o browser a recarregar a página do zero
-        Navigation.NavigateTo($"/backoffice/users/edit/{id}", forceLoad: true);
+        Navigation.NavigateTo($"/backoffice/users/edit/{id}");
     }
 
     private void NavigateToDetails(string id)
     {
-        // Navega para a futura página de detalhes (ex: onde podes ver logs ou histórico do utilizador)
-        Navigation.NavigateTo($"/backoffice/users/detalhes/{id}", forceLoad: true);
+        // Tem de ser sem o forceLoad: true!
+        Navigation.NavigateTo($"/backoffice/users/detalhes/{id}");
     }
 
     private async Task ConfirmDelete(string id, string nome)
