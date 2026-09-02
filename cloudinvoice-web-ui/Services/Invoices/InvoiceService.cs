@@ -9,13 +9,11 @@ namespace cloudinvoice_web_ui.Services.Invoices
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
-        private readonly HttpClient _httpClientCatalog;
 
         public InvoiceService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
-            _httpClientCatalog = _httpClientFactory.CreateClient("CatalogAPI");
         }
 
         private HttpClient CreateAuthenticatedClient()
@@ -58,30 +56,6 @@ namespace cloudinvoice_web_ui.Services.Invoices
 
             // Usa o LINQ Take() para devolver apenas o número de faturas pedido (caso a API falhe)
             return fakeInvoices.Take(count).ToList();
-        }
-
-        public async Task<List<InvoiceProductDto>> GetActiveProducts()
-        {
-            try
-            {
-                var products = await _httpClientCatalog.GetFromJsonAsync<List<InvoiceProductDto>>("api/products/all/active");
-                if (products != null)
-                {
-                    return products;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erro ao obter produtos ativos: {ex.Message}. A carregar dados fictícios.");
-            }
-            // FAKE DATA de Fallback
-            return new List<InvoiceProductDto>
-        {
-            new InvoiceProductDto { Id = Guid.NewGuid(), Code = "SRV-001", Description = "Serviço de Consultoria", BasePrice = 100.00m, TaxRate = 23.00m },
-            new InvoiceProductDto { Id = Guid.NewGuid(), Code = "DEV-001", Description = "Desenvolvimento de Software", BasePrice = 1500.00m, TaxRate = 23.00m },
-            new InvoiceProductDto { Id = Guid.NewGuid(), Code = "MNT-001", Description = "Manutenção de Sistemas", BasePrice = 300.00m, TaxRate = 23.00m },
-            new InvoiceProductDto { Id = Guid.NewGuid(), Code = "TRN-001", Description = "Treinamento Técnico", BasePrice = 200.00m, TaxRate = 23.00m }
-        };
         }
     }
 }

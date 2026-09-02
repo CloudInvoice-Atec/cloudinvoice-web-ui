@@ -5,8 +5,6 @@
 @inject cloudinvoice_web_ui.Services.Settings.ICompanyService CompanyService
 @using cloudinvoice_web_ui.DTOs.Clientes
 @inject cloudinvoice_web_ui.Services.Customers.ICustomerService CustomerService
-@using cloudinvoice_web_ui.DTOs.Invoices
-@inject cloudinvoice_web_ui.Services.Invoices.IInvoiceService InvoiceService
 
 
 <!-- Start Content-->
@@ -83,17 +81,17 @@
 
                             <div class="mb-3">
                                 <label class="form-label">Número de Referência (Opcional)</label>
-                                <InputText @bind-Value="novaFatura.Reference" class="form-control" placeholder="Ex: REF-123456" />
+                                <InputText @bind-Value="novaFatura.Referencia" class="form-control" placeholder="Ex: REF-123456" />
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6 mb-3 mb-md-0">
                                     <label class="form-label">Data da Fatura <span class="text-danger">*</span></label>
-                                    <InputDate @bind-Value="novaFatura.DateEmission" class="form-control" disabled />
+                                    <InputDate @bind-Value="novaFatura.DataFatura" class="form-control" disabled />
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Vencimento <span class="text-danger">*</span></label>
-                                    <InputDate @bind-Value="novaFatura.DateDue" class="form-control" />
+                                    <InputDate @bind-Value="novaFatura.DataVencimento" class="form-control" />
                                 </div>
                             </div>
                         </div>
@@ -161,29 +159,29 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var linha in novaFatura.Lines)
+                                        @foreach (var linha in novaFatura.Linhas)
                                         {
                                             <tr>
                                                 <td>
-                                                    <select class="form-select" @onchange="@(e => OnProdutoSelecionado(linha, e))" value="@linha.ProdutId">
+                                                    <select class="form-select" @onchange="@(e => OnProdutoSelecionado(linha, e))" value="@linha.ProdutoId">
                                                         <option value="">Selecione...</option>
                                                         @foreach (var prod in _produtosCatalogo)
                                                         {
-                                                            <option value="@prod.Id">(@prod.Code) - @prod.Description</option>
+                                                            <option value="@prod.Id">@prod.Nome</option>
                                                         }
                                                     </select>
                                                 </td>
                                                 <td>
-                                                    <input type="number" class="form-control" @bind="linha.Quantity" @bind:event="oninput" @onkeyup="CalcularTotais" min="1" />
+                                                    <input type="number" class="form-control" @bind="linha.Quantidade" @bind:event="oninput" @onkeyup="CalcularTotais" min="1" />
                                                 </td>
                                                 <td>
-                                                    <input type="number" class="form-control" @bind="linha.BasePrice" @bind:event="oninput" @onkeyup="CalcularTotais" step="0.01" />
+                                                    <input type="number" class="form-control" @bind="linha.PrecoUnitario" @bind:event="oninput" @onkeyup="CalcularTotais" step="0.01" />
                                                 </td>
                                                 <td>
-                                                    <input type="number" class="form-control" @bind="linha.DiscountPercentage" @bind:event="oninput" @onkeyup="CalcularTotais" min="0" max="100" />
+                                                    <input type="number" class="form-control" @bind="linha.DescontoPercentagem" @bind:event="oninput" @onkeyup="CalcularTotais" min="0" max="100" />
                                                 </td>
                                                 <td>
-                                                    <select class="form-select" @bind="linha.TaxRate" @bind:after="CalcularTotais">
+                                                    <select class="form-select" @bind="linha.TaxaIva" @bind:event="oninput" @onchange="CalcularTotais">
                                                         <option value="23">23%</option>
                                                         <option value="13">13%</option>
                                                         <option value="6">6%</option>
@@ -223,7 +221,7 @@
                             <h5 class="text-uppercase bg-light p-2 mt-0 mb-3">Informação Extra</h5>
                             <div class="mb-3">
                                 <label class="form-label">Notas Adicionais (Visível para o cliente)</label>
-                                <InputTextArea @bind-Value="novaFatura.Notes" class="form-control" rows="4" placeholder="Adicione termos, condições ou notas de agradecimento..." />
+                                <InputTextArea @bind-Value="novaFatura.Notas" class="form-control" rows="4" placeholder="Adicione termos, condições ou notas de agradecimento..." />
                             </div>
                         </div>
                     </div>
@@ -275,7 +273,36 @@
 </div>
 
 @code {
+    // ====================================================================
+    // CLASSES TEMPORÁRIAS (Serão substituídas pelos teus DTOs reais)
+    // ====================================================================
+    public class TempFaturaCriarDto
+    {
+        public Guid? ClienteId { get; set; }
+        public string Referencia { get; set; }
+        public DateTime DataFatura { get; set; } = DateTime.Today;
+        public DateTime DataVencimento { get; set; } = DateTime.Today.AddDays(30);
+        public string Notas { get; set; }
+        public List<TempFaturaLinhaDto> Linhas { get; set; } = new List<TempFaturaLinhaDto>();
+    }
 
+    public class TempFaturaLinhaDto
+    {
+        public Guid IdTemporario { get; set; } = Guid.NewGuid(); // Para controlo do Blazor
+        public Guid? ProdutoId { get; set; }
+        public decimal Quantidade { get; set; } = 1;
+        public decimal PrecoUnitario { get; set; } = 0;
+        public decimal DescontoPercentagem { get; set; } = 0;
+        public decimal TaxaIva { get; set; } = 23;
+    }
+
+    public class TempProdutoDto
+    {
+        public Guid Id { get; set; }
+        public string Nome { get; set; }
+        public decimal PrecoAtual { get; set; }
+        public decimal IvaPorDefeito { get; set; }
+    }
 
 
 
@@ -284,10 +311,10 @@
     // ====================================================================
     private bool _isLoading = true;
     private bool _loadError = false;
-    private InvoiceCreateDto novaFatura = new InvoiceCreateDto();
+    private TempFaturaCriarDto novaFatura = new TempFaturaCriarDto();
 
     // Dados que virão das APIs
-    private List<InvoiceProductDto> _produtosCatalogo = new();
+    private List<TempProdutoDto> _produtosCatalogo = new();
     private EmpresaDto _empresa = new EmpresaDto();
     private List<CustomerProfileDto> _clientesAtivos = new List<CustomerProfileDto>();
     private CustomerProfileDto clienteSelecionado;
@@ -331,19 +358,15 @@
                 return; 
             }
 
-            var resultProducts = await InvoiceService.GetActiveProducts();
+         
 
-            if (resultProducts != null && resultProducts.Any())
+            // 3. Simular Produtos (Futuramente virá da Catalog.API)
+            _produtosCatalogo = new List<TempProdutoDto>
             {
-                _produtosCatalogo = resultProducts;
-            }
-            else
-            {
-                _loadError = true;
-                return;
-            }
-
-            
+                new TempProdutoDto { Id = Guid.NewGuid(), Nome = "Licença Software Premium", PrecoAtual = 1360.00m, IvaPorDefeito = 23 },
+                new TempProdutoDto { Id = Guid.NewGuid(), Nome = "Consultoria Informática (Hora)", PrecoAtual = 75.00m, IvaPorDefeito = 23 },
+                new TempProdutoDto { Id = Guid.NewGuid(), Nome = "Servidor Cloud (Mensal)", PrecoAtual = 150.00m, IvaPorDefeito = 23 }
+            };
 
             // Iniciar com uma linha vazia por defeito
             AdicionarLinha();
@@ -365,48 +388,47 @@
 
     private void OnClienteSelecionado(ChangeEventArgs e)
     {
-        if (Guid.TryParse(e.Value?.ToString(), out Guid clientId))
+        if (Guid.TryParse(e.Value?.ToString(), out Guid clienteId))
         {
-            novaFatura.ClientId = clientId;
-            clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == clientId);
+            novaFatura.ClienteId = clienteId;
+            clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == clienteId);
         }
         else
         {
-            novaFatura.ClientId = null;
+            novaFatura.ClienteId = null;
             clienteSelecionado = null;
         }
     }
 
     private void AdicionarLinha()
     {
-        novaFatura.Lines.Add(new InvoiceLineDto());
+        novaFatura.Linhas.Add(new TempFaturaLinhaDto());
         CalcularTotais();
     }
 
-    private void RemoverLinha(InvoiceLineDto linha)
+    private void RemoverLinha(TempFaturaLinhaDto linha)
     {
-        novaFatura.Lines.Remove(linha);
+        novaFatura.Linhas.Remove(linha);
         CalcularTotais();
     }
 
     // A Mágica do Auto-Preenchimento!
-    private void OnProdutoSelecionado(InvoiceLineDto linha, ChangeEventArgs e)
+    private void OnProdutoSelecionado(TempFaturaLinhaDto linha, ChangeEventArgs e)
     {
         if (Guid.TryParse(e.Value?.ToString(), out Guid produtoId))
         {
             var produto = _produtosCatalogo.FirstOrDefault(p => p.Id == produtoId);
             if (produto != null)
             {
-                linha.ProdutId = produtoId;
-                linha.BasePrice = produto.BasePrice;
-                linha.TaxRate = Math.Round(produto.TaxRate);
+                linha.ProdutoId = produtoId;
+                linha.PrecoUnitario = produto.PrecoAtual;
+                linha.TaxaIva = produto.IvaPorDefeito;
             }
         }
         else
         {
-            linha.ProdutId = null;
-            linha.BasePrice = 0;
-            linha.TaxRate = 0;
+            linha.ProdutoId = null;
+            linha.PrecoUnitario = 0;
         }
 
         CalcularTotais();
@@ -416,12 +438,12 @@
     // LÓGICA DE CÁLCULO FINANCEIRO
     // ====================================================================
 
-    private decimal CalcularTotalLinha(InvoiceLineDto linha)
+    private decimal CalcularTotalLinha(TempFaturaLinhaDto linha)
     {
-        var bruto = linha.Quantity * linha.BasePrice;
-        var desconto = bruto * (linha.DiscountPercentage / 100);
+        var bruto = linha.Quantidade * linha.PrecoUnitario;
+        var desconto = bruto * (linha.DescontoPercentagem / 100);
         var valorAposDesconto = bruto - desconto;
-        var iva = valorAposDesconto * (linha.TaxRate / 100);
+        var iva = valorAposDesconto * (linha.TaxaIva / 100);
 
         return valorAposDesconto + iva;
     }
@@ -433,12 +455,12 @@
         TotalIva = 0;
         TotalFinal = 0;
 
-        foreach (var linha in novaFatura.Lines)
+        foreach (var linha in novaFatura.Linhas)
         {
-            var brutoLinha = linha.Quantity * linha.BasePrice;
-            var descontoLinha = brutoLinha * (linha.DiscountPercentage / 100);
+            var brutoLinha = linha.Quantidade * linha.PrecoUnitario;
+            var descontoLinha = brutoLinha * (linha.DescontoPercentagem / 100);
             var aposDesconto = brutoLinha - descontoLinha;
-            var ivaLinha = aposDesconto * (linha.TaxRate / 100);
+            var ivaLinha = aposDesconto * (linha.TaxaIva / 100);
 
             SubtotalGeral += brutoLinha;
             TotalDescontos += descontoLinha;
@@ -451,14 +473,14 @@
     private async Task GuardarFatura()
     {
         // Validações Manuais
-        if (novaFatura.ClientId == null)
+        if (novaFatura.ClienteId == null)
         {
             // Poderias mostrar um toast alert aqui
             Console.WriteLine("Erro: Cliente é obrigatório!");
             return;
         }
 
-        if (!novaFatura.Lines.Any(l => l.ProdutId != null))
+        if (!novaFatura.Linhas.Any(l => l.ProdutoId != null))
         {
             Console.WriteLine("Erro: A fatura precisa de ter pelo menos uma linha com produto!");
             return;
