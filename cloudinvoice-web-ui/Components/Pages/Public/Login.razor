@@ -7,6 +7,9 @@
 @inject NavigationManager NavigationManager
 @inject cloudinvoice_web_ui.Services.Auth.IAuthService AuthService
 @inject cloudinvoice_web_ui.Auth.TokenProvider TokenProvider
+@using Microsoft.AspNetCore.Components.Authorization
+@using cloudinvoice_web_ui.Auth
+@inject AuthenticationStateProvider AuthStateProvider
 
 <h4 class="mt-0">Login</h4>
 <p class="text-muted mb-4">Introduza o seu email e password para aceder à sua conta.</p>
@@ -99,15 +102,18 @@
 
         try
         {
-            // Chama a API real!
             var result = await AuthService.LoginAsync(loginModel);
 
             if (result.IsSuccess)
             {
-                // Guarda o token em memória (para os services/handlers usarem)
-                TokenProvider.Token = result.Token;
-                // Guarda também no localStorage (para persistir entre recarregamentos)
-                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+                // 1. Convertemos o provedor genérico do Blazor para o NOSSO provedor
+                var customAuthStateProvider = (CustomAuthenticationStateProvider)AuthStateProvider;
+
+                // 2. Chamamos o nosso método mágico!
+                // Ele grava no Provider, grava no localStorage e avisa o Blazor que estamos logados!
+                await customAuthStateProvider.MarkUserAsAuthenticated(result.Token);
+
+                // 3. Redireciona para o backoffice
                 NavigationManager.NavigateTo("/backoffice");
             }
             else

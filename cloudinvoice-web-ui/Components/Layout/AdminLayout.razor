@@ -189,9 +189,9 @@
                                     </a>
 
                                     <!-- item-->
-                                    <a href="javascript:void(0);" class="dropdown-item">
+                                    <a href="/backoffice/faturas/nova" class="dropdown-item">
                                         <i class="fe-user me-1"></i>
-                                        <span>Create Users</span>
+                                        <span>Nova Fatura</span>
                                     </a>
 
                                     <!-- item-->
@@ -820,10 +820,16 @@
     // 3. Sempre que o utilizador clica num link do menu e muda de página, recarrega o JS
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        await JS.InvokeVoidAsync("recarregarScriptsDoTemplate");
+        try
+        {
+            await JS.InvokeVoidAsync("recarregarScriptsDoTemplate");
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException || ex is TaskCanceledException)
+        {
+            // O circuito foi fechado, não faz nada
+        }
     }
 
-    // 4. Limpeza de memória (Boas práticas de Arquitetura)
     public void Dispose()
     {
         NavManager.LocationChanged -= OnLocationChanged;

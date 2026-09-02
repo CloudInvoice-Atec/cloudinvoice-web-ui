@@ -41,6 +41,20 @@
     }
     else
     {
+        @if (!string.IsNullOrEmpty(_saveSuccessMessage))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="mdi mdi-check-all me-2"></i> @_saveSuccessMessage
+                <button type="button" class="btn-close" @onclick="() => _saveSuccessMessage = null"></button>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(_saveErrorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="mdi mdi-block-helper me-2"></i> @_saveErrorMessage
+                <button type="button" class="btn-close" @onclick="() => _saveErrorMessage = null"></button>
+            </div>
+        }
 
         <EditForm Model="@_empresaDto" OnValidSubmit="SaveData">
             <DataAnnotationsValidator />
@@ -105,12 +119,21 @@
                                     <div class="text-danger mt-1">@_logoError</div>
                                 }
 
-                                @if (string.IsNullOrEmpty(_logoError) && _empresaDto.Logo != null)
+                                @if (string.IsNullOrEmpty(_logoError) && _empresaDto.LogoFile != null)
                                 {
-                                    <small class="text-success mt-1">Ficheiro selecionado: @_empresaDto.Logo.Name</small>
+                                    <small class="text-success mt-1">Ficheiro selecionado: @_empresaDto.LogoFile.Name</small>
                                 }
                             </div>
-                        </div>
+							@if (!string.IsNullOrEmpty(_empresaDto.Logo))
+							{
+								<div class="mt-3">
+									<label class="form-label">Logótipo Atual:</label>
+									<div>
+										<img src="@_empresaDto.Logo" alt="Logótipo da Empresa" style="max-width: 200px; max-height: 200px;" />
+									</div>
+								</div>
+							}
+                            </div>
                     </div>
                     <div class="card">
                         <div class="card-body">
@@ -224,6 +247,9 @@
     private string _logoError;
     private long _maxFileSize = 10485760; // 10 MB em Bytes
 
+    private string _saveSuccessMessage;
+    private string _saveErrorMessage;
+
     protected override async Task OnInitializedAsync()
     {
         _isLoading = true;
@@ -247,7 +273,7 @@
     private void ReceiveFile(InputFileChangeEventArgs e)
     {
         _logoError = null;
-        _empresaDto.Logo = null;
+        _empresaDto.LogoFile = null;
 
         var file = e.File;
         var extension = Path.GetExtension(file.Name).ToLowerInvariant();
@@ -264,25 +290,24 @@
             return;
         }
 
-        _empresaDto.Logo = file;
+        _empresaDto.LogoFile = file;
     }
 
     private async Task SaveData()
     {
         _isSaving = true;
+        _saveSuccessMessage = null; // Limpa mensagens anteriores
+        _saveErrorMessage = null;
 
-        // Envia os dados para a API usando o serviço
         var success = await CompanyService.SaveCompanySettingsAsync(_empresaDto);
 
         if (success)
         {
-            Console.WriteLine("Empresa atualizada com sucesso na Base de Dados!");
-            // Futuramente podes adicionar uma notificação Toast aqui
+            _saveSuccessMessage = "Definições da empresa atualizadas com sucesso!";
         }
         else
         {
-            Console.WriteLine("Erro ao atualizar a Empresa.");
-            // Futuramente podes adicionar uma notificação Toast de erro aqui
+            _saveErrorMessage = "Ocorreu um erro ao gravar. Tente novamente.";
         }
 
         _isSaving = false;

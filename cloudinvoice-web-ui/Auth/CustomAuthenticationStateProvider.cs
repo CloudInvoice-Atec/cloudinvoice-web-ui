@@ -29,6 +29,7 @@ namespace cloudinvoice_web_ui.Auth
                     token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", TokenKey);
                     if (!string.IsNullOrWhiteSpace(token))
                     {
+                        // Repõe o token na memória para usos futuros rápidos
                         _tokenProvider.Token = token;
                     }
                 }
@@ -43,21 +44,36 @@ namespace cloudinvoice_web_ui.Auth
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
 
-            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
+            var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", "name", "role");
+            var authenticatedUser = new ClaimsPrincipal(identity);
             return new AuthenticationState(authenticatedUser);
         }
 
-        // Método auxiliar para notificar a aplicação que o utilizador fez login (para atualizar a UI de imediato)
-        public void MarkUserAsAuthenticated(string token)
+        // 🚨 ALTERAÇÃO: Passou a ser 'async Task' e agora GRAVA no localStorage
+        public async Task MarkUserAsAuthenticated(string token)
         {
+            // 1. Atualiza na memória
+            _tokenProvider.Token = token;
+
+            // 2. Grava no disco do browser para sobreviver ao F5!
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TokenKey, token);
+
+            // 3. Notifica a aplicação
             var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
             var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
             NotifyAuthenticationStateChanged(authState);
         }
 
-        // Método auxiliar para notificar que o utilizador fez logout
-        public void MarkUserAsLoggedOut()
+        // 🚨 ALTERAÇÃO: Passou a ser 'async Task' e agora APAGA do localStorage
+        public async Task MarkUserAsLoggedOut()
         {
+            // 1. Limpa a memória
+            _tokenProvider.Token = null;
+
+            // 2. Apaga do disco do browser
+            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", TokenKey);
+
+            // 3. Notifica a aplicação
             var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
             var authState = Task.FromResult(new AuthenticationState(anonymousUser));
             NotifyAuthenticationStateChanged(authState);

@@ -1,0 +1,492 @@
+﻿@page "/backoffice/faturas/nova"
+@layout Layout.AdminLayout
+@inject IJSRuntime JS
+@using cloudinvoice_web_ui.DTOs.Configuracoes
+@inject cloudinvoice_web_ui.Services.Settings.ICompanyService CompanyService
+@using cloudinvoice_web_ui.DTOs.Clientes
+@inject cloudinvoice_web_ui.Services.Customers.ICustomerService CustomerService
+
+
+<!-- Start Content-->
+<div class="container-fluid">
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Criar Nova Fatura</h4>
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+    @if (_isLoading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">A preparar o ambiente de faturação...</p>
+        </div>
+    }
+    else if (_loadError)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            <i class="mdi mdi-block-helper me-2"></i> Não foi possível carregar os dados necessários para emitir a fatura (ex: Dados da Empresa). Verifique a ligação.
+        </div>
+    }
+    else
+    {
+        <EditForm Model="novaFatura" OnValidSubmit="GuardarFatura">
+            <DataAnnotationsValidator />
+
+            <!-- TOPO: Detalhes da Fatura, Emissor e Cliente -->
+            <div class="row mb-3">
+
+                <!-- 1. Emissor (A tua Empresa) -->
+                <div class="col-lg-4 mb-3 mb-lg-0">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="text-uppercase bg-light p-2 mt-0 mb-3">Emitido Por</h5>
+
+                            <div class="text-center mb-3">
+                                @if (!string.IsNullOrEmpty(_empresa.Logo))
+                                {
+                                    <img src="@_empresa.Logo" alt="Logótipo" style="max-height: 80px;" />
+                                }
+                            </div>
+                            <h4 class="text-uppercase mb-3 text-center text-primary">
+                                @_empresa.Name
+                            </h4>
+
+                            <p class="text-muted mb-1">
+                                <strong>NIF:</strong> @_empresa.TaxNumber
+                            </p>
+                            <p class="text-muted mb-1">
+                                <strong>Morada:</strong> @_empresa.Address
+                            </p>
+                            <p class="text-muted mb-0">
+                                <strong>Capital Social:</strong> @_empresa.ShareCapital?.ToString("C2")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Detalhes da Fatura -->
+                <div class="col-lg-4 mb-3 mb-lg-0">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="text-uppercase bg-light p-2 mt-0 mb-3">Detalhes da Fatura</h5>
+
+                            <div class="mb-3">
+                                <label class="form-label">Número da Fatura</label>
+                                <input type="text" class="form-control" placeholder="Gerado automaticamente após submissão" disabled />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Número de Referência (Opcional)</label>
+                                <InputText @bind-Value="novaFatura.Referencia" class="form-control" placeholder="Ex: REF-123456" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label class="form-label">Data da Fatura <span class="text-danger">*</span></label>
+                                    <InputDate @bind-Value="novaFatura.DataFatura" class="form-control" disabled />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Vencimento <span class="text-danger">*</span></label>
+                                    <InputDate @bind-Value="novaFatura.DataVencimento" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Cliente -->
+                <div class="col-lg-4 mb-3 mb-lg-0">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="text-uppercase bg-light p-2 mt-0 mb-3">Faturado A (Cliente) <span class="text-danger">*</span></h5>
+
+                            <div class="mb-3">
+                                <select class="form-select select2" @onchange="OnClienteSelecionado">
+                                    <option value="">Selecione um cliente...</option>
+                                    @foreach (var cliente in _clientesAtivos)
+                                    {
+                                        <option value="@cliente.Id">@cliente.Name (NIF: @cliente.TaxId)</option>
+                                    }
+                                </select>
+                            </div>
+
+                            @if (clienteSelecionado != null)
+                            {
+                                <div class="bg-light border rounded p-3 mt-3">
+                                    <h5 class="mt-0 mb-2 text-dark">@clienteSelecionado.Name</h5>
+                                    <p class="mb-1 text-muted"><strong>NIF:</strong> @clienteSelecionado.TaxId</p>
+                                    <p class="mb-1 text-muted"><strong>Morada:</strong> @clienteSelecionado.Address</p>
+                                    <p class="mb-1 text-muted">@clienteSelecionado.PostalCode - @clienteSelecionado.City</p>
+                                    <p class="mb-0 text-muted">@clienteSelecionado.Country</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted mt-4">
+                                    <i class="mdi mdi-account-search-outline" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">Selecione um cliente para ver os detalhes.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- TABELA DE PRODUTOS / LINHAS DA FATURA -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="text-uppercase bg-light p-2 mt-0 mb-3">Artigos & Detalhes</h5>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-centered mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th style="width: 30%;">Produto/Serviço</th>
+                                            <th style="width: 10%;">Qtd</th>
+                                            <th style="width: 15%;">Preço Unit. (€)</th>
+                                            <th style="width: 10%;">Desc. (%)</th>
+                                            <th style="width: 15%;">IVA (%)</th>
+                                            <th style="width: 15%;">Total (€)</th>
+                                            <th style="width: 5%;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var linha in novaFatura.Linhas)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <select class="form-select" @onchange="@(e => OnProdutoSelecionado(linha, e))" value="@linha.ProdutoId">
+                                                        <option value="">Selecione...</option>
+                                                        @foreach (var prod in _produtosCatalogo)
+                                                        {
+                                                            <option value="@prod.Id">@prod.Nome</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control" @bind="linha.Quantidade" @bind:event="oninput" @onkeyup="CalcularTotais" min="1" />
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control" @bind="linha.PrecoUnitario" @bind:event="oninput" @onkeyup="CalcularTotais" step="0.01" />
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control" @bind="linha.DescontoPercentagem" @bind:event="oninput" @onkeyup="CalcularTotais" min="0" max="100" />
+                                                </td>
+                                                <td>
+                                                    <select class="form-select" @bind="linha.TaxaIva" @bind:event="oninput" @onchange="CalcularTotais">
+                                                        <option value="23">23%</option>
+                                                        <option value="13">13%</option>
+                                                        <option value="6">6%</option>
+                                                        <option value="0">0% (Isento)</option>
+                                                    </select>
+                                                </td>
+                                                <td class="bg-light text-end fw-bold align-middle">
+                                                    @CalcularTotalLinha(linha).ToString("N2")
+                                                </td>
+                                                <td class="text-center align-middle">
+                                                    <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoverLinha(linha)">
+                                                        <i class="mdi mdi-delete"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-soft-primary" @onclick="AdicionarLinha">
+                                    <i class="mdi mdi-plus-circle me-1"></i> Adicionar Nova Linha
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RODAPÉ: Notas e Totais -->
+            <div class="row">
+                <!-- Esquerda: Notas Adicionais -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="text-uppercase bg-light p-2 mt-0 mb-3">Informação Extra</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Notas Adicionais (Visível para o cliente)</label>
+                                <InputTextArea @bind-Value="novaFatura.Notas" class="form-control" rows="4" placeholder="Adicione termos, condições ou notas de agradecimento..." />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Direita: Resumo Financeiro -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="text-uppercase bg-light p-2 mt-0 mb-3">Resumo Financeiro</h5>
+                            <div class="table-responsive">
+                                <table class="table table-borderless mb-0">
+                                    <tbody>
+                                        <tr>
+                                            <td>Subtotal (Sem IVA):</td>
+                                            <td class="text-end fw-bold">@SubtotalGeral.ToString("C2")</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Descontos:</td>
+                                            <td class="text-end text-danger fw-bold">- @TotalDescontos.ToString("C2")</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total IVA:</td>
+                                            <td class="text-end fw-bold">@TotalIva.ToString("C2")</td>
+                                        </tr>
+                                        <tr class="bg-light">
+                                            <td class="fs-4 fw-bold">Total Final:</td>
+                                            <td class="text-end fs-4 fw-bold text-primary">@TotalFinal.ToString("C2")</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="row mb-4">
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-light me-2">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="mdi mdi-content-save me-1"></i> Guardar e Emitir Fatura
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    // ====================================================================
+    // CLASSES TEMPORÁRIAS (Serão substituídas pelos teus DTOs reais)
+    // ====================================================================
+    public class TempFaturaCriarDto
+    {
+        public Guid? ClienteId { get; set; }
+        public string Referencia { get; set; }
+        public DateTime DataFatura { get; set; } = DateTime.Today;
+        public DateTime DataVencimento { get; set; } = DateTime.Today.AddDays(30);
+        public string Notas { get; set; }
+        public List<TempFaturaLinhaDto> Linhas { get; set; } = new List<TempFaturaLinhaDto>();
+    }
+
+    public class TempFaturaLinhaDto
+    {
+        public Guid IdTemporario { get; set; } = Guid.NewGuid(); // Para controlo do Blazor
+        public Guid? ProdutoId { get; set; }
+        public decimal Quantidade { get; set; } = 1;
+        public decimal PrecoUnitario { get; set; } = 0;
+        public decimal DescontoPercentagem { get; set; } = 0;
+        public decimal TaxaIva { get; set; } = 23;
+    }
+
+    public class TempProdutoDto
+    {
+        public Guid Id { get; set; }
+        public string Nome { get; set; }
+        public decimal PrecoAtual { get; set; }
+        public decimal IvaPorDefeito { get; set; }
+    }
+
+
+
+    // ====================================================================
+    // ESTADO DA PÁGINA
+    // ====================================================================
+    private bool _isLoading = true;
+    private bool _loadError = false;
+    private TempFaturaCriarDto novaFatura = new TempFaturaCriarDto();
+
+    // Dados que virão das APIs
+    private List<TempProdutoDto> _produtosCatalogo = new();
+    private EmpresaDto _empresa = new EmpresaDto();
+    private List<CustomerProfileDto> _clientesAtivos = new List<CustomerProfileDto>();
+    private CustomerProfileDto clienteSelecionado;
+
+    // Totais Calculados
+    private decimal SubtotalGeral = 0;
+    private decimal TotalDescontos = 0;
+    private decimal TotalIva = 0;
+    private decimal TotalFinal = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        try
+        {
+            // 1. Ir buscar os Dados da Empresa reais à API
+            var result = await CompanyService.GetCompanySettingsAsync();
+
+            if (result != null)
+            {
+                _empresa = result;
+            }
+            else
+            {
+                // Se a API não devolver a empresa, não podemos faturar!
+                _loadError = true;
+                return; // Pára imediatamente a execução
+            }
+
+            var resultClientes = await CustomerService.GetCustomersActiveAsync();
+            
+            if (resultClientes != null && resultClientes.Any())
+            {
+				_clientesAtivos = resultClientes;
+            }
+            else
+            {
+                _loadError = true;
+                return; 
+            }
+
+         
+
+            // 3. Simular Produtos (Futuramente virá da Catalog.API)
+            _produtosCatalogo = new List<TempProdutoDto>
+            {
+                new TempProdutoDto { Id = Guid.NewGuid(), Nome = "Licença Software Premium", PrecoAtual = 1360.00m, IvaPorDefeito = 23 },
+                new TempProdutoDto { Id = Guid.NewGuid(), Nome = "Consultoria Informática (Hora)", PrecoAtual = 75.00m, IvaPorDefeito = 23 },
+                new TempProdutoDto { Id = Guid.NewGuid(), Nome = "Servidor Cloud (Mensal)", PrecoAtual = 150.00m, IvaPorDefeito = 23 }
+            };
+
+            // Iniciar com uma linha vazia por defeito
+            AdicionarLinha();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao preparar fatura: {ex.Message}");
+            _loadError = true;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    // ====================================================================
+    // LÓGICA DE INTERAÇÃO
+    // ====================================================================
+
+    private void OnClienteSelecionado(ChangeEventArgs e)
+    {
+        if (Guid.TryParse(e.Value?.ToString(), out Guid clienteId))
+        {
+            novaFatura.ClienteId = clienteId;
+            clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == clienteId);
+        }
+        else
+        {
+            novaFatura.ClienteId = null;
+            clienteSelecionado = null;
+        }
+    }
+
+    private void AdicionarLinha()
+    {
+        novaFatura.Linhas.Add(new TempFaturaLinhaDto());
+        CalcularTotais();
+    }
+
+    private void RemoverLinha(TempFaturaLinhaDto linha)
+    {
+        novaFatura.Linhas.Remove(linha);
+        CalcularTotais();
+    }
+
+    // A Mágica do Auto-Preenchimento!
+    private void OnProdutoSelecionado(TempFaturaLinhaDto linha, ChangeEventArgs e)
+    {
+        if (Guid.TryParse(e.Value?.ToString(), out Guid produtoId))
+        {
+            var produto = _produtosCatalogo.FirstOrDefault(p => p.Id == produtoId);
+            if (produto != null)
+            {
+                linha.ProdutoId = produtoId;
+                linha.PrecoUnitario = produto.PrecoAtual;
+                linha.TaxaIva = produto.IvaPorDefeito;
+            }
+        }
+        else
+        {
+            linha.ProdutoId = null;
+            linha.PrecoUnitario = 0;
+        }
+
+        CalcularTotais();
+    }
+
+    // ====================================================================
+    // LÓGICA DE CÁLCULO FINANCEIRO
+    // ====================================================================
+
+    private decimal CalcularTotalLinha(TempFaturaLinhaDto linha)
+    {
+        var bruto = linha.Quantidade * linha.PrecoUnitario;
+        var desconto = bruto * (linha.DescontoPercentagem / 100);
+        var valorAposDesconto = bruto - desconto;
+        var iva = valorAposDesconto * (linha.TaxaIva / 100);
+
+        return valorAposDesconto + iva;
+    }
+
+    private void CalcularTotais()
+    {
+        SubtotalGeral = 0;
+        TotalDescontos = 0;
+        TotalIva = 0;
+        TotalFinal = 0;
+
+        foreach (var linha in novaFatura.Linhas)
+        {
+            var brutoLinha = linha.Quantidade * linha.PrecoUnitario;
+            var descontoLinha = brutoLinha * (linha.DescontoPercentagem / 100);
+            var aposDesconto = brutoLinha - descontoLinha;
+            var ivaLinha = aposDesconto * (linha.TaxaIva / 100);
+
+            SubtotalGeral += brutoLinha;
+            TotalDescontos += descontoLinha;
+            TotalIva += ivaLinha;
+        }
+
+        TotalFinal = SubtotalGeral - TotalDescontos + TotalIva;
+    }
+
+    private async Task GuardarFatura()
+    {
+        // Validações Manuais
+        if (novaFatura.ClienteId == null)
+        {
+            // Poderias mostrar um toast alert aqui
+            Console.WriteLine("Erro: Cliente é obrigatório!");
+            return;
+        }
+
+        if (!novaFatura.Linhas.Any(l => l.ProdutoId != null))
+        {
+            Console.WriteLine("Erro: A fatura precisa de ter pelo menos uma linha com produto!");
+            return;
+        }
+
+        Console.WriteLine("Tudo Válido! A chamar a API...");
+        // await FaturaService.CriarFaturaAsync(novaFatura);
+    }
+}
