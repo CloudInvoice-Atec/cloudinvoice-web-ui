@@ -10,16 +10,20 @@ namespace cloudinvoice_web_ui.Services.Customers
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
+        private readonly HttpClient _httpClientBilling; // <-- Declarado no topo como na Empresa
 
+        // O construtor injeta as dependências e prepara logo o HttpClient
         public CustomerService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
+            _httpClientBilling = CreateAuthenticatedClient("BillingAPI"); // <-- Instanciado no início
         }
 
-        private HttpClient CreateAuthenticatedClient()
+        // Método auxiliar idêntico ao do CompanyService
+        private HttpClient CreateAuthenticatedClient(string clientName)
         {
-            var client = _httpClientFactory.CreateClient("BillingAPI");
+            var client = _httpClientFactory.CreateClient(clientName);
             if (!string.IsNullOrEmpty(_tokenProvider.Token))
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _tokenProvider.Token);
@@ -27,89 +31,98 @@ namespace cloudinvoice_web_ui.Services.Customers
             return client;
         }
 
+        public async Task<Guid?> CreateCustomerAsync(InserirClienteDto customer)
+        {
+            try
+            {
+                var response = await _httpClientBilling.PostAsJsonAsync("api/Customers", customer);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var createdCustomer = await response.Content.ReadFromJsonAsync<CustomerProfileDto>();
+                    return createdCustomer?.Id;
+                }
+
+                Console.WriteLine($"Erro da API ao criar cliente. Status: {response.StatusCode}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao criar cliente: {ex.Message}");
+                return null;
+            }
+        }
+
         public async Task<CustomerProfileDto> GetCustomerProfileAsync(Guid id)
         {
             try
             {
-                var client = CreateAuthenticatedClient();
-
-                var customer = await client.GetFromJsonAsync<CustomerProfileDto>($"api/customers/{id}");
-                if (customer != null)
-                {
-                    return customer;
-                }
+                var result = await _httpClientBilling.GetFromJsonAsync<CustomerProfileDto>($"api/customers/{id}");
+                return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao obter cliente da API: {ex.Message}. A carregar dados fictícios.");
+                Console.WriteLine($"Erro ao obter cliente da API: {ex.Message}.");
+                return null;
             }
-
-            // FAKE DATA de Fallback
-            return new CustomerProfileDto
-            {
-                Id = id,
-                Name = "Tech Solutions, Lda (Mock)",
-                TradeName = "TechSol",
-                TaxId = "500123456",
-                IsActive = true,
-                CurrentDebt = 1250.00m,
-                CreditLimit = 5000.00m,
-                TotalInvoiced = 14500.00m,
-                PaymentTermsDays = 30,
-                Email = "geral@techsolutions.pt",
-                Phone = "+351 253 111 222",
-                Website = "https://www.techsolutions.pt",
-                Address = "Rua da Inovação, Lote 45, Edifício A",
-                City = "Guimarães",
-                PostalCode = "4800-000",
-                Country = "Portugal",
-                DefaultDiscount = 5.0m,
-                CreatedAt = new DateTime(2022, 5, 10),
-                ContactPersonName = "João Silva",
-                ContactPersonRole = "Diretor Financeiro",
-                ContactPersonEmail = "joao.silva@techsolutions.pt",
-                ContactPersonPhone = "+351 912 345 678"
-            };
         }
 
         public async Task<List<InvoiceSummaryDto>> GetCustomerInvoicesAsync(Guid id)
         {
             try
             {
-                var client = CreateAuthenticatedClient();                var invoices = await client.GetFromJsonAsync<List<InvoiceSummaryDto>>($"api/customers/{id}/invoices");
-                if (invoices != null)
-                {
-                    return invoices;
-                }
+                // Usamos diretamente o _httpClientBilling instanciado no construtor
+                var invoices = await _httpClientBilling.GetFromJsonAsync<List<InvoiceSummaryDto>>($"api/customers/{id}/invoices");
+
+                return invoices ?? new List<InvoiceSummaryDto>();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao obter faturas da API: {ex.Message}. A carregar dados fictícios.");
+                Console.WriteLine($"Erro ao obter faturas da API: {ex.Message}.");
+                return new List<InvoiceSummaryDto>();
             }
-
-            // FAKE DATA de Fallback
-            return new List<InvoiceSummaryDto>
-        {
-            new InvoiceSummaryDto { InvoiceNumber = "FT 2026/0045", IssueDate = DateTime.Now.AddDays(-5), DueDate = DateTime.Now.AddDays(25), TotalAmount = 750.00m, Status = "Unpaid" },
-            new InvoiceSummaryDto { InvoiceNumber = "FT 2026/0012", IssueDate = DateTime.Now.AddDays(-40), DueDate = DateTime.Now.AddDays(-10), TotalAmount = 500.00m, Status = "Overdue" },
-            new InvoiceSummaryDto { InvoiceNumber = "FT 2026/0003", IssueDate = DateTime.Now.AddDays(-60), DueDate = DateTime.Now.AddDays(-30), TotalAmount = 1250.00m, Status = "Paid" }
-        };
         }
 
         public async Task<bool> UpdateCustomerAsync(Guid id, CustomerProfileDto customer)
         {
             try
             {
-                var client = CreateAuthenticatedClient(); // ou "CustomersAPI"
-
-                // Faz o PUT para a API
-                var response = await client.PutAsJsonAsync($"api/customers/{id}", customer);
+                // Usamos diretamente o _httpClientBilling instanciado no construtor
+                var response = await _httpClientBilling.PutAsJsonAsync($"api/customers/{id}", customer);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao atualizar cliente: {ex.Message}");
-                return false; // Retorna falso para a UI saber que falhou (Fake Fallback)
+                return false;
+            }
+        }
+
+        public async Task<List<CustomerProfileDto>> GetCustomersAsync()
+        {
+            try
+            {
+                var clientes = await _httpClientBilling.GetFromJsonAsync<List<CustomerProfileDto>>("api/customers");
+                return clientes ?? new List<CustomerProfileDto>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao obter clientes: {ex.Message}");
+                return new List<CustomerProfileDto>();
+            }
+        }
+
+        public async Task<List<CustomerProfileDto>> GetCustomersActiveAsync()
+        {
+            try
+            {
+                var clientesAtivos = await _httpClientBilling.GetFromJsonAsync<List<CustomerProfileDto>>("api/customers/active");
+                return clientesAtivos ?? new List<CustomerProfileDto>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao obter clientes: {ex.Message}");
+                return new List<CustomerProfileDto>();
             }
         }
     }

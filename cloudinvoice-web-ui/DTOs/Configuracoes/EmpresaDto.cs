@@ -30,7 +30,8 @@ namespace cloudinvoice_web_ui.DTOs.Configuracoes
 
         // logo
         [JsonIgnore]
-        public IBrowserFile? Logo { get; set; }
+        public IBrowserFile? LogoFile { get; set; }
+        public string? Logo { get; set; }
 
         [Required(ErrorMessage = "O email é obrigatório.")]
         [EmailAddress(ErrorMessage = "Email inválido.")]

@@ -18,6 +18,7 @@
 /cloudinvoice-web-ui/obj/project.assets.json
 /cloudinvoice-web-ui/obj/project.nuget.cache
 /cloudinvoice-web-ui/obj/Debug/net8.0/staticwebassets.upToDateCheck.txt
+/cloudinvoice-web-ui/wwwroot/uploads
 /cloudinvoice-web-ui/bin/Debug/net8.0/cloudinvoice-web-ui.staticwebassets.endpoints.json
 /cloudinvoice-web-ui/bin/Debug/net8.0/cloudinvoice-web-ui.staticwebassets.runtime.json
 /cloudinvoice-web-ui/obj/Debug/net8.0/cloudinvoice-web-ui.csproj.FileListAbsolute.txt

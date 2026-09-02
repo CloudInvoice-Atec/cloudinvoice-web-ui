@@ -6,5 +6,8 @@ namespace cloudinvoice_web_ui.Services.Customers
 {
         Task<CustomerProfileDto> GetCustomerProfileAsync(Guid id);
         Task<bool> UpdateCustomerAsync(Guid id, CustomerProfileDto customer);
+        Task<Guid?> CreateCustomerAsync(InserirClienteDto customer);
+        Task<List<CustomerProfileDto>> GetCustomersAsync();
+        Task<List<CustomerProfileDto>> GetCustomersActiveAsync();
     }
 }

@@ -23,7 +23,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options =>
+    {
+        options.DetailedErrors = true; // Ligar os erros detalhados!
+    });
 
 builder.Services.AddScoped<TokenProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();

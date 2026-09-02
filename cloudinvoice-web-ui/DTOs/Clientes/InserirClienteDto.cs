@@ -4,17 +4,15 @@ namespace cloudinvoice_web_ui.DTOs.Clientes
 {
     public class InserirClienteDto
 {
-        public Guid Id { get; set; }
         [Required(ErrorMessage = "O nome é obrigatório.")]
-        public string Nome { get; set; }
+        public string Name { get; set; }
         [Required(ErrorMessage = "O NIF é obrigatório.")]
-        public string Nif { get; set; }
+        public string TaxNumber { get; set; }
         [Required(ErrorMessage = "O responsável é obrigatório.")]
-        public string Responsavel { get; set; }
+        public string ContactPersonName { get; set; }
         [Required(ErrorMessage = "O email é obrigatório.")]
-        public string Email { get; set; }
-        
-        public int Ativo { get; set; }
+        public string ContactPersonEmail { get; set; }
+        public bool IsActive { get; set; } = true;
 
-    }
+    }   
 }
