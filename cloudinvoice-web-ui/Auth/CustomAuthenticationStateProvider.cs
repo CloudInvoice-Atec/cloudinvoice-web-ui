@@ -116,5 +116,31 @@ namespace cloudinvoice_web_ui.Auth
             }
             return Convert.FromBase64String(base64);
         }
+
+        public async Task LoadTokenFromBrowserAsync()
+        {
+            try
+            {
+                // Neste momento o SignalR já está ligado, o JS Interop vai funcionar a 100%
+                var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", TokenKey);
+
+                // Se encontrou o token no disco e a memória estava vazia (F5), repõe a sessão
+                if (!string.IsNullOrWhiteSpace(token) && _tokenProvider.Token != token)
+                {
+                    _tokenProvider.Token = token;
+
+                    var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", "name", "role");
+                    var authenticatedUser = new ClaimsPrincipal(identity);
+                    var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
+
+                    // Força toda a aplicação a atualizar-se e a remover o estado Anónimo da cache
+                    NotifyAuthenticationStateChanged(authState);
+                }
+            }
+            catch
+            {
+                // Ignora falhas de segurança do browser
+            }
+        }
     }
 }
