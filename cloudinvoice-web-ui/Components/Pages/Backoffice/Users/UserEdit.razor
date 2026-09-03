@@ -1,0 +1,217 @@
+﻿@page "/backoffice/users/edit/{Id}"
+@layout Layout.AdminLayout
+@attribute [Authorize(Roles = "Admin")]
+@using cloudinvoice_web_ui.DTOs.Identity
+@using cloudinvoice_web_ui.Services.Users
+@using Microsoft.AspNetCore.Authorization
+
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<div class="container-fluid mt-2">
+    <div class="row mb-2">
+        <div class="col-12">
+            <div class="page-title-box d-flex justify-content-between align-items-center">
+                <h4 class="page-title m-0">Editar Utilizador</h4>
+
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/backoffice">Backoffice</a></li>
+                        <li class="breadcrumb-item"><a href="/backoffice/users">Utilizadores</a></li>
+                        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Editar</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    @if (_isPageLoading)
+                    {
+                        <div class="text-center my-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2">A carregar dados do utilizador...</p>
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(_errorMessage) && _userModel == null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="mdi mdi-alert-circle-outline me-2"></i> @_errorMessage
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-danger" @onclick="NavigateBack">Voltar</button>
+                            </div>
+                        </div>
+                    }
+                    else if (_userModel != null)
+                    {
+                        @if (!string.IsNullOrEmpty(_errorMessage))
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="mdi mdi-alert-circle-outline me-2"></i> @_errorMessage
+                                <button type="button" class="btn-close" @onclick="() => _errorMessage = string.Empty"></button>
+                            </div>
+                        }
+
+                        <EditForm Model="@_userModel" OnValidSubmit="HandleValidSubmit">
+                            <DataAnnotationsValidator />
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nome <span class="text-danger">*</span></label>
+                                    <InputText class="form-control" @bind-Value="_userModel.FirstName" placeholder="Primeiro nome" />
+                                    <ValidationMessage For="@(() => _userModel.FirstName)" class="text-danger font-12 mt-1" />
+                                </div>
+                                <div class="col-md-6 mt-3 mt-md-0">
+                                    <label class="form-label">Apelido <span class="text-danger">*</span></label>
+                                    <InputText class="form-control" @bind-Value="_userModel.LastName" placeholder="Último nome" />
+                                    <ValidationMessage For="@(() => _userModel.LastName)" class="text-danger font-12 mt-1" />
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Endereço de Email</label>
+                                    <input type="email" class="form-control bg-light" value="@_userModel.Email" readonly disabled />
+                                    <small class="text-muted font-12">O endereço de email não pode ser alterado.</small>
+                                </div>
+
+                                <div class="col-md-6 mt-3 mt-md-0">
+                                    <label class="form-label">Perfil de Acesso (Role) <span class="text-danger">*</span></label>
+                                    <InputSelect class="form-select" @bind-Value="_userModel.Role">
+                                        <option value="Contabilista">Contabilista (Acesso Operacional)</option>
+                                        <option value="Admin">Administrador (Acesso Total)</option>
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => _userModel.Role)" class="text-danger font-12 mt-1" />
+                                </div>
+                            </div>
+
+                            <!-- Bloco de Estado Limpo e Moderno -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="border rounded p-3 bg-light d-flex align-items-center justify-content-between shadow-sm">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3 flex-shrink-0">
+                                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                                    <i class="mdi mdi-power font-20"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <label class="form-label mb-0 fw-bold text-dark font-15" for="isActiveSwitch" style="cursor: pointer;">
+                                                    Estado da Conta
+                                                </label>
+                                                <p class="text-muted font-13 mb-0">
+                                                    Se desativado, o utilizador não conseguirá iniciar sessão no sistema.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="form-check form-switch m-0 flex-shrink-0">
+                                            <InputCheckbox class="form-check-input" type="checkbox" id="isActiveSwitch" role="switch" @bind-Value="_userModel.IsActive" style="font-size: 1.5rem; cursor: pointer; margin-top: 0;" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                                <button type="button" class="btn btn-light waves-effect" @onclick="NavigateBack" disabled="@_isSaving">
+                                    Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-primary waves-effect waves-light" disabled="@_isSaving">
+                                    @if (_isSaving)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                        <span>A Guardar...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="mdi mdi-content-save me-1"></i> <span>Guardar Alterações</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private UserResponseDto? _userModel;
+
+    private bool _isPageLoading = true;
+    private bool _isSaving = false;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserAsync();
+    }
+
+    private async Task LoadUserAsync()
+    {
+        _isPageLoading = true;
+        _errorMessage = string.Empty;
+
+        try
+        {
+            var user = await UserService.GetUserByIdAsync(Id);
+            if (user != null)
+            {
+                _userModel = user;
+            }
+            else
+            {
+                _errorMessage = "Não foi possível encontrar o utilizador especificado.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Ocorreu um erro ao tentar comunicar com o servidor.";
+        }
+        finally
+        {
+            _isPageLoading = false;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (_userModel == null) return;
+
+        _isSaving = true;
+        _errorMessage = string.Empty;
+
+        try
+        {
+            var success = await UserService.UpdateUserAsync(_userModel);
+
+            if (success)
+            {
+                Navigation.NavigateTo("/backoffice/users");
+            }
+            else
+            {
+                _errorMessage = "Ocorreu um erro ao tentar atualizar os dados do utilizador.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Erro de comunicação com a API. Tente novamente.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/backoffice/users");
+    }
+}

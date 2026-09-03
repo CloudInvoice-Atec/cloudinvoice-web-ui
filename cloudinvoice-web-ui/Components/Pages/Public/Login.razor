@@ -1,11 +1,11 @@
 ﻿@page "/"
-@using Services.Auth
-@using cloudinvoice_web_ui.Models.Auth
+@using Services.Identity
+@using cloudinvoice_web_ui.DTOs.Identity
 @layout Layout.PublicLayout
 @inject IJSRuntime JS
 @* Vamos precisar do NavigationManager para redirecionar após o login *@
 @inject NavigationManager NavigationManager
-@inject cloudinvoice_web_ui.Services.Auth.IAuthService AuthService
+@inject cloudinvoice_web_ui.Services.Identity.IAuthService AuthService
 @inject cloudinvoice_web_ui.Auth.TokenProvider TokenProvider
 @using Microsoft.AspNetCore.Components.Authorization
 @using cloudinvoice_web_ui.Auth
@@ -91,7 +91,7 @@
 </footer>
 
 @code {
-    private LoginRequest loginModel = new LoginRequest();
+    private LoginRequestDto loginModel = new LoginRequestDto();
     private bool isLoading = false;
     private string? errorMessage;
 
