@@ -1,38 +1,61 @@
 ﻿@page "/backoffice/users"
-@inject IJSRuntime JS
 @layout Layout.AdminLayout
+@using cloudinvoice_web_ui.Components.Modals
 @using cloudinvoice_web_ui.DTOs.Identity
 @using cloudinvoice_web_ui.Services.Users
+@using Microsoft.AspNetCore.Authorization
+@using Components.Modals
+@attribute [Authorize(Roles = "Admin")]
+
 @inject IUserService UserService
 @inject NavigationManager Navigation
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Admin")]
-@using cloudinvoice_web_ui.Components.Modals
 
 <div class="container-fluid">
-
-    <!-- start page title -->
+    <!-- Cabeçalho com o Título e o Botão de Novo Utilizador -->
     <div class="row">
         <div class="col-12">
-            <div class="page-title-box">
+            <div class="page-title-box d-flex align-items-center justify-content-between">
+                <h4 class="page-title">Utilizadores</h4>
+
                 <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="javascript: void(0);">Backoffice</a></li>
-                        <li class="breadcrumb-item active">Utilizadores</li>
-                    </ol>
+                    <button class="btn btn-primary" @onclick="NavigateToCreate">
+                        <i class="fa fa-plus me-1"></i> Novo Utilizador
+                    </button>
                 </div>
-                <h4 class="page-title">Gestão de Utilizadores</h4>
             </div>
         </div>
     </div>
-    <!-- end page title -->
 
-    <div class="row mb-3">
-        <div class="col-12 text-end">
-            <!-- Usar o NavigationManager em vez de uma tag <a> normal, conforme as tuas regras -->
-            <button class="btn btn-primary waves-effect waves-light" @onclick="NavigateToCreate">
-                <i class="mdi mdi-plus-circle me-1"></i> Adicionar Novo
-            </button>
+    <!-- Secção de Filtros no Frontend -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Pesquisa</label>
+                    <input type="text" class="form-control" placeholder="Nome ou Email..." @bind="_searchTerm" @bind:event="oninput" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select class="form-select" @bind="_statusFilter">
+                        <option value="">Todos</option>
+                        <option value="true">Ativo</option>
+                        <option value="false">Inativo</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Perfil (Role)</label>
+                    <select class="form-select" @bind="_roleFilter">
+                        <option value="">Todos</option>
+                        <option value="Admin">Administrador</option>
+                        <option value="Contabilista">Contabilista</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button class="btn btn-light w-100" @onclick="ResetFilters" title="Limpar filtros">
+                        Limpar
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -40,113 +63,166 @@
     {
         <div class="text-center mt-5">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">A carregar lista de utilizadores...</p>
+            <p class="mt-2">A carregar utilizadores...</p>
         </div>
     }
     else if (_loadError)
     {
         <div class="alert alert-danger mt-3" role="alert">
-            Não foi possível carregar os dados dos utilizadores. Verifique a ligação à API.
+            Não foi possível carregar os utilizadores. Verifique a ligação à API.
         </div>
     }
     else
     {
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-centered table-nowrap table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Nome</th>
-                                        <th>Email</th>
-                                        <th>Perfil (Role)</th>
-                                        <th style="width: 120px;">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if (_users != null && _users.Any())
-                                    {
-                                        @foreach (var user in _users)
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-hover table-centered mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nome Completo</th>
+                            <th>Email</th>
+                            <th>Perfil</th>
+                            <th>Estado</th>
+                            <th class="text-center" style="width: 160px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!FilteredUsers.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center">Nenhum utilizador encontrado.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var user in FilteredUsers)
+                            {
+                                <tr>
+                                    <td>@user.FirstName @user.LastName</td>
+                                    <td>@user.Email</td>
+                                    <td>
+                                        <span class="badge @(user.Role == "Admin" ? "bg-primary" : "bg-info")">
+                                            @user.Role
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (user.IsActive)
                                         {
-                                            <tr>
-                                                <td>
-                                                    <h5 class="m-0 fw-normal">@user.FirstName @user.LastName</h5>
-                                                </td>
-                                                <td>@user.Email</td>
-                                                <td>
-                                                    <span class="badge @(user.Role == "Admin" ? "bg-danger" : "bg-success")">
-                                                        @user.Role
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex gap-1">
-                                                        <!-- Botão Detalhes -->
-                                                        <button type="button" class="btn btn-xs btn-info" @onclick="() => NavigateToDetails(user.Id)" title="Ver Detalhes">
-                                                            <i class="mdi mdi-eye"></i>
-                                                        </button>
-
-                                                        <!-- Botão Editar -->
-                                                        <button type="button" class="btn btn-xs btn-light" @onclick="() => NavigateToEdit(user.Id)" title="Editar">
-                                                            <i class="mdi mdi-pencil text-secondary"></i>
-                                                        </button>
-
-                                                        <!-- Botão Eliminar: Sem "waves-effect" e sem "waves-light" -->
-                                                        <button type="button" class="btn btn-xs btn-danger" @onclick="() => AbrirModalEliminar(user)" title="Eliminar">
-                                                            <i class="mdi mdi-trash-can"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                            <span class="badge bg-success">Ativo</span>
                                         }
-                                    }
-                                    else
-                                    {
-                                        <tr>
-                                            <td colspan="4" class="text-center py-4 text-muted">
-                                                Nenhum utilizador encontrado.
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div> <!-- end card -->
-            </div> <!-- end col -->
-        </div> <!-- end row -->
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inativo</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-inline-flex gap-1 justify-content-center align-items-center">
+                                            <button class="btn btn-sm btn-light" title="Ver Detalhes" @onclick="() => NavigateToDetails(user.Id)">
+                                                <i class="fa fa-pencil-alt"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => OpenDeleteModal(user)">
+                                                <i class="fa fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     }
-    <!-- Chamada do componente Modal -->
-    <DeleteUser IsVisible="_mostrarModalEliminar"
-                User="_utilizadorAEliminar"
-                OnCancel="FecharModalEliminar"
-                OnConfirm="ConfirmarEliminacaoDefinitiva" />
+    
+</div>
 
-</div> <!-- Fim do container-fluid -->
+
+<DeleteUser IsVisible="_isDeleteModalOpen" 
+                 User="_userToDelete" 
+                 OnCancel="CloseDeleteModal" 
+                 OnConfirm="HandleDeleteConfirmed" />
+
 @code {
     private List<UserResponseDto> _users = new();
 
-    // Variáveis de controlo da interface
+    private string _searchTerm = string.Empty;
+    private string _statusFilter = string.Empty;
+    private string _roleFilter = string.Empty;
+
     private bool _isLoading = true;
     private bool _loadError = false;
+    private bool _isProcessing = false;
 
-    private bool _mostrarModalEliminar = false;
-    private UserResponseDto? _utilizadorAEliminar;
+    // Variáveis de controlo do modal
+    private bool _isDeleteModalOpen = false;
+    private UserResponseDto? _userToDelete = null;
 
-    private void AbrirModalEliminar(UserResponseDto user)
+    // Método chamado quando clica no caixote do lixo na tabela
+    private void OpenDeleteModal(UserResponseDto user)
     {
-        _utilizadorAEliminar = user;
-        _mostrarModalEliminar = true;
+        _userToDelete = user;
+        _isDeleteModalOpen = true;
     }
 
-    private void FecharModalEliminar()
+    // Método para fechar o modal
+    private void CloseDeleteModal()
     {
-        _mostrarModalEliminar = false;
-        _utilizadorAEliminar = null;
+        _isDeleteModalOpen = false;
+        _userToDelete = null;
+    }
+
+    // Método executado quando clica em "Sim, Eliminar" no modal
+    private async Task HandleDeleteConfirmed(UserResponseDto user)
+    {
+        var (success, message) = await UserService.DeleteUserAsync(user.Id);
+        if (success)
+        {
+            await LoadDataAsync(); // Atualiza a tabela
+        }
+
+        CloseDeleteModal(); // Fecha o modal
+    }
+
+    // Propriedade computada que filtra a lista original em memória em tempo real
+    private IEnumerable<UserResponseDto> FilteredUsers
+    {
+        get
+        {
+            var query = _users.AsEnumerable();
+
+            // Filtro por Texto (Nome ou Email)
+            if (!string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                var term = _searchTerm.Trim();
+                query = query.Where(u =>
+                    (!string.IsNullOrEmpty(u.FirstName) && u.FirstName.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(u.LastName) && u.LastName.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(term, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+
+            // Filtro por Estado (Ativo/Inativo)
+            if (!string.IsNullOrEmpty(_statusFilter) && bool.TryParse(_statusFilter, out var isActive))
+            {
+                query = query.Where(u => u.IsActive == isActive);
+            }
+
+            // Filtro por Perfil (Role)
+            if (!string.IsNullOrEmpty(_roleFilter))
+            {
+                query = query.Where(u => string.Equals(u.Role, _roleFilter, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return query;
+        }
     }
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
     {
         _isLoading = true;
         _loadError = false;
@@ -159,68 +235,44 @@
         }
         else
         {
-            // Mostra erro caso a API devolva null (falha na ligação)
             _loadError = true;
         }
 
         _isLoading = false;
     }
 
-    private void NavigateToCreate()
+    private void ResetFilters()
     {
-        // O forceLoad=true obriga o browser a recarregar a página do zero
-        Navigation.NavigateTo("/backoffice/users/create");
+        _searchTerm = string.Empty;
+        _statusFilter = string.Empty;
+        _roleFilter = string.Empty;
     }
 
-    private void NavigateToEdit(string id)
+    private void NavigateToCreate()
     {
-        // O forceLoad=true obriga o browser a recarregar a página do zero
-        Navigation.NavigateTo($"/backoffice/users/edit/{id}");
+        Navigation.NavigateTo("/backoffice/users/create");
     }
 
     private void NavigateToDetails(string id)
     {
-        // Tem de ser sem o forceLoad: true!
-        Navigation.NavigateTo($"/backoffice/users/detalhes/{id}");
+        Navigation.NavigateTo($"/backoffice/users/{id}");
     }
 
-    private async Task ConfirmDelete(string id, string nome)
+    private async Task ToggleStatus(string id)
     {
-        // Futuramente, podes chamar aqui o SweetAlert (JS) para confirmar se quer mesmo apagar
-        // E depois chamar: await UserService.DeleteUserAsync(id);
-
-        Console.WriteLine($"Ação disparada: Apagar utilizador {nome} (ID: {id})");
-
-        // Exemplo simples temporário (se quiseres testar o JS runtime)
-        bool confirm = await JS.InvokeAsync<bool>("confirm", $"Tem a certeza que deseja eliminar o utilizador {nome}?");
-        if (confirm)
-        {
-            // Lógica para apagar na API virá aqui
-            Console.WriteLine("Utilizador confirmou a eliminação.");
-        }
+        _isProcessing = true;
+        // Adiciona aqui a tua lógica de alteração de estado se aplicável
+        _isProcessing = false;
     }
 
-    private async Task ConfirmarEliminacaoDefinitiva(UserResponseDto utilizador)
+    private async Task DeleteUser(string id)
     {
-        // 1. Chama o serviço para apagar na API
-        var (sucesso, mensagem) = await UserService.DeleteUserAsync(utilizador.Id);
-
-        if (sucesso)
+        _isProcessing = true;
+        var (success, message) = await UserService.DeleteUserAsync(id);
+        if (success)
         {
-            // 2. Se a API confirmou o sucesso, remove da lista local
-            _users.Remove(utilizador);
-
-            // Mostra mensagem de sucesso (usa SweetAlert se tiveres)
-            await JS.InvokeVoidAsync("alert", mensagem);
+            await LoadDataAsync();
         }
-        else
-        {
-            // Mostra mensagem de erro
-            await JS.InvokeVoidAsync("alert", mensagem);
-        }
-
-        // 3. Fecha o modal
-        FecharModalEliminar();
+        _isProcessing = false;
     }
-
 }

@@ -1,4 +1,4 @@
-﻿@page "/backoffice/users/detalhes/{Id}"
+﻿@page "/backoffice/users/{Id}"
 @layout Layout.AdminLayout
 @attribute [Authorize(Roles = "Admin")]
 @using cloudinvoice_web_ui.DTOs.Identity
@@ -8,32 +8,21 @@
 @inject IUserService UserService
 @inject NavigationManager Navigation
 
-<div class="container-fluid">
-    <!-- start page title -->
-    <div class="row">
+<div class="container-fluid mt-2">
+    <!-- Título da Página e Breadcrumb -->
+    <div class="row mb-2">
         <div class="col-12">
-            <div class="page-title-box">
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="javascript: void(0);" @onclick='() => Navigation.NavigateTo("/backoffice")'>Backoffice</a></li>
-                        <li class="breadcrumb-item"><a href="javascript: void(0);" @onclick='() => Navigation.NavigateTo("/backoffice/users")'>Utilizadores</a></li>
-                        <li class="breadcrumb-item active">Detalhes</li>
-                    </ol>
-                </div>
-                <h4 class="page-title">Detalhes do Utilizador</h4>
-            </div>
-        </div>
-    </div>
-    <!-- end page title -->
+            <div class="page-title-box d-flex justify-content-between align-items-center">
+                <h4 class="page-title m-0">Detalhes do Utilizador</h4>
 
-    <div class="row mb-3">
-        <div class="col-12 text-end">
-            <button class="btn btn-light waves-effect waves-light me-1" @onclick="NavigateToUsers">
-                <i class="mdi mdi-arrow-left me-1"></i> Voltar à Lista
-            </button>
-            <button class="btn btn-primary waves-effect waves-light" @onclick="NavigateToEdit" disabled="@(_user == null)">
-                <i class="mdi mdi-pencil me-1"></i> Editar Utilizador
-            </button>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/backoffice">Backoffice</a></li>
+                        <li class="breadcrumb-item"><a href="/backoffice/users">Utilizadores</a></li>
+                        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Detalhes</li>
+                    </ol>
+                </nav>
+            </div>
         </div>
     </div>
 
@@ -48,121 +37,73 @@
     {
         <div class="alert alert-danger mt-3 shadow-sm" role="alert">
             <i class="mdi mdi-alert-circle-outline me-1"></i> Não foi possível carregar os dados deste utilizador ou ele não existe. Verifique a ligação à API.
+            <div class="mt-2">
+                <button class="btn btn-sm btn-outline-danger" @onclick="NavigateToUsers">Voltar à Lista</button>
+            </div>
         </div>
     }
     else
     {
+        <!-- Cartão de Detalhes -->
         <div class="row">
-            <!-- Cartão Lateral de Perfil -->
-            <div class="col-xl-4 col-lg-5">
-                <div class="card overflow-hidden shadow-sm">
-                    <div class="bg-primary p-3 text-white position-relative">
-                        <div class="position-absolute top-0 end-0 m-2">
-                            <span class="badge @(_user.IsActive ? "bg-success" : "bg-danger") font-12 px-2 py-1">
-                                @(_user.IsActive ? "Ativo" : "Inativo")
-                            </span>
-                        </div>
-                        <h5 class="text-white m-0"><i class="mdi mdi-account-circle me-1"></i> Perfil de Utilizador</h5>
-                    </div>
-                    <div class="card-body text-center pt-0">
-                        <!-- Avatar Dinâmico (Roxo para Admin, Indigo/Financeiro para Contabilista) -->
-                        <div class="mt-n5 position-relative d-inline-block">
-                            <div class="avatar-lg rounded-circle @(_user.Role?.Trim().Equals("Admin", StringComparison.OrdinalIgnoreCase) == true ? "bg-primary-subtle text-primary border-primary" : "bg-info-subtle text-info border-info") d-flex align-items-center justify-content-center mx-auto shadow border border-3" style="width: 90px; height: 90px;">
-                                @if (_user.Role?.Trim().Equals("Admin", StringComparison.OrdinalIgnoreCase) == true)
-                                {
-                                    <i class="mdi mdi-shield-account font-36"></i>
-                                }
-                                else
-                                {
-                                    <i class="mdi mdi-calculator-variant font-36"></i>
-                                }
-                            </div>
-                        </div>
-
-                        <h4 class="mb-1 mt-2 font-20">@_user.FirstName @_user.LastName</h4>
-
-                        <p class="text-muted font-14 mb-3">
-                            <span class="badge @(_user.Role?.Trim().Equals("Admin", StringComparison.OrdinalIgnoreCase) == true ? "bg-primary" : "bg-info") px-3 py-1 font-12">
-                                <i class="mdi mdi-account-tie me-1"></i> @_user.Role
-                            </span>
-                        </p>
-
-                        <div class="text-start mt-4 pt-3 border-top">
-                            <h5 class="font-13 text-uppercase text-muted fw-bold mb-3">Informação de Contacto</h5>
-
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="flex-shrink-0 text-primary font-20 me-2">
-                                    <i class="mdi mdi-email-outline"></i>
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-muted mb-0 font-12">Email</p>
-                                    <h6 class="mb-0 text-truncate font-14">@_user.Email</h6>
-                                </div>
-                            </div>
-
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="flex-shrink-0 text-primary font-20 me-2">
-                                    <i class="mdi mdi-identifier"></i>
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-muted mb-0 font-12">ID de Sistema</p>
-                                    <h6 class="mb-0 text-truncate font-13 user-select-all text-muted">@_user.Id</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cartão Principal de Conteúdo / Tabs -->
-            <div class="col-xl-8 col-lg-7">
+            <div class="col-12">
                 <div class="card shadow-sm">
-                    <div class="card-body">
-                        <ul class="nav nav-pills bg-nav-pills nav-justified mb-3 rounded">
-                            <li class="nav-item">
-                                <a href="#historico" data-bs-toggle="tab" aria-expanded="true" class="nav-link rounded-0 active py-2">
-                                    <i class="mdi mdi-history me-1"></i> Histórico de Atividade
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#permissoes" data-bs-toggle="tab" aria-expanded="false" class="nav-link rounded-0 py-2">
-                                    <i class="mdi mdi-lock-check me-1"></i> Permissões & Acessos
-                                </a>
-                            </li>
-                        </ul>
+                    <div class="card-body p-4">
 
-                        <div class="tab-content pt-2">
-                            <!-- Separador Histórico -->
-                            <div class="tab-pane show active" id="historico">
-                                <div class="border rounded p-3 bg-light text-center py-5">
-                                    <i class="mdi mdi-folder-clock-outline font-48 text-muted mb-2"></i>
-                                    <h5 class="text-dark">Sem atividade registada</h5>
-                                    <p class="text-muted font-14 w-75 mx-auto">
-                                        Nenhum histórico de atividade recente encontrado para este utilizador no CloudInvoice.
-                                    </p>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted">Nome</label>
+                                <input type="text" class="form-control bg-light" value="@_user.FirstName" readonly disabled />
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label text-muted">Apelido</label>
+                                <input type="text" class="form-control bg-light" value="@_user.LastName" readonly disabled />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted">Endereço de Email</label>
+                                <input type="text" class="form-control bg-light" value="@_user.Email" readonly disabled />
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label text-muted">ID de Sistema</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted"><i class="mdi mdi-identifier"></i></span>
+                                    <input type="text" class="form-control bg-light font-monospace font-13" value="@_user.Id" readonly disabled />
                                 </div>
                             </div>
-
-                            <!-- Separador Permissões -->
-                            <div class="tab-pane" id="permissoes">
-                                <div class="border rounded p-4 bg-white">
-                                    <h5 class="text-uppercase font-14 text-primary fw-bold mb-3">
-                                        <i class="mdi mdi-shield-key me-1"></i> Perfil Atribuído: @_user.Role
-                                    </h5>
-                                    @if (_user.Role == "Admin")
-                                    {
-                                        <p class="text-muted mb-0">
-                                            Este utilizador possui privilégios de <strong>Administrador</strong>. Tem acesso total para gerir contas de utilizadores, faturas globais, relatórios avançados e parâmetros de configuração do sistema CloudInvoice.
+                        </div><div class="row mb-4">
+                        <div class="col-12">
+                            <div class="border rounded p-3 bg-light d-flex align-items-center justify-content-between shadow-sm">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-3 flex-shrink-0">
+                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                            <i class="mdi mdi-power font-20"></i>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-0 fw-bold text-dark font-15" for="isActiveSwitch" style="cursor: pointer;">
+                                            Estado da Conta
+                                        </label>
+                                        <p class="text-muted font-13 mb-0">
+                                            Se desativado, o utilizador não conseguirá iniciar sessão no sistema.
                                         </p>
-                                    }
-                                    else
-                                    {
-                                        <p class="text-muted mb-0">
-                                            Este utilizador possui privilégios operacionais de <strong>Contabilista</strong>. Tem acesso à emissão de documentos e gestão financeira corrente, sem permissão para gerir credenciais de outros utilizadores.
-                                        </p>
-                                    }
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch m-0 flex-shrink-0">
+                                    <InputCheckbox class="form-check-input" type="checkbox" id="isActiveSwitch" role="switch" @bind-Value="_user.IsActive" style="font-size: 1.5rem; cursor: pointer; margin-top: 0;" />
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <button type="button" class="btn btn-light waves-effect" @onclick="NavigateToUsers">
+                                <i class="mdi mdi-arrow-left me-1"></i> Voltar à Lista
+                            </button>
+                            <button type="button" class="btn btn-primary waves-effect waves-light" @onclick="NavigateToEdit">
+                                <i class="mdi mdi-pencil me-1"></i> Editar Utilizador
+                            </button>
                         </div>
                     </div>
                 </div>

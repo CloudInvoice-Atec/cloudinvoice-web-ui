@@ -118,5 +118,19 @@ namespace cloudinvoice_web_ui.Services.Users
                 return null;
             }
         }
+
+        public async Task<bool> UpdateUserAsync(UserResponseDto user)
+        {
+            try
+            {
+                var response = await _httpClientIdentity.PutAsJsonAsync($"api/Users/{user.Id}", user);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao atualizar utilizador: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

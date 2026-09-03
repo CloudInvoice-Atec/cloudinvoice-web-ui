@@ -8,31 +8,26 @@
 @inject IUserService UserService
 @inject NavigationManager Navigation
 
-<div class="container-fluid mt-3">
+<div class="container-fluid mt-2">
+    <div class="row mb-2">
+        <div class="col-12">
+            <div class="page-title-box d-flex justify-content-between align-items-center">
+                <h4 class="page-title m-0">Criar Novo Utilizador</h4>
+
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/backoffice">Backoffice</a></li>
+                        <li class="breadcrumb-item"><a href="/backoffice/users">Utilizadores</a></li>
+                        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Criar</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
-        <!-- Alterado para col-12 para ocupar a página toda -->
         <div class="col-12">
             <div class="card shadow-sm">
-                <!-- Cabeçalho Roxo com Flexbox para alinhar Título à esquerda e Breadcrumb à direita -->
-                <div class="bg-primary p-3 text-white border-bottom rounded-top d-flex justify-content-between align-items-center flex-wrap">
-                    <h5 class="text-white m-0">
-                        <i class="mdi mdi-account-plus-outline me-2"></i> Formulário de Registo
-                    </h5>
-
-                    <!-- Breadcrumb embutido no cabeçalho com cores claras -->
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb m-0" style="--bs-breadcrumb-divider-color: rgba(255, 255, 255, 0.9);">
-                            <li class="breadcrumb-item">
-                                <a href="javascript: void(0);" class="text-white text-decoration-none fw-semibold" @onclick='() => Navigation.NavigateTo("/backoffice")'>Backoffice</a>
-                            </li>
-                            <li class="breadcrumb-item">
-                                <a href="javascript: void(0);" class="text-white text-decoration-none fw-semibold" @onclick='() => Navigation.NavigateTo("/backoffice/users")'>Utilizadores</a>
-                            </li>
-                            <li class="breadcrumb-item active text-white fw-bold" aria-current="page">Novo Utilizador</li>
-                        </ol>
-                    </nav>
-                </div>
-
                 <div class="card-body p-4">
                     @if (!string.IsNullOrEmpty(_errorMessage))
                     {
@@ -45,75 +40,48 @@
                     <EditForm Model="@_registerModel" OnValidSubmit="HandleValidSubmit">
                         <DataAnnotationsValidator />
 
-                        <!-- Reorganizado em grelha de 2 colunas para aproveitar o espaço da página toda -->
-                        <div class="row mb-4">
+                        <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="firstName" class="form-label">Nome</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="mdi mdi-account-outline text-muted"></i></span>
-                                    <InputText id="firstName" class="form-control border-start-0" @bind-Value="_registerModel.FirstName" placeholder="Primeiro nome" />
-                                </div>
+                                <label class="form-label">Nome <span class="text-danger">*</span></label>
+                                <InputText class="form-control" @bind-Value="_registerModel.FirstName" placeholder="Primeiro nome" />
                                 <ValidationMessage For="@(() => _registerModel.FirstName)" class="text-danger font-12 mt-1" />
                             </div>
-
                             <div class="col-md-6 mt-3 mt-md-0">
-                                <label for="lastName" class="form-label">Apelido</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="mdi mdi-account-outline text-muted"></i></span>
-                                    <InputText id="lastName" class="form-control border-start-0" @bind-Value="_registerModel.LastName" placeholder="Último nome" />
-                                </div>
+                                <label class="form-label">Apelido <span class="text-danger">*</span></label>
+                                <InputText class="form-control" @bind-Value="_registerModel.LastName" placeholder="Último nome" />
                                 <ValidationMessage For="@(() => _registerModel.LastName)" class="text-danger font-12 mt-1" />
                             </div>
                         </div>
 
-                        <div class="row mb-4">
+                        <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="email" class="form-label">Endereço de Email</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="mdi mdi-email-outline text-muted"></i></span>
-                                    <InputText id="email" type="email" class="form-control border-start-0" @bind-Value="_registerModel.Email" placeholder="exemplo@cloudinvoice.com" />
-                                </div>
+                                <label class="form-label">Endereço de Email <span class="text-danger">*</span></label>
+                                <InputText type="email" class="form-control" @bind-Value="_registerModel.Email" placeholder="exemplo@cloudinvoice.com" />
                                 <ValidationMessage For="@(() => _registerModel.Email)" class="text-danger font-12 mt-1" />
                             </div>
-
                             <div class="col-md-6 mt-3 mt-md-0">
-                                <label for="password" class="form-label">Palavra-Passe</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="mdi mdi-lock-outline text-muted"></i></span>
-                                    <InputText id="password" type="password" class="form-control border-start-0" @bind-Value="_registerModel.Password" placeholder="Insira uma palavra-passe segura" />
-                                </div>
-                                <ValidationMessage For="@(() => _registerModel.Password)" class="text-danger font-12 mt-1" />
-                                <small class="text-muted font-12">A palavra-passe deve conter letras maiúsculas, números e caracteres especiais.</small>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label for="role" class="form-label">Perfil de Acesso (Role)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="mdi mdi-shield-account-outline text-muted"></i></span>
-                                    <InputSelect id="role" class="form-select border-start-0" @bind-Value="_registerModel.Role">
-                                        <option value="Contabilista">Contabilista (Acesso Operacional)</option>
-                                        <option value="Admin">Administrador (Acesso Total)</option>
-                                    </InputSelect>
-                                </div>
+                                <label class="form-label">Perfil de Acesso (Role) <span class="text-danger">*</span></label>
+                                <InputSelect class="form-select" @bind-Value="_registerModel.Role">
+                                    <option value="Contabilista">Contabilista (Acesso Operacional)</option>
+                                    <option value="Admin">Administrador (Acesso Total)</option>
+                                </InputSelect>
                                 <ValidationMessage For="@(() => _registerModel.Role)" class="text-danger font-12 mt-1" />
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-end border-top pt-4 mt-2">
-                            <button type="button" class="btn btn-light waves-effect me-2" @onclick="NavigateBack" disabled="@_isLoading">
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <button type="button" class="btn btn-light waves-effect" @onclick="NavigateBack" disabled="@_isLoading">
                                 Cancelar
                             </button>
                             <button type="submit" class="btn btn-primary waves-effect waves-light" disabled="@_isLoading">
                                 @if (_isLoading)
                                 {
                                     <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                    <span>A Guardar...</span>
+                                    <span>A Criar e Enviar Email...</span>
                                 }
                                 else
                                 {
-                                    <i class="mdi mdi-content-save me-1"></i> <span>Criar Utilizador</span>
+                                    <span>Criar Utilizador</span>
                                 }
                             </button>
                         </div>
@@ -148,12 +116,12 @@
             }
             else
             {
-                _errorMessage = response.Message ?? "Ocorreu um erro ao tentar criar o utilizador. Verifique os dados e tente novamente.";
+                _errorMessage = response.Message ?? "Ocorreu um erro ao tentar criar o utilizador.";
             }
         }
         catch (Exception)
         {
-            _errorMessage = "Erro de comunicação com o servidor. Verifique a ligação à API.";
+            _errorMessage = "Erro de comunicação com o servidor.";
         }
         finally
         {

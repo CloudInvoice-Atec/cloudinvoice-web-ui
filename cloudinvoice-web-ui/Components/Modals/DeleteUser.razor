@@ -6,7 +6,9 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Confirmar Eliminação</h5>
+                    <h5 class="modal-title">
+                        <i class="mdi mdi-alert-circle-outline me-1"></i> Confirmar Eliminação
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="OnCancel"></button>
                 </div>
                 <div class="modal-body p-4">
@@ -20,7 +22,7 @@
                         <p class="mb-1"><strong>Email:</strong> @User.Email</p>
                         <p class="mb-0">
                             <strong>Perfil:</strong>
-                            <span class="badge @(User.Role == "Admin" ? "bg-danger" : "bg-success")">
+                            <span class="badge @(User.Role == "Admin" ? "bg-primary" : "bg-info")">
                                 @User.Role
                             </span>
                         </p>
@@ -29,9 +31,20 @@
                     <p class="text-center text-muted mt-3 mb-0"><small>Atenção: Esta ação não pode ser desfeita.</small></p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" @onclick="OnCancel">Cancelar</button>
-                    <!-- Quando clica, dispara o evento para a página principal -->
-                    <button type="button" class="btn btn-danger" @onclick="() => OnConfirm.InvokeAsync(User)">Sim, Eliminar</button>
+                    <button type="button" class="btn btn-light" @onclick="OnCancel" disabled="@_isProcessing">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDelete" disabled="@_isProcessing">
+                        @if (_isProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span>A eliminar...</span>
+                        }
+                        else
+                        {
+                            <span>Sim, Eliminar</span>
+                        }
+                    </button>
                 </div>
             </div>
         </div>
@@ -39,19 +52,24 @@
 }
 
 @code {
-    // 1. Recebe a ordem para aparecer ou desaparecer
+    private bool _isProcessing = false;
+
     [Parameter]
     public bool IsVisible { get; set; }
 
-    // 2. Recebe os dados do utilizador a mostrar
     [Parameter]
     public UserResponseDto? User { get; set; }
 
-    // 3. Evento para avisar o pai que é para fechar (botão Cancelar/Cruz)
     [Parameter]
     public EventCallback OnCancel { get; set; }
 
-    // 4. Evento para avisar o pai que o utilizador confirmou a eliminação
     [Parameter]
     public EventCallback<UserResponseDto> OnConfirm { get; set; }
+
+    private async Task ConfirmDelete()
+    {
+        _isProcessing = true;
+        await OnConfirm.InvokeAsync(User);
+        _isProcessing = false;
+    }
 }

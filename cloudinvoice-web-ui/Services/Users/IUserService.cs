@@ -13,5 +13,6 @@ namespace cloudinvoice_web_ui.Services.Users
         Task<(bool Success, string Message)> DeleteUserAsync(string id);
 
         Task<UserResponseDto?> GetUserByIdAsync(string id);
+        Task<bool> UpdateUserAsync(UserResponseDto user);
     }
 }

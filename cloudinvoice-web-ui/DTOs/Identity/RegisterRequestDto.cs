@@ -9,9 +9,6 @@ namespace cloudinvoice_web_ui.DTOs.Identity
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Campo obrigatório.")]
-        public string Password { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Campo obrigatório.")]
         public string Role { get; set; } = "Contabilista";
 
         public string FirstName { get; set; } = string.Empty;
