@@ -1,11 +1,44 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)" />
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)">
+            <NotAuthorized>
+
+                @* Design minimalista feito à medida para a coluna esquerda do PublicLayout *@
+                <div class="text-center w-100 mt-4">
+                    <div class="mb-4">
+                        <i class="mdi mdi-shield-lock-outline text-danger" style="font-size: 4.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-3">Acesso Negado</h3>
+                    <p class="text-muted mb-4 fs-6">
+                        Desculpa, mas não tens permissões para aceder a esta página ou funcionalidade.
+                    </p>
+                    <div class="d-grid mt-4">
+                        <a href="/backoffice" class="btn btn-primary btn-lg rounded-3 shadow-sm">
+                            Voltar ao Início
+                        </a>
+                    </div>
+                </div>
+
+            </NotAuthorized>
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
+
     <NotFound>
         <LayoutView Layout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)">
-            <p role="alert">Lamento, mas esta página não existe no Invoice Cloud.</p>
+            <div class="text-center w-100 mt-4">
+                <h3 class="fw-bold text-dark mb-3">Página não encontrada</h3>
+                <p class="text-muted mb-4 fs-6">
+                    Lamento, mas esta página não existe no CloudInvoice.
+                </p>
+                <div class="d-grid mt-4">
+                    <a href="/" class="btn btn-primary btn-lg rounded-3 shadow-sm">
+                        Ir para o Login
+                    </a>
+                </div>
+            </div>
         </LayoutView>
     </NotFound>
 </Router>
