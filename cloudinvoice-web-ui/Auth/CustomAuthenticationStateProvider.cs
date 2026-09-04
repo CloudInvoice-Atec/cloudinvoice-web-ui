@@ -80,6 +80,7 @@ namespace cloudinvoice_web_ui.Auth
         }
 
         // Função para descodificar o Payload de um token JWT e extrair as Claims (Email, Role, Nome, etc.)
+        // Função melhorada para descodificar o JWT e garantir que a Role é mapeada corretamente
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
         {
             var payload = jwt.Split('.')[1];
@@ -91,16 +92,24 @@ namespace cloudinvoice_web_ui.Auth
             {
                 foreach (var kvp in keyValuePairs)
                 {
+                    // Mapeamento inteligente: Se a chave for qualquer variante de 'role', garantimos que criamos um Claim do tipo ClaimTypes.Role
+                    var claimType = kvp.Key;
+                    if (claimType.Equals("role", StringComparison.OrdinalIgnoreCase) ||
+                        claimType.Equals("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", StringComparison.OrdinalIgnoreCase))
+                    {
+                        claimType = ClaimTypes.Role;
+                    }
+
                     if (kvp.Value is JsonElement element && element.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var val in element.EnumerateArray())
                         {
-                            claims.Add(new Claim(kvp.Key, val.ToString() ?? ""));
+                            claims.Add(new Claim(claimType, val.ToString() ?? ""));
                         }
                     }
                     else
                     {
-                        claims.Add(new Claim(kvp.Key, kvp.Value.ToString() ?? ""));
+                        claims.Add(new Claim(claimType, kvp.Value.ToString() ?? ""));
                     }
                 }
             }
@@ -115,6 +124,32 @@ namespace cloudinvoice_web_ui.Auth
                 case 3: base64 += "="; break;
             }
             return Convert.FromBase64String(base64);
+        }
+
+        public async Task LoadTokenFromBrowserAsync()
+        {
+            try
+            {
+                // Neste momento o SignalR já está ligado, o JS Interop vai funcionar a 100%
+                var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", TokenKey);
+
+                // Se encontrou o token no disco e a memória estava vazia (F5), repõe a sessão
+                if (!string.IsNullOrWhiteSpace(token) && _tokenProvider.Token != token)
+                {
+                    _tokenProvider.Token = token;
+
+                    var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", "name", "role");
+                    var authenticatedUser = new ClaimsPrincipal(identity);
+                    var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
+
+                    // Força toda a aplicação a atualizar-se e a remover o estado Anónimo da cache
+                    NotifyAuthenticationStateChanged(authState);
+                }
+            }
+            catch
+            {
+                // Ignora falhas de segurança do browser
+            }
         }
     }
 }

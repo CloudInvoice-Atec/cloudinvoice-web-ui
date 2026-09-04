@@ -1,0 +1,159 @@
+﻿@page "/backoffice/users/{Id}"
+@layout Layout.AdminLayout
+@attribute [Authorize(Roles = "Admin")]
+@using cloudinvoice_web_ui.DTOs.Identity
+@using cloudinvoice_web_ui.Services.Users
+@using Microsoft.AspNetCore.Authorization
+
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<div class="container-fluid mt-2">
+    <!-- Título da Página e Breadcrumb -->
+    <div class="row mb-2">
+        <div class="col-12">
+            <div class="page-title-box d-flex justify-content-between align-items-center">
+                <h4 class="page-title m-0">Detalhes do Utilizador</h4>
+
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/backoffice">Backoffice</a></li>
+                        <li class="breadcrumb-item"><a href="/backoffice/users">Utilizadores</a></li>
+                        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Detalhes</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">A carregar detalhes do utilizador...</p>
+        </div>
+    }
+    else if (_loadError || _user == null)
+    {
+        <div class="alert alert-danger mt-3 shadow-sm" role="alert">
+            <i class="mdi mdi-alert-circle-outline me-1"></i> Não foi possível carregar os dados deste utilizador ou ele não existe. Verifique a ligação à API.
+            <div class="mt-2">
+                <button class="btn btn-sm btn-outline-danger" @onclick="NavigateToUsers">Voltar à Lista</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Cartão de Detalhes -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted">Nome</label>
+                                <input type="text" class="form-control bg-light" value="@_user.FirstName" readonly disabled />
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label text-muted">Apelido</label>
+                                <input type="text" class="form-control bg-light" value="@_user.LastName" readonly disabled />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted">Endereço de Email</label>
+                                <input type="text" class="form-control bg-light" value="@_user.Email" readonly disabled />
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label text-muted">ID de Sistema</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted"><i class="mdi mdi-identifier"></i></span>
+                                    <input type="text" class="form-control bg-light font-monospace font-13" value="@_user.Id" readonly disabled />
+                                </div>
+                            </div>
+                        </div><div class="row mb-4">
+                        <div class="col-12">
+                            <div class="border rounded p-3 bg-light d-flex align-items-center justify-content-between shadow-sm">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-3 flex-shrink-0">
+                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                            <i class="mdi mdi-power font-20"></i>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-0 fw-bold text-dark font-15" for="isActiveSwitch" style="cursor: pointer;">
+                                            Estado da Conta
+                                        </label>
+                                        <p class="text-muted font-13 mb-0">
+                                            Se desativado, o utilizador não conseguirá iniciar sessão no sistema.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch m-0 flex-shrink-0">
+                                    <InputCheckbox class="form-check-input" type="checkbox" id="isActiveSwitch" role="switch" @bind-Value="_user.IsActive" style="font-size: 1.5rem; cursor: pointer; margin-top: 0;" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <button type="button" class="btn btn-light waves-effect" @onclick="NavigateToUsers">
+                                <i class="mdi mdi-arrow-left me-1"></i> Voltar à Lista
+                            </button>
+                            <button type="button" class="btn btn-primary waves-effect waves-light" @onclick="NavigateToEdit">
+                                <i class="mdi mdi-pencil me-1"></i> Editar Utilizador
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private UserResponseDto? _user;
+    private bool _isLoading = true;
+    private bool _loadError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        try
+        {
+            _user = await UserService.GetUserByIdAsync(Id);
+
+            if (_user == null)
+            {
+                _loadError = true;
+            }
+        }
+        catch (Exception)
+        {
+            _loadError = true;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void NavigateToUsers()
+    {
+        Navigation.NavigateTo("/backoffice/users");
+    }
+
+    private void NavigateToEdit()
+    {
+        if (_user != null)
+        {
+            Navigation.NavigateTo($"/backoffice/users/edit/{_user.Id}");
+        }
+    }
+}

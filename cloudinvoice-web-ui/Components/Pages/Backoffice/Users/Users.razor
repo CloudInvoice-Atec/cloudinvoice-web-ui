@@ -1,0 +1,278 @@
+﻿@page "/backoffice/users"
+@layout Layout.AdminLayout
+@using cloudinvoice_web_ui.Components.Modals
+@using cloudinvoice_web_ui.DTOs.Identity
+@using cloudinvoice_web_ui.Services.Users
+@using Microsoft.AspNetCore.Authorization
+@using Components.Modals
+@attribute [Authorize(Roles = "Admin")]
+
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<div class="container-fluid">
+    <!-- Cabeçalho com o Título e o Botão de Novo Utilizador -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-flex align-items-center justify-content-between">
+                <h4 class="page-title">Utilizadores</h4>
+
+                <div class="page-title-right">
+                    <button class="btn btn-primary" @onclick="NavigateToCreate">
+                        <i class="fa fa-plus me-1"></i> Novo Utilizador
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secção de Filtros no Frontend -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Pesquisa</label>
+                    <input type="text" class="form-control" placeholder="Nome ou Email..." @bind="_searchTerm" @bind:event="oninput" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select class="form-select" @bind="_statusFilter">
+                        <option value="">Todos</option>
+                        <option value="true">Ativo</option>
+                        <option value="false">Inativo</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Perfil (Role)</label>
+                    <select class="form-select" @bind="_roleFilter">
+                        <option value="">Todos</option>
+                        <option value="Admin">Administrador</option>
+                        <option value="Contabilista">Contabilista</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button class="btn btn-light w-100" @onclick="ResetFilters" title="Limpar filtros">
+                        Limpar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">A carregar utilizadores...</p>
+        </div>
+    }
+    else if (_loadError)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            Não foi possível carregar os utilizadores. Verifique a ligação à API.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-hover table-centered mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nome Completo</th>
+                            <th>Email</th>
+                            <th>Perfil</th>
+                            <th>Estado</th>
+                            <th class="text-center" style="width: 160px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!FilteredUsers.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center">Nenhum utilizador encontrado.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var user in FilteredUsers)
+                            {
+                                <tr>
+                                    <td>@user.FirstName @user.LastName</td>
+                                    <td>@user.Email</td>
+                                    <td>
+                                        <span class="badge @(user.Role == "Admin" ? "bg-primary" : "bg-info")">
+                                            @user.Role
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (user.IsActive)
+                                        {
+                                            <span class="badge bg-success">Ativo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inativo</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-inline-flex gap-1 justify-content-center align-items-center">
+                                            <button class="btn btn-sm btn-light" title="Ver Detalhes" @onclick="() => NavigateToDetails(user.Id)">
+                                                <i class="fa fa-pencil-alt"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => OpenDeleteModal(user)">
+                                                <i class="fa fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    
+</div>
+
+
+<DeleteUser IsVisible="_isDeleteModalOpen" 
+                 User="_userToDelete" 
+                 OnCancel="CloseDeleteModal" 
+                 OnConfirm="HandleDeleteConfirmed" />
+
+@code {
+    private List<UserResponseDto> _users = new();
+
+    private string _searchTerm = string.Empty;
+    private string _statusFilter = string.Empty;
+    private string _roleFilter = string.Empty;
+
+    private bool _isLoading = true;
+    private bool _loadError = false;
+    private bool _isProcessing = false;
+
+    // Variáveis de controlo do modal
+    private bool _isDeleteModalOpen = false;
+    private UserResponseDto? _userToDelete = null;
+
+    // Método chamado quando clica no caixote do lixo na tabela
+    private void OpenDeleteModal(UserResponseDto user)
+    {
+        _userToDelete = user;
+        _isDeleteModalOpen = true;
+    }
+
+    // Método para fechar o modal
+    private void CloseDeleteModal()
+    {
+        _isDeleteModalOpen = false;
+        _userToDelete = null;
+    }
+
+    // Método executado quando clica em "Sim, Eliminar" no modal
+    private async Task HandleDeleteConfirmed(UserResponseDto user)
+    {
+        var (success, message) = await UserService.DeleteUserAsync(user.Id);
+        if (success)
+        {
+            await LoadDataAsync(); // Atualiza a tabela
+        }
+
+        CloseDeleteModal(); // Fecha o modal
+    }
+
+    // Propriedade computada que filtra a lista original em memória em tempo real
+    private IEnumerable<UserResponseDto> FilteredUsers
+    {
+        get
+        {
+            var query = _users.AsEnumerable();
+
+            // Filtro por Texto (Nome ou Email)
+            if (!string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                var term = _searchTerm.Trim();
+                query = query.Where(u =>
+                    (!string.IsNullOrEmpty(u.FirstName) && u.FirstName.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(u.LastName) && u.LastName.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(term, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+
+            // Filtro por Estado (Ativo/Inativo)
+            if (!string.IsNullOrEmpty(_statusFilter) && bool.TryParse(_statusFilter, out var isActive))
+            {
+                query = query.Where(u => u.IsActive == isActive);
+            }
+
+            // Filtro por Perfil (Role)
+            if (!string.IsNullOrEmpty(_roleFilter))
+            {
+                query = query.Where(u => string.Equals(u.Role, _roleFilter, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return query;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        var result = await UserService.GetUsersAsync();
+
+        if (result != null)
+        {
+            _users = result;
+        }
+        else
+        {
+            _loadError = true;
+        }
+
+        _isLoading = false;
+    }
+
+    private void ResetFilters()
+    {
+        _searchTerm = string.Empty;
+        _statusFilter = string.Empty;
+        _roleFilter = string.Empty;
+    }
+
+    private void NavigateToCreate()
+    {
+        Navigation.NavigateTo("/backoffice/users/create");
+    }
+
+    private void NavigateToDetails(string id)
+    {
+        Navigation.NavigateTo($"/backoffice/users/{id}");
+    }
+
+    private async Task ToggleStatus(string id)
+    {
+        _isProcessing = true;
+        // Adiciona aqui a tua lógica de alteração de estado se aplicável
+        _isProcessing = false;
+    }
+
+    private async Task DeleteUser(string id)
+    {
+        _isProcessing = true;
+        var (success, message) = await UserService.DeleteUserAsync(id);
+        if (success)
+        {
+            await LoadDataAsync();
+        }
+        _isProcessing = false;
+    }
+}

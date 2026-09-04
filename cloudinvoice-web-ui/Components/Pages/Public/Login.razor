@@ -1,11 +1,11 @@
 ﻿@page "/"
-@using Services.Auth
-@using cloudinvoice_web_ui.Models.Auth
+@using Services.Identity
+@using cloudinvoice_web_ui.DTOs.Identity
 @layout Layout.PublicLayout
 @inject IJSRuntime JS
 @* Vamos precisar do NavigationManager para redirecionar após o login *@
 @inject NavigationManager NavigationManager
-@inject cloudinvoice_web_ui.Services.Auth.IAuthService AuthService
+@inject cloudinvoice_web_ui.Services.Identity.IAuthService AuthService
 @inject cloudinvoice_web_ui.Auth.TokenProvider TokenProvider
 @using Microsoft.AspNetCore.Components.Authorization
 @using cloudinvoice_web_ui.Auth
@@ -91,9 +91,39 @@
 </footer>
 
 @code {
-    private LoginRequest loginModel = new LoginRequest();
+    private LoginRequestDto loginModel = new LoginRequestDto();
     private bool isLoading = false;
     private string? errorMessage;
+
+    // Captura automaticamente o ReturnUrl da QueryString enviada pelo servidor
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // 1. Tenta recuperar o token do localStorage caso o circuito tenha reiniciado
+            if (AuthStateProvider is CustomAuthenticationStateProvider customAuth)
+            {
+                await customAuth.LoadTokenFromBrowserAsync();
+            }
+
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            // 2. Se o utilizador já tem uma sessão válida no browser (ex: após um F5)
+            if (authState.User.Identity != null && authState.User.Identity.IsAuthenticated)
+            {
+                RedirecionarUtilizador();
+            }
+            else if (!string.IsNullOrEmpty(ReturnUrl))
+            {
+                // Opcional mas recomendado: Limpa o ReturnUrl da barra de endereços do browser
+                // substituindo a rota atual por "/" sem o parâmetro, mantendo a variável guardada em C#
+                NavigationManager.NavigateTo("/", replace: true);
+            }
+        }
+    }
 
     private async Task HandleLogin()
     {
@@ -106,15 +136,13 @@
 
             if (result.IsSuccess)
             {
-                // 1. Convertemos o provedor genérico do Blazor para o NOSSO provedor
                 var customAuthStateProvider = (CustomAuthenticationStateProvider)AuthStateProvider;
 
-                // 2. Chamamos o nosso método mágico!
-                // Ele grava no Provider, grava no localStorage e avisa o Blazor que estamos logados!
+                // Grava o token e atualiza o estado de autenticação
                 await customAuthStateProvider.MarkUserAsAuthenticated(result.Token);
 
-                // 3. Redireciona para o backoffice
-                NavigationManager.NavigateTo("/backoffice");
+                // Redireciona para o destino pretendido
+                RedirecionarUtilizador();
             }
             else
             {
@@ -128,6 +156,20 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private void RedirecionarUtilizador()
+    {
+        // Se existe um ReturnUrl pendente (veio de um F5 ou acesso direto a URL protegido), devolvemos o utilizador para lá
+        if (!string.IsNullOrEmpty(ReturnUrl) && Uri.IsWellFormedUriString(ReturnUrl, UriKind.Relative))
+        {
+            NavigationManager.NavigateTo(ReturnUrl, forceLoad: false);
+        }
+        else
+        {
+            // Caso contrário, entra pela porta normal do backoffice
+            NavigationManager.NavigateTo("/backoffice", forceLoad: false);
         }
     }
 }

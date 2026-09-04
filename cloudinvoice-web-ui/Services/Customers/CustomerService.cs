@@ -98,17 +98,34 @@ namespace cloudinvoice_web_ui.Services.Customers
             }
         }
 
-        public async Task<List<CustomerProfileDto>> GetCustomersAsync()
+        public async Task<PagedResultDto<CustomerProfileDto>?> GetCustomersAsync(CustomerQueryParameters parameters)
         {
             try
             {
-                var clientes = await _httpClientBilling.GetFromJsonAsync<List<CustomerProfileDto>>("api/customers");
-                return clientes ?? new List<CustomerProfileDto>();
+                var queryParams = new List<string>
+        {
+            $"page={parameters.Page}",
+            $"pageSize={parameters.PageSize}"
+        };
+
+                if (!string.IsNullOrWhiteSpace(parameters.Search))
+                {
+                    queryParams.Add($"search={Uri.EscapeDataString(parameters.Search)}");
+                }
+
+                if (parameters.IsActive.HasValue)
+                {
+                    queryParams.Add($"isActive={parameters.IsActive.Value}");
+                }
+
+                var queryString = string.Join("&", queryParams);
+
+                return await _httpClientBilling.GetFromJsonAsync<PagedResultDto<CustomerProfileDto>>($"api/customers?{queryString}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao obter clientes: {ex.Message}");
-                return new List<CustomerProfileDto>();
+                Console.WriteLine($"Erro ao obter clientes paginados: {ex.Message}");
+                return null;
             }
         }
 

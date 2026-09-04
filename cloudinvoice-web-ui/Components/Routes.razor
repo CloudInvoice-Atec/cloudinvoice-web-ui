@@ -1,11 +1,90 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <LayoutView Layout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)">
-            <p role="alert">Lamento, mas esta página não existe no Invoice Cloud.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+﻿@using cloudinvoice_web_ui.Auth
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager Navigation
+
+@if (_isCheckingAuth)
+{
+    <!-- Mostra um loading enquanto o JSInterop valida o token no Browser -->
+    <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted fw-semibold">A verificar sessão...</p>
+        </div>
+    </div>
+}
+else
+{
+    <CascadingAuthenticationState>
+        <Router AppAssembly="typeof(Program).Assembly">
+            <Found Context="routeData">
+                <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)">
+                    <NotAuthorized>
+                        @if (context.User.Identity?.IsAuthenticated == true)
+                        {
+                            @* 1. Utilizador está autenticado MAS não tem permissões para a Role (Ex: Contabilista a tentar entrar na Gestão de Utilizadores) *@
+                            <div class="text-center w-100 mt-4">
+                                <div class="mb-4">
+                                    <i class="mdi mdi-shield-lock-outline text-danger" style="font-size: 4.5rem;"></i>
+                                </div>
+                                <h3 class="fw-bold text-dark mb-3">Acesso Negado</h3>
+                                <p class="text-muted mb-4 fs-6">
+                                    Desculpa, mas não tens permissões para aceder a esta página ou funcionalidade.
+                                </p>
+                                <div class="d-grid mt-4">
+                                    <a href="/backoffice" class="btn btn-primary btn-lg rounded-3 shadow-sm">
+                                        Voltar ao Início
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            @* 2. Utilizador é totalmente anónimo / Sessão expirada -> Redireciona para o login *@
+                            <div class="d-grid">
+                                @{
+                                    Navigation.NavigateTo("/", forceLoad: true);
+                                }
+                            </div>
+                        }
+                    </NotAuthorized>
+                </AuthorizeRouteView>
+                <FocusOnNavigate RouteData="routeData" Selector="h1" />
+            </Found>
+
+            <NotFound>
+                <LayoutView Layout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)">
+                    <div class="text-center w-100 mt-4">
+                        <h3 class="fw-bold text-dark mb-3">Página não encontrada</h3>
+                        <p class="text-muted mb-4 fs-6">
+                            Lamento, mas esta página não existe no CloudInvoice.
+                        </p>
+                        <div class="d-grid mt-4">
+                            <a href="/" class="btn btn-primary btn-lg rounded-3 shadow-sm">
+                                Ir para o Login
+                            </a>
+                        </div>
+                    </div>
+                </LayoutView>
+            </NotFound>
+        </Router>
+    </CascadingAuthenticationState>
+}
+
+@code {
+    private bool _isCheckingAuth = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (AuthProvider is CustomAuthenticationStateProvider customAuth)
+            {
+                await customAuth.LoadTokenFromBrowserAsync();
+            }
+
+            _isCheckingAuth = false;
+            StateHasChanged();
+        }
+    }
+}

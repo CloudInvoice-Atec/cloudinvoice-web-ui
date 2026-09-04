@@ -9,11 +9,13 @@ namespace cloudinvoice_web_ui.Services.Invoices
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
+        private readonly HttpClient _httpClientCatalog;
 
         public InvoiceService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
+            _httpClientCatalog = _httpClientFactory.CreateClient("CatalogAPI");
         }
 
         private HttpClient CreateAuthenticatedClient()
@@ -102,5 +104,23 @@ namespace cloudinvoice_web_ui.Services.Invoices
                 return null;
             }
         }
+
+        public async Task<List<InvoiceProductDto>> GetActiveProducts()
+        {
+            try
+            {
+                var products = await _httpClientCatalog.GetFromJsonAsync<List<InvoiceProductDto>>("api/products/all/active");
+                if (products != null)
+                {
+                    return products;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao obter produtos ativos: {ex.Message}. A carregar dados fictícios.");
+            }
+            return new List<InvoiceProductDto>();
+        }
+
     }
 }
