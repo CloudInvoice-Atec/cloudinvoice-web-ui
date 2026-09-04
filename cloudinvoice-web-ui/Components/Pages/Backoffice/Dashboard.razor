@@ -1,24 +1,292 @@
-﻿@layout Layout.AdminLayout
-@page "/backoffice"
+﻿@page "/backoffice"
+@layout Layout.AdminLayout
+@using cloudinvoice_web_ui.DTOs.Dashboard
 @using Microsoft.AspNetCore.Authorization
+@using ApexCharts
 @attribute [Authorize]
-<div class="container-fluid">
+@inject cloudinvoice_web_ui.Services.Dashboard.IDashboardService DashboardService
+@inject NavigationManager Navigation
 
+<div class="container-fluid">
     <!-- start page title -->
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="javascript: void(0);">UBold</a></li>
-                        <li class="breadcrumb-item"><a href="javascript: void(0);">Extra Pages</a></li>
-                        <li class="breadcrumb-item active">Starter</li>
-                    </ol>
-                </div>
-                <h4 class="page-title">Starter</h4>
+                <h4 class="page-title">Dashboard</h4>
             </div>
         </div>
     </div>
     <!-- end page title -->
 
-</div> <!-- container -->
+    @if (_isLoading)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">A carregar os seus dados...</p>
+            </div>
+        </div>
+    }
+    else if (_loadError || _dashboardData == null)
+    {
+        <!-- Regra 2: UI reage graciosamente à ausência de dados, sem popular mocks -->
+        <div class="alert alert-danger my-4" role="alert">
+            <i class="mdi mdi-alert-circle-outline me-2"></i> 
+            Não foi possível carregar os dados do Dashboard. Por favor, verifique a ligação ao servidor ou tente novamente mais tarde.
+        </div>
+        <div class="text-center">
+            <button class="btn btn-primary" @onclick="LoadDashboardDataAsync">Tentar Novamente</button>
+        </div>
+    }
+    else
+    {
+        <!-- Nível Superior: KPIs -->
+        <div class="row">
+            <div class="col-md-6 col-xl-3">
+                <div class="widget-rounded-circle card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="avatar-lg rounded-circle bg-soft-success border-success border">
+                                    <i class="fe-dollar-sign font-22 avatar-title text-success"></i>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-end">
+                                    <h3 class="text-dark mt-1"><span>@_dashboardData.Metrics.TotalRevenue.ToString("C")</span></h3>
+                                    <p class="text-muted mb-1 text-truncate">Faturado (Mês)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="widget-rounded-circle card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="avatar-lg rounded-circle bg-soft-danger border-danger border">
+                                    <i class="fe-alert-octagon font-22 avatar-title text-danger"></i>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-end">
+                                    <h3 class="text-dark mt-1"><span>@_dashboardData.Metrics.OverdueAmount.ToString("C")</span></h3>
+                                    <p class="text-muted mb-1 text-truncate">Em Dívida</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="widget-rounded-circle card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="avatar-lg rounded-circle bg-soft-primary border-primary border">
+                                    <i class="fe-file-text font-22 avatar-title text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-end">
+                                    <h3 class="text-dark mt-1"><span>@_dashboardData.Metrics.InvoicesCount</span></h3>
+                                    <p class="text-muted mb-1 text-truncate">Faturas Emitidas</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="widget-rounded-circle card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="avatar-lg rounded-circle bg-soft-info border-info border">
+                                    <i class="fe-users font-22 avatar-title text-info"></i>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-end">
+                                    <h3 class="text-dark mt-1"><span>@_dashboardData.Metrics.NewCustomersCount</span></h3>
+                                    <p class="text-muted mb-1 text-truncate">Novos Clientes</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Nível Intermédio: Gráfico (Placeholder para componentes nativos Blazor) -->
+            <div class="col-xl-4">
+                <div class="card">
+                    <div class="card-body" style="min-height: 380px;">
+                        <h4 class="header-title mb-3">Evolução da Faturação</h4>
+            
+                        @if (_dashboardData.RevenueChart != null && _dashboardData.RevenueChart.Any())
+                        {
+                            <ApexChart TItem="MonthlyRevenueDto"
+                                       Title=""
+                                       Height="300"
+                                       Options="_chartOptions">
+
+                                <ApexPointSeries TItem="MonthlyRevenueDto"
+                                                 Items="_dashboardData.RevenueChart"
+                                                 Name="Faturação"
+                                                 SeriesType="SeriesType.Bar"
+                                                 XValue="@(e => e.MonthLabel)"
+                                                 YValue="@(e => e.RevenueAmount)" />
+                            </ApexChart>
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted mt-5">
+                                <i class="mdi mdi-chart-bar" style="font-size: 48px;"></i>
+                                <p>Sem dados suficientes para exibir o gráfico.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nível Inferior: Atividade Recente -->
+            <div class="col-xl-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="header-title mb-3">Faturas Recentes</h4>
+
+                        <div class="table-responsive">
+                            <table class="table table-borderless table-nowrap table-hover table-centered m-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nº Fatura</th>
+                                        <th>Cliente</th>
+                                        <th>Data de Emissão</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (!_dashboardData.RecentInvoices.Any())
+                                    {
+                                        <tr>
+                                            <td colspan="6" class="text-center py-3">Não existem faturas recentes.</td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var invoice in _dashboardData.RecentInvoices)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <h5 class="m-0 fw-normal">@invoice.InvoiceNumber</h5>
+                                                </td>
+                                                <td>@invoice.CustomerName</td>
+                                                <td>@invoice.IssueDate.ToShortDateString()</td>
+                                                <td>@invoice.TotalAmount.ToString("C")</td>
+                                                <td>
+                                                    @if (invoice.Status.Equals("Issued", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        <span class="badge bg-soft-success text-success">Emitida</span>
+                                                    }
+                                                    else if (invoice.Status.Equals("Canceled", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        <span class="badge bg-soft-danger text-danger">Cancelada</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-soft-warning text-warning">Rascunho</span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    <!-- Regra 3: NavigationManager em vez de tag <a> -->
+                                                    <button class="btn btn-xs btn-light" title="Ver Detalhes" @onclick="() => NavigateToInvoice(invoice.Id)">
+                                                        <i class="mdi mdi-eye"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private DashboardOverviewDto? _dashboardData;
+    
+    // Regra 3: Controlo de UI puramente baseado no estado C#
+    private bool _isLoading = true;
+    private bool _loadError = false;
+    private ApexChartOptions<MonthlyRevenueDto> _chartOptions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chartOptions = new ApexChartOptions<MonthlyRevenueDto>
+        {
+            Colors = new List<string> { "#6610f2" },
+            PlotOptions = new PlotOptions
+            {
+                Bar = new PlotOptionsBar
+                {
+                    ColumnWidth = "50%",
+                    BorderRadius = 4
+                }
+            },
+            Xaxis = new XAxis
+            {
+                Labels = new XAxisLabels()
+            },
+            Yaxis = new List<YAxis>
+            {
+                new YAxis
+                {
+                    Labels = new YAxisLabels
+                    {
+                        Formatter = @"function (value) { return value + ' €'; }"
+                    }
+                }
+            },
+            Grid = new Grid
+            {
+                StrokeDashArray = 4
+            }
+        };
+
+        await LoadDashboardDataAsync();
+    }
+
+    private async Task LoadDashboardDataAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        _dashboardData = await DashboardService.GetDashboardOverviewAsync();
+
+        if (_dashboardData == null)
+        {
+            _loadError = true;
+        }
+
+        _isLoading = false;
+    }
+
+    private void NavigateToInvoice(Guid invoiceId)
+    {
+        // Navegação controlada
+        Navigation.NavigateTo($"/backoffice/faturas/{invoiceId}");
+    }
+}
