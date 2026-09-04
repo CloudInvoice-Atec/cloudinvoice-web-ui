@@ -8,6 +8,6 @@ namespace cloudinvoice_web_ui.Services.Invoices
         Task<InvoiceResponseDto?> GetInvoiceByIdAsync(Guid id);
         Task<IEnumerable<InvoiceResponseDto>?> GetInvoicesAsync(InvoiceQueryParametersDto parameters);
         Task<List<InvoiceProductDto>> GetActiveProducts();
-
+        Task<bool> CreateInvoiceAsync(InvoiceCreateDto invoice);
     }
 }

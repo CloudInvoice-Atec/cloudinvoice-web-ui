@@ -5,7 +5,7 @@
 
 @if (_isCheckingAuth)
 {
-    <!-- Mostra um loading enquanto o JSInterop valida o token no Browser -->
+    <!-- Mostra um loading enquanto o JSInterop valida o token no browser -->
     <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
         <div class="text-center">
             <div class="spinner-border text-primary" role="status"></div>
@@ -78,12 +78,16 @@ else
     {
         if (firstRender)
         {
+            // 1. Valida o token no localStorage de forma segura
             if (AuthProvider is CustomAuthenticationStateProvider customAuth)
             {
                 await customAuth.LoadTokenFromBrowserAsync();
             }
 
+            // 2. Liberta o ecrã
             _isCheckingAuth = false;
+
+            // 3. Atualiza a interface para desenhar o Router correto
             StateHasChanged();
         }
     }

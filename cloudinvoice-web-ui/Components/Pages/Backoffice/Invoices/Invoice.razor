@@ -185,7 +185,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var linha in novaFatura.Lines)
+                                        @foreach (var linha in novaFatura.Items)
                                         {
                                             <tr>
                                                 <td>
@@ -404,10 +404,10 @@
 
     private void OnClienteSelecionado(ChangeEventArgs e)
     {
-        if (Guid.TryParse(e.Value?.ToString(), out Guid clientId))
+        if (Guid.TryParse(e.Value?.ToString(), out Guid CustomerId))
         {
-            novaFatura.ClientId = clientId;
-            clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == clientId);
+            novaFatura.CustomerId = CustomerId;
+            clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == CustomerId);
 
             if (clienteSelecionado != null)
             {
@@ -417,7 +417,7 @@
         }
         else
         {
-            novaFatura.ClientId = null;
+            novaFatura.CustomerId = null;
             clienteSelecionado = null;
             // Opcional: Repor a data de vencimento padrão se desmarcar o cliente
             novaFatura.DateDue = DateTime.Today.AddDays(0);
@@ -426,13 +426,13 @@
 
     private void AdicionarLinha()
     {
-        novaFatura.Lines.Add(new InvoiceLineDto());
+        novaFatura.Items.Add(new InvoiceLineDto());
         CalcularTotais();
     }
 
     private void RemoverLinha(InvoiceLineDto linha)
     {
-        novaFatura.Lines.Remove(linha);
+        novaFatura.Items.Remove(linha);
         CalcularTotais();
     }
 
@@ -477,7 +477,7 @@
         TotalIva = 0;
         TotalFinal = 0;
 
-        foreach (var linha in novaFatura.Lines)
+        foreach (var linha in novaFatura.Items)
         {
             var brutoLinha = linha.Quantity * linha.BasePrice;
             var descontoLinha = brutoLinha * (linha.DiscountPercentage / 100);
@@ -502,13 +502,13 @@
         bool formValido = _editContext.Validate();
 
         // 2. Validações Manuais Extra
-        if (novaFatura.ClientId == null)
+        if (novaFatura.CustomerId == null)
         {
             Console.WriteLine("Erro: Cliente é obrigatório!");
             return false;
         }
 
-        if (!novaFatura.Lines.Any(l => l.ProductId != null))
+        if (!novaFatura.Items.Any(l => l.ProductId != null))
         {
             Console.WriteLine("Erro: A fatura precisa de ter pelo menos uma linha com produto!");
             return false;
@@ -550,6 +550,6 @@
     {
         Console.WriteLine($"A enviar para API. Estado do Doc: {novaFatura.Status} | Pagamento: {novaFatura.PaymentStatus}");
 
-        // await FaturaService.CriarFaturaAsync(novaFatura);
+        bool teste =await InvoiceService.CreateInvoiceAsync(novaFatura);
     }
 }

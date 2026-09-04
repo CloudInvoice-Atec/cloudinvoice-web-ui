@@ -7,13 +7,13 @@ namespace cloudinvoice_web_ui.DTOs.Invoices
 {
     public class InvoiceCreateDto
 {
-        public Guid? ClientId { get; set; } // Alterado para bater certo com a API
+        public Guid? CustomerId { get; set; } // Alterado para bater certo com a API
         public string Reference { get; set; }
         public DateTime DateEmission { get; set; } = DateTime.Today;
         public DateTime DateDue { get; set; } = DateTime.Today.AddDays(30);
         public InvoiceStatus Status { get; set; } = InvoiceStatus.Draft;
         public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
         public string Notes { get; set; }
-        public List<InvoiceLineDto> Lines { get; set; } = new List<InvoiceLineDto>();
+        public List<InvoiceLineDto> Items { get; set; } = new List<InvoiceLineDto>();
     }
 }
