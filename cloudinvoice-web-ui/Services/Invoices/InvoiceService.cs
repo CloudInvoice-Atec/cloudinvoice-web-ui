@@ -65,6 +65,51 @@ namespace cloudinvoice_web_ui.Services.Invoices
             // Usa o LINQ Take() para devolver apenas o número de faturas pedido (caso a API falhe)
             return fakeInvoices.Take(count).ToList();
         }
+        public async Task<InvoiceResponseDto?> GetInvoiceByIdAsync(Guid id)
+        {
+            try
+            {
+                var client = CreateAuthenticatedClient();
+                var response = await client.GetAsync($"api/Invoices/{id}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                return await response.Content.ReadFromJsonAsync<InvoiceResponseDto>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao obter fatura da Billing.API: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<InvoiceResponseDto>?> GetInvoicesAsync(InvoiceQueryParametersDto parameters)
+        {
+            try
+            {
+                var client = CreateAuthenticatedClient();
+
+                var query = $"api/Invoices?pageNumber={parameters.PageNumber}&pageSize={parameters.PageSize}";
+
+                var response = await client.GetAsync(query);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                var pagedResult = await response.Content.ReadFromJsonAsync<InvoicePagedResultDto<InvoiceResponseDto>>();
+                return pagedResult?.Items;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao obter faturas da Billing.API: {ex.Message}");
+                return null;
+            }
+        }
 
         public async Task<List<InvoiceProductDto>> GetActiveProducts()
         {

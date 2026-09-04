@@ -14,13 +14,13 @@
                 <!-- Brand Logo -->
                 <div class="logo-box">
                     <!-- Brand Logo Light -->
-                    <a href="index.html" class="logo-light">
+                    <a href="/backoffice" class="logo-light">
                         <img src="assets/images/logo-horizontal-dark.png" style="height:50px" alt="logo" class="logo-lg">
                         <img src="assets/images/logo-sm.png" alt="small logo" class="logo-sm">
                     </a>
 
                     <!-- Brand Logo Dark -->
-                    <a href="index.html" class="logo-dark">
+                    <a href="/backoffice" class="logo-dark">
                 <img src="assets/images/logo-horizontal.png" style="height:50px" alt="dark logo" class="logo-lg">
                         <img src="assets/images/logo-sm.png" alt="small logo" class="logo-sm">
                     </a>
@@ -40,6 +40,12 @@
                     <ul class="menu">
 
                         <li class="menu-item">
+                            <NavLink href="/backoffice" class="menu-link" Match="NavLinkMatch.Prefix">
+                                <span class="menu-icon"><i data-feather="box"></i></span>
+                                <span class="menu-text"> Dashboard </span>
+                            </NavLink>
+                        </li>
+                        <li class="menu-item">
                             <a href="backoffice/clientes" class="menu-link">
                                 <span class="menu-icon"><i data-feather="calendar"></i></span>
                                 <span class="menu-text"> Clientes </span>
@@ -52,67 +58,11 @@
                                 <span class="menu-text"> Produtos </span>
                             </NavLink>
                         </li>
-
                         <li class="menu-item">
-                            <a href="#menuEcommerce" data-bs-toggle="collapse" class="menu-link">
-                                <span class="menu-icon"><i data-feather="shopping-cart"></i></span>
-                                <span class="menu-text"> Ecommerce </span>
-                                <span class="menu-arrow"></span>
-                            </a>
-                            <div class="collapse" id="menuEcommerce">
-                                <ul class="sub-menu">
-                                    <li class="menu-item">
-                                        <a href="ecommerce-dashboard.html" class="menu-link">
-                                            <span class="menu-text">Dashboard</span>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item">
-                                        <a href="ecommerce-products.html" class="menu-link">
-                                            <span class="menu-text">Products</span>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item">
-                                        <a href="ecommerce-product-detail.html" class="menu-link">
-                                            <span class="menu-text">Product Detail</span>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item">
-                                        <a href="ecommerce-product-edit.html" class="menu-link">
-                                            <span class="menu-text">Add Product</span>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item">
-                                        <a href="ecommerce-customers.html" class="menu-link">
-                                            <span class="menu-text">Customers</span>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item">
-                                        <a href="ecommerce-orders.html" class="menu-link">
-                                            <span class="menu-text">Orders</span>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item">
-                                        <a href="ecommerce-order-detail.html" class="menu-link">
-                                            <span class="menu-text">Order Detail</span>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item">
-                                        <a href="ecommerce-sellers.html" class="menu-link">
-                                            <span class="menu-text">Sellers</span>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item">
-                                        <a href="ecommerce-cart.html" class="menu-link">
-                                            <span class="menu-text">Shopping Cart</span>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item">
-                                        <a href="ecommerce-checkout.html" class="menu-link">
-                                            <span class="menu-text">Checkout</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+                            <NavLink href="/backoffice/faturas" class="menu-link" Match="NavLinkMatch.Prefix">
+                                <span class="menu-icon"><i data-feather="file-text"></i></span>
+                                <span class="menu-text"> Faturas </span>
+                            </NavLink>
                         </li>
                     </ul>
                     <!--- End Menu -->
@@ -139,13 +89,13 @@
                             <!-- Topbar Brand Logo -->
                             <div class="logo-box">
                                 <!-- Brand Logo Light -->
-                                <a href="index.html" class="logo-light">
+                                <a href="/backoffice" class="logo-light">
                                     <img src="assets/images/logo-light.png" alt="logo" class="logo-lg">
                                     <img src="assets/images/logo-sm.png" alt="small logo" class="logo-sm">
                                 </a>
 
                                 <!-- Brand Logo Dark -->
-                                <a href="index.html" class="logo-dark">
+                                <a href="/backoffice" class="logo-dark">
                                     <img src="assets/images/logo-dark.png" alt="dark logo" class="logo-lg">
                                     <img src="assets/images/logo-sm.png" alt="small logo" class="logo-sm">
                                 </a>
@@ -176,23 +126,9 @@
                                     </a>
 
                                     <!-- item-->
-                                    <a href="javascript:void(0);" class="dropdown-item">
-                                        <i class="fe-bar-chart-line- me-1"></i>
-                                        <span>Revenue Report</span>
-                                    </a>
-
-                                    <!-- item-->
-                                    <a href="javascript:void(0);" class="dropdown-item">
-                                        <i class="fe-settings me-1"></i>
-                                        <span>Settings</span>
-                                    </a>
-
-                                    <div class="dropdown-divider"></div>
-
-                                    <!-- item-->
-                                    <a href="javascript:void(0);" class="dropdown-item">
-                                        <i class="fe-headphones me-1"></i>
-                                        <span>Help & Support</span>
+                                    <a href="/backoffice/products/edit" class="dropdown-item">
+                                        <i class="fe-box me-1"></i>
+                                        <span>Novo Produto</span>
                                     </a>
 
                                 </div>
@@ -251,18 +187,7 @@
                 <!-- Footer Start -->
                 <footer class="footer">
                     <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-md-6">
-                        <div>@DateTime.Now.Year © Ubold - <a href="https://coderthemes.com/" target="_blank">Coderthemes.com</a></div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-none d-md-flex gap-4 align-item-center justify-content-md-end footer-links">
-                                    <a href="javascript: void(0);">About</a>
-                                    <a href="javascript: void(0);">Support</a>
-                                    <a href="javascript: void(0);">Contact Us</a>
-                                </div>
-                            </div>
-                        </div>
+                        
                     </div>
                 </footer>
                 <!-- end Footer -->

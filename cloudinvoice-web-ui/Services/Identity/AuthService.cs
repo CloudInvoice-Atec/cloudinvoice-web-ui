@@ -34,5 +34,31 @@ namespace cloudinvoice_web_ui.Services.Identity
                 return new AuthResponseDto { IsSuccess = false, Message = $"Erro de comunicação com a API: {ex.Message}" };
             }
         }
+
+        public async Task ForgotPasswordAsync(string email)
+        {
+            try
+            {
+                // backend should always return 200 to avoid user enumeration
+                await _httpClientIdentity.PostAsJsonAsync("api/auth/forgot-password", new { Email = email });
+            }
+            catch
+            {
+                // swallow exceptions to preserve UX; consider logging in production
+            }
+        }
+
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto model)
+        {
+            try
+            {
+                var resp = await _httpClientIdentity.PostAsJsonAsync("api/auth/reset-password", model);
+                return resp.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

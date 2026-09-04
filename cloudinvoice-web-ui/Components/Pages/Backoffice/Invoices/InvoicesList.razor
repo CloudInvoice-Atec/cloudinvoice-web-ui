@@ -1,0 +1,132 @@
+﻿@page "/backoffice/faturas"
+@layout Layout.AdminLayout
+@using cloudinvoice_web_ui.DTOs.Invoices
+@using cloudinvoice_web_ui.Services.Invoices
+@inject IInvoiceService InvoiceService
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Faturas</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Pesquisa</label>
+                    <input type="text" class="form-control" placeholder="Nr fatura ou cliente..." @bind="_queryParams.Search" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-secondary" @onclick="LoadDataAsync">
+                        <i class="mdi mdi-magnify me-1"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">A carregar faturas...</p>
+        </div>
+    }
+    else if (_loadError)
+    {
+        <div class="alert alert-warning mt-3" role="alert">
+            Nao foi possivel carregar as faturas. Este endpoint pode ainda nao estar disponivel na Billing.API.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-hover table-centered mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nr Fatura</th>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Pagamento</th>
+                            <th>Total</th>
+                            <th class="text-center" style="width: 100px;">Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!_invoices.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center">Nenhuma fatura encontrada.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var invoice in _invoices)
+                            {
+                                <tr>
+                                    <td>@invoice.InvoiceNumber</td>
+                                    <td>@invoice.IssueDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@invoice.CustomerName</td>
+                                    <td>@invoice.Status</td>
+                                    <td>@invoice.PaymentStatus</td>
+                                    <td>@invoice.TotalAmount.ToString("C")</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-light" title="Pre-visualizar" @onclick="() => NavigateToDetalhes(invoice.Id)">
+                                            <i class="mdi mdi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private IEnumerable<InvoiceResponseDto> _invoices = new List<InvoiceResponseDto>();
+    private InvoiceQueryParametersDto _queryParams = new();
+
+    private bool _isLoading = true;
+    private bool _loadError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        var result = await InvoiceService.GetInvoicesAsync(_queryParams);
+
+        if (result is not null)
+        {
+            _invoices = result;
+        }
+        else
+        {
+            _loadError = true;
+        }
+
+        _isLoading = false;
+    }
+
+    private void NavigateToDetalhes(Guid id)
+    {
+        Navigation.NavigateTo($"/backoffice/faturas/detalhes/{id}");
+    }
+}
