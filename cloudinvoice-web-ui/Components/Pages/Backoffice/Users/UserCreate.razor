@@ -1,0 +1,136 @@
+﻿@page "/backoffice/users/create"
+@layout Layout.AdminLayout
+@attribute [Authorize(Roles = "Admin")]
+@using cloudinvoice_web_ui.DTOs.Identity
+@using cloudinvoice_web_ui.Services.Users
+@using Microsoft.AspNetCore.Authorization
+
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<div class="container-fluid mt-2">
+    <div class="row mb-2">
+        <div class="col-12">
+            <div class="page-title-box d-flex justify-content-between align-items-center">
+                <h4 class="page-title m-0">Criar Novo Utilizador</h4>
+
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/backoffice">Backoffice</a></li>
+                        <li class="breadcrumb-item"><a href="/backoffice/users">Utilizadores</a></li>
+                        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Criar</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="mdi mdi-alert-circle-outline me-2"></i> @_errorMessage
+                            <button type="button" class="btn-close" @onclick="() => _errorMessage = string.Empty"></button>
+                        </div>
+                    }
+
+                    <EditForm Model="@_registerModel" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nome <span class="text-danger">*</span></label>
+                                <InputText class="form-control" @bind-Value="_registerModel.FirstName" placeholder="Primeiro nome" />
+                                <ValidationMessage For="@(() => _registerModel.FirstName)" class="text-danger font-12 mt-1" />
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label">Apelido <span class="text-danger">*</span></label>
+                                <InputText class="form-control" @bind-Value="_registerModel.LastName" placeholder="Último nome" />
+                                <ValidationMessage For="@(() => _registerModel.LastName)" class="text-danger font-12 mt-1" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Endereço de Email <span class="text-danger">*</span></label>
+                                <InputText type="email" class="form-control" @bind-Value="_registerModel.Email" placeholder="exemplo@cloudinvoice.com" />
+                                <ValidationMessage For="@(() => _registerModel.Email)" class="text-danger font-12 mt-1" />
+                            </div>
+                            <div class="col-md-6 mt-3 mt-md-0">
+                                <label class="form-label">Perfil de Acesso (Role) <span class="text-danger">*</span></label>
+                                <InputSelect class="form-select" @bind-Value="_registerModel.Role">
+                                    <option value="Contabilista">Contabilista (Acesso Operacional)</option>
+                                    <option value="Admin">Administrador (Acesso Total)</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => _registerModel.Role)" class="text-danger font-12 mt-1" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <button type="button" class="btn btn-light waves-effect" @onclick="NavigateBack" disabled="@_isLoading">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary waves-effect waves-light" disabled="@_isLoading">
+                                @if (_isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                    <span>A Criar e Enviar Email...</span>
+                                }
+                                else
+                                {
+                                    <span>Criar Utilizador</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterRequestDto _registerModel = new RegisterRequestDto
+    {
+        Role = "Contabilista"
+    };
+
+    private bool _isLoading = false;
+    private string _errorMessage = string.Empty;
+
+    private async Task HandleValidSubmit()
+    {
+        _isLoading = true;
+        _errorMessage = string.Empty;
+
+        try
+        {
+            var response = await UserService.RegisterUserAsync(_registerModel);
+
+            if (response.IsSuccess)
+            {
+                Navigation.NavigateTo("/backoffice/users");
+            }
+            else
+            {
+                _errorMessage = response.Message ?? "Ocorreu um erro ao tentar criar o utilizador.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Erro de comunicação com o servidor.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/backoffice/users");
+    }
+}

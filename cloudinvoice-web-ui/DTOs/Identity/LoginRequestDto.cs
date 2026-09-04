@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace cloudinvoice_web_ui.Models.Auth
+namespace cloudinvoice_web_ui.DTOs.Identity
 {
-    public class LoginRequest
+    public class LoginRequestDto
     {
         [Required(ErrorMessage = "Campo obrigatório.")]
         [EmailAddress(ErrorMessage = "Formato de email inválido.")]
