@@ -2,6 +2,7 @@ using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.Components;
 using cloudinvoice_web_ui.Services.Catalog;
 using cloudinvoice_web_ui.Services.Customers;
+using cloudinvoice_web_ui.Services.Dashboard;
 using cloudinvoice_web_ui.Services.Identity;
 using cloudinvoice_web_ui.Services.Invoices;
 using cloudinvoice_web_ui.Services.Settings;
@@ -63,6 +64,7 @@ builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var app = builder.Build();
 
