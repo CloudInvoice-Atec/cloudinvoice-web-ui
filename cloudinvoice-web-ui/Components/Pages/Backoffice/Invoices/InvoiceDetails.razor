@@ -1,0 +1,132 @@
+﻿@page "/backoffice/faturas/detalhes/{Id:guid}"
+@layout Layout.AdminLayout
+@using cloudinvoice_web_ui.DTOs.Invoices
+@using cloudinvoice_web_ui.Enums
+@using cloudinvoice_web_ui.Services.Invoices
+@inject IInvoiceService InvoiceService
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-flex align-items-center justify-content-between">
+                <h4 class="page-title">Pre-visualizacao da Fatura</h4>
+                <button class="btn btn-light" @onclick="NavigateBack">
+                    <i class="mdi mdi-arrow-left me-1"></i> Voltar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">A carregar fatura...</p>
+        </div>
+    }
+    else if (_loadError || _invoice is null)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            Nao foi possivel carregar a fatura. Verifique a ligacao a Billing.API.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="mb-1">Fatura Nr @_invoice.InvoiceNumber</h5>
+                        <p class="text-muted mb-0">Emitida em @_invoice.IssueDate.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <span class="badge @StatusBadgeClass(_invoice.Status) fs-6 me-1">@_invoice.Status</span>
+                        <span class="badge @PaymentBadgeClass(_invoice.PaymentStatus) fs-6">@_invoice.PaymentStatus</span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-uppercase bg-light p-2">Cliente</h6>
+                        <p class="mb-1"><strong>@_invoice.CustomerName</strong></p>
+                        <p class="text-muted mb-0">NIF: @_invoice.CustomerTaxNumber</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 offset-md-6">
+                        <table class="table table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <td>Total Base</td>
+                                    <td class="text-end">@_invoice.TotalBase.ToString("C")</td>
+                                </tr>
+                                <tr>
+                                    <td>Total IVA</td>
+                                    <td class="text-end">@_invoice.TotalTax.ToString("C")</td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td><strong>Total</strong></td>
+                                    <td class="text-end"><strong>@_invoice.TotalAmount.ToString("C")</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4 mb-0">
+                    <i class="mdi mdi-information-outline me-1"></i>
+                    As linhas de artigos da fatura ainda nao estao disponiveis nesta pre-visualizacao.
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private InvoiceResponseDto? _invoice;
+    private bool _isLoading = true;
+    private bool _loadError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        _invoice = await InvoiceService.GetInvoiceByIdAsync(Id);
+
+        if (_invoice is null)
+        {
+            _loadError = true;
+        }
+
+        _isLoading = false;
+    }
+
+    private string StatusBadgeClass(InvoiceEnums.InvoiceStatus status) => status switch
+    {
+        InvoiceEnums.InvoiceStatus.Draft => "bg-secondary",
+        InvoiceEnums.InvoiceStatus.Issued => "bg-success",
+        InvoiceEnums.InvoiceStatus.Canceled => "bg-danger",
+        _ => "bg-light"
+    };
+
+    private string PaymentBadgeClass(InvoiceEnums.PaymentStatus status) => status switch
+    {
+        InvoiceEnums.PaymentStatus.Unpaid => "bg-danger",
+        InvoiceEnums.PaymentStatus.PartiallyPaid => "bg-warning text-dark",
+        InvoiceEnums.PaymentStatus.Paid => "bg-success",
+        _ => "bg-light"
+    };
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/backoffice/faturas");
+    }
+}
