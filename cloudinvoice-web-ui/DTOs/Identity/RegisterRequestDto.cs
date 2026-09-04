@@ -13,5 +13,8 @@ namespace cloudinvoice_web_ui.DTOs.Identity
 
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+
+        public string LogoUrl { get; set; } = string.Empty;
+
     }
 }

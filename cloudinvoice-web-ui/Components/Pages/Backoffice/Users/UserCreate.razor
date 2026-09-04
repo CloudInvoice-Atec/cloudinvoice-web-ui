@@ -108,6 +108,12 @@
 
         try
         {
+            // 1. Extrai a base URL atual (ex: "https://localhost:7085")
+            string baseUrl = Navigation.BaseUri.TrimEnd('/');
+
+            // 2. Constrói o URL absoluto do logótipo e atribui ao DTO
+            _registerModel.LogoUrl = $"{baseUrl}/assets/images/logo-horizontal.png";
+
             var response = await UserService.RegisterUserAsync(_registerModel);
 
             if (response.IsSuccess)

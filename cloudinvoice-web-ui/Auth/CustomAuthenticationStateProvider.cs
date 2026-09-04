@@ -80,6 +80,7 @@ namespace cloudinvoice_web_ui.Auth
         }
 
         // Função para descodificar o Payload de um token JWT e extrair as Claims (Email, Role, Nome, etc.)
+        // Função melhorada para descodificar o JWT e garantir que a Role é mapeada corretamente
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
         {
             var payload = jwt.Split('.')[1];
@@ -91,16 +92,24 @@ namespace cloudinvoice_web_ui.Auth
             {
                 foreach (var kvp in keyValuePairs)
                 {
+                    // Mapeamento inteligente: Se a chave for qualquer variante de 'role', garantimos que criamos um Claim do tipo ClaimTypes.Role
+                    var claimType = kvp.Key;
+                    if (claimType.Equals("role", StringComparison.OrdinalIgnoreCase) ||
+                        claimType.Equals("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", StringComparison.OrdinalIgnoreCase))
+                    {
+                        claimType = ClaimTypes.Role;
+                    }
+
                     if (kvp.Value is JsonElement element && element.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var val in element.EnumerateArray())
                         {
-                            claims.Add(new Claim(kvp.Key, val.ToString() ?? ""));
+                            claims.Add(new Claim(claimType, val.ToString() ?? ""));
                         }
                     }
                     else
                     {
-                        claims.Add(new Claim(kvp.Key, kvp.Value.ToString() ?? ""));
+                        claims.Add(new Claim(claimType, kvp.Value.ToString() ?? ""));
                     }
                 }
             }
