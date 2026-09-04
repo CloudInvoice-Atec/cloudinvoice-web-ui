@@ -6,6 +6,6 @@ namespace cloudinvoice_web_ui.Services.Invoices
 {
         Task<List<InvoiceSummaryDto>> GetRecentCustomerInvoicesAsync(Guid customerId, int count);
         Task<List<InvoiceProductDto>> GetActiveProducts();
-
+        Task<bool> CreateInvoiceAsync(InvoiceCreateDto invoice);
     }
 }

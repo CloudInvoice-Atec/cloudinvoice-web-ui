@@ -11,7 +11,7 @@ namespace cloudinvoice_web_ui.Services.Users
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
-        private readonly HttpClient _httpClientIdentity;
+        private readonly HttpClient _httpCustomerIdentity;
         private readonly IJSRuntime _jsRuntime;
 
         public UserService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, IJSRuntime jsRuntime)
@@ -21,7 +21,7 @@ namespace cloudinvoice_web_ui.Services.Users
             _jsRuntime = jsRuntime;
 
             // Aponta estritamente para a IdentityAPI
-            _httpClientIdentity = CreateAuthenticatedClient("IdentityAPI");
+            _httpCustomerIdentity = CreateAuthenticatedClient("IdentityAPI");
         }
 
         private HttpClient CreateAuthenticatedClient(string clientName)
@@ -39,7 +39,7 @@ namespace cloudinvoice_web_ui.Services.Users
             try
             {
                 // Faz o GET ao endpoint que acabaste de criar na API
-                var users = await _httpClientIdentity.GetFromJsonAsync<List<UserResponseDto>>("api/users");
+                var users = await _httpCustomerIdentity.GetFromJsonAsync<List<UserResponseDto>>("api/users");
 
                 return users ?? new List<UserResponseDto>();
             }
@@ -55,7 +55,7 @@ namespace cloudinvoice_web_ui.Services.Users
         {
             try
             {
-                var response = await _httpClientIdentity.PostAsJsonAsync("api/Auth/register", registerDto);
+                var response = await _httpCustomerIdentity.PostAsJsonAsync("api/Auth/register", registerDto);
                 var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
 
                 if (result != null)
@@ -74,7 +74,7 @@ namespace cloudinvoice_web_ui.Services.Users
 
         public async Task<(bool Success, string Message)> DeleteUserAsync(string id)
         {
-            var response = await _httpClientIdentity.DeleteAsync($"api/users/{id}");
+            var response = await _httpCustomerIdentity.DeleteAsync($"api/users/{id}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -106,11 +106,11 @@ namespace cloudinvoice_web_ui.Services.Users
                 // 2. Adicionar o token ao cabeçalho de Autorização do HttpClient
                 if (!string.IsNullOrWhiteSpace(token))
                 {
-                    _httpClientIdentity.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    _httpCustomerIdentity.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
 
                 // 3. Fazer o pedido à API já com o token incluído
-                return await _httpClientIdentity.GetFromJsonAsync<UserResponseDto>($"api/Users/{id}");
+                return await _httpCustomerIdentity.GetFromJsonAsync<UserResponseDto>($"api/Users/{id}");
             }
             catch (Exception ex)
             {
@@ -123,7 +123,7 @@ namespace cloudinvoice_web_ui.Services.Users
         {
             try
             {
-                var response = await _httpClientIdentity.PutAsJsonAsync($"api/Users/{user.Id}", user);
+                var response = await _httpCustomerIdentity.PutAsJsonAsync($"api/Users/{user.Id}", user);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)

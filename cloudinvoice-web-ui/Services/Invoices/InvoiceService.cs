@@ -1,7 +1,9 @@
-﻿using System.Net.Http.Json;
-using System.Net.Http.Headers;
-using cloudinvoice_web_ui.Auth;
+﻿using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.DTOs.Invoices;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Security.Claims;
 
 namespace cloudinvoice_web_ui.Services.Invoices
 {
@@ -9,13 +11,17 @@ namespace cloudinvoice_web_ui.Services.Invoices
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
+        private readonly HttpClient _httpClientBilling;
         private readonly HttpClient _httpClientCatalog;
+        private readonly AuthenticationStateProvider _authStateProvider;
 
-        public InvoiceService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
+        public InvoiceService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, AuthenticationStateProvider authStateProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
+            _httpClientBilling = _httpClientFactory.CreateClient("BillingAPI");
             _httpClientCatalog = _httpClientFactory.CreateClient("CatalogAPI");
+            _authStateProvider = authStateProvider;
         }
 
         private HttpClient CreateAuthenticatedClient()
@@ -75,6 +81,31 @@ namespace cloudinvoice_web_ui.Services.Invoices
                 Console.WriteLine($"Erro ao obter produtos ativos: {ex.Message}. A carregar dados fictícios.");
             }
             return new List<InvoiceProductDto>();
+        }
+
+
+        public async Task<bool> CreateInvoiceAsync(InvoiceCreateDto invoice)
+        {
+            try
+            {
+                
+                var response = await _httpClientBilling.PostAsJsonAsync("api/invoices", invoice);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+
+                var erroApi = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Erro da API ({response.StatusCode}): {erroApi}");
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao criar fatura: {ex.Message}");
+                return false;
+            }
         }
 
     }

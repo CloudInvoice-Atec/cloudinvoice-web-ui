@@ -6,20 +6,20 @@ namespace cloudinvoice_web_ui.Services.Identity
     public class AuthService : IAuthService
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly HttpClient _httpClientIdentity;
+        private readonly HttpClient _httpCustomerIdentity;
 
         public AuthService(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
             // Cria o cliente nomeado configurado para a Identity.API
-            _httpClientIdentity = _httpClientFactory.CreateClient("IdentityAPI");
+            _httpCustomerIdentity = _httpClientFactory.CreateClient("IdentityAPI");
         }
 
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginRequest)
         {
             try
             {
-                var response = await _httpClientIdentity.PostAsJsonAsync("api/Auth/login", loginRequest);
+                var response = await _httpCustomerIdentity.PostAsJsonAsync("api/Auth/login", loginRequest);
                 var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
 
                 if (result != null)
