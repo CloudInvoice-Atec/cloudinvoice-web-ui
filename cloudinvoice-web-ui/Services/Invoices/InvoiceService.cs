@@ -74,14 +74,8 @@ namespace cloudinvoice_web_ui.Services.Invoices
             {
                 Console.WriteLine($"Erro ao obter produtos ativos: {ex.Message}. A carregar dados fictícios.");
             }
-            // FAKE DATA de Fallback
-            return new List<InvoiceProductDto>
-        {
-            new InvoiceProductDto { Id = Guid.NewGuid(), Code = "SRV-001", Description = "Serviço de Consultoria", BasePrice = 100.00m, TaxRate = 23.00m },
-            new InvoiceProductDto { Id = Guid.NewGuid(), Code = "DEV-001", Description = "Desenvolvimento de Software", BasePrice = 1500.00m, TaxRate = 23.00m },
-            new InvoiceProductDto { Id = Guid.NewGuid(), Code = "MNT-001", Description = "Manutenção de Sistemas", BasePrice = 300.00m, TaxRate = 23.00m },
-            new InvoiceProductDto { Id = Guid.NewGuid(), Code = "TRN-001", Description = "Treinamento Técnico", BasePrice = 200.00m, TaxRate = 23.00m }
-        };
+            return new List<InvoiceProductDto>();
         }
+
     }
 }

@@ -2,13 +2,13 @@
 @layout Layout.AdminLayout
 @inject IJSRuntime JS
 @using cloudinvoice_web_ui.DTOs.Configuracoes
+@using static cloudinvoice_web_ui.Enums.InvoiceEnums
 @inject cloudinvoice_web_ui.Services.Settings.ICompanyService CompanyService
 @using cloudinvoice_web_ui.DTOs.Clientes
 @inject cloudinvoice_web_ui.Services.Customers.ICustomerService CustomerService
 @using cloudinvoice_web_ui.DTOs.Invoices
 @inject cloudinvoice_web_ui.Services.Invoices.IInvoiceService InvoiceService
-
-
+@using cloudinvoice_web_ui.Enums;
 <!-- Start Content-->
 <div class="container-fluid">
     <!-- start page title -->
@@ -35,7 +35,8 @@
     }
     else
     {
-        <EditForm Model="novaFatura" OnValidSubmit="GuardarFatura">
+        <!-- Mudámos Model para EditContext para permitir validação manual -->
+        <EditForm EditContext="@_editContext">
             <DataAnnotationsValidator />
 
             <!-- TOPO: Detalhes da Fatura, Emissor e Cliente -->
@@ -76,25 +77,49 @@
                         <div class="card-body">
                             <h5 class="text-uppercase bg-light p-2 mt-0 mb-3">Detalhes da Fatura</h5>
 
-                            <div class="mb-3">
-                                <label class="form-label">Número da Fatura</label>
-                                <input type="text" class="form-control" placeholder="Gerado automaticamente após submissão" disabled />
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Número de Referência (Opcional)</label>
-                                <InputText @bind-Value="novaFatura.Reference" class="form-control" placeholder="Ex: REF-123456" />
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Número da Fatura</label>
+                                    <input type="text" class="form-control" placeholder="Automático" disabled />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nº Referência</label>
+                                    <InputText @bind-Value="novaFatura.Reference" class="form-control" placeholder="Opcional" />
+                                </div>
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6 mb-3 mb-md-0">
-                                    <label class="form-label">Data da Fatura <span class="text-danger">*</span></label>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Data de Emissão <span class="text-danger">*</span></label>
                                     <InputDate @bind-Value="novaFatura.DateEmission" class="form-control" disabled />
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Vencimento <span class="text-danger">*</span></label>
-                                    <InputDate @bind-Value="novaFatura.DateDue" class="form-control" />
+                                <div class="col-md-6 mb-3">
+                                    <!-- Label melhorada com a indicação dinâmica dos dias -->
+                                    <label class="form-label d-flex justify-content-between align-items-center">
+                                        <span>Vencimento <span class="text-danger">*</span></span>
+                                        @if (clienteSelecionado != null)
+                                        {
+                                            <span class="badge bg-soft-info text-info font-11">
+                                                @(clienteSelecionado.PaymentTermsDays ?? 0) dias
+                                            </span>
+                                        }
+                                    </label>
+
+                                    <!-- Adicionado o atributo min para bloquear datas anteriores a hoje -->
+                                    <InputDate @bind-Value="novaFatura.DateDue"
+                                               class="form-control"
+                                               min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                                 </div>
+                            </div>
+
+                            <!-- Estado do Pagamento -->
+                            <div class="mb-0">
+                                <label class="form-label">Estado do Pagamento <span class="text-danger">*</span></label>
+                                <InputSelect @bind-Value="novaFatura.PaymentStatus" class="form-select">
+                                    <option value="@PaymentStatus.Unpaid">Por Pagar</option>
+                                    <option value="@PaymentStatus.PartiallyPaid">Parcialmente Paga</option>
+                                    <option value="@PaymentStatus.Paid">Paga (Liquidada)</option>
+                                </InputSelect>
                             </div>
                         </div>
                     </div>
@@ -136,7 +161,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
 
@@ -165,7 +189,7 @@
                                         {
                                             <tr>
                                                 <td>
-                                                    <select class="form-select" @onchange="@(e => OnProdutoSelecionado(linha, e))" value="@linha.ProdutId">
+                                                    <select class="form-select" @onchange="@(e => OnProdutoSelecionado(linha, e))" value="@linha.ProductId">
                                                         <option value="">Selecione...</option>
                                                         @foreach (var prod in _produtosCatalogo)
                                                         {
@@ -184,10 +208,10 @@
                                                 </td>
                                                 <td>
                                                     <select class="form-select" @bind="linha.TaxRate" @bind:after="CalcularTotais">
-                                                        <option value="23">23%</option>
-                                                        <option value="13">13%</option>
-                                                        <option value="6">6%</option>
-                                                        <option value="0">0% (Isento)</option>
+                                                        <option value="@(23m)">23%</option>
+                                                        <option value="@(13m)">13%</option>
+                                                        <option value="@(6m)">6%</option>
+                                                        <option value="@(0m)">0% (Isento)</option>
                                                     </select>
                                                 </td>
                                                 <td class="bg-light text-end fw-bold align-middle">
@@ -261,12 +285,15 @@
                 </div>
             </div>
 
-            <!-- Botões de Ação -->
+            <!-- Botões de Ação (Substituídos para suportar os 2 modos) -->
             <div class="row mb-4">
                 <div class="col-12 text-end">
                     <button type="button" class="btn btn-light me-2">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="mdi mdi-content-save me-1"></i> Guardar e Emitir Fatura
+                    <button type="button" class="btn btn-secondary me-2" @onclick="GravarComoRascunho">
+                        <i class="mdi mdi-content-save-edit me-1"></i> Guardar Rascunho
+                    </button>
+                    <button type="button" class="btn btn-success" @onclick="AbrirModalConfirmacao">
+                        <i class="mdi mdi-check-decagram me-1"></i> Emitir Fatura
                     </button>
                 </div>
             </div>
@@ -274,17 +301,55 @@
     }
 </div>
 
+<!-- Modal de Confirmação de Emissão -->
+@if (_mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title text-white">Confirmação de Emissão</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="FecharModal"></button>
+                </div>
+                <div class="modal-body">
+                    <h4 class="text-center mb-3">Atenção!</h4>
+                    <p class="text-center">Está prestes a emitir definitivamente esta fatura para <strong>@(clienteSelecionado?.Name ?? "o cliente")</strong>.</p>
+                    <div class="alert alert-danger mt-3" role="alert">
+                        <strong>Aviso Legal:</strong> Após a emissão, o documento ficará bloqueado com assinatura digital. Não poderá ser alterado nem apagado, apenas anulado via Nota de Crédito.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" @onclick="FecharModal">Cancelar</button>
+
+                    @if (_isSaving)
+                    {
+                        <button type="button" class="btn btn-success" disabled>
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> A Emitir...
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-success" @onclick="ConfirmarEmissao">Emitir Documento</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-
-
-
-
     // ====================================================================
     // ESTADO DA PÁGINA
     // ====================================================================
     private bool _isLoading = true;
     private bool _loadError = false;
+    private bool _isSaving = false;
+
+    // Controlo da Modal
+    private bool _mostrarModal = false;
+
     private InvoiceCreateDto novaFatura = new InvoiceCreateDto();
+    private EditContext _editContext; // Usado para validar o form manualmente
 
     // Dados que virão das APIs
     private List<InvoiceProductDto> _produtosCatalogo = new();
@@ -303,49 +368,23 @@
         _isLoading = true;
         _loadError = false;
 
+        // Inicializar o contexto do formulário
+        _editContext = new EditContext(novaFatura);
+
         try
         {
-            // 1. Ir buscar os Dados da Empresa reais à API
             var result = await CompanyService.GetCompanySettingsAsync();
-
-            if (result != null)
-            {
-                _empresa = result;
-            }
-            else
-            {
-                // Se a API não devolver a empresa, não podemos faturar!
-                _loadError = true;
-                return; // Pára imediatamente a execução
-            }
+            if (result != null) _empresa = result;
+            else { _loadError = true; return; }
 
             var resultClientes = await CustomerService.GetCustomersActiveAsync();
-            
-            if (resultClientes != null && resultClientes.Any())
-            {
-				_clientesAtivos = resultClientes;
-            }
-            else
-            {
-                _loadError = true;
-                return; 
-            }
+            if (resultClientes != null && resultClientes.Any()) _clientesAtivos = resultClientes;
+            else { _loadError = true; return; }
 
             var resultProducts = await InvoiceService.GetActiveProducts();
+            if (resultProducts != null && resultProducts.Any()) _produtosCatalogo = resultProducts;
+            else { _loadError = true; return; }
 
-            if (resultProducts != null && resultProducts.Any())
-            {
-                _produtosCatalogo = resultProducts;
-            }
-            else
-            {
-                _loadError = true;
-                return;
-            }
-
-            
-
-            // Iniciar com uma linha vazia por defeito
             AdicionarLinha();
         }
         catch (Exception ex)
@@ -360,7 +399,7 @@
     }
 
     // ====================================================================
-    // LÓGICA DE INTERAÇÃO
+    // LÓGICA DE INTERAÇÃO (Dropdowns e Tabela)
     // ====================================================================
 
     private void OnClienteSelecionado(ChangeEventArgs e)
@@ -369,11 +408,19 @@
         {
             novaFatura.ClientId = clientId;
             clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == clientId);
+
+            if (clienteSelecionado != null)
+            {
+                int dias = clienteSelecionado.PaymentTermsDays ?? 0; 
+                novaFatura.DateDue = DateTime.Today.AddDays((double)dias);
+            }
         }
         else
         {
             novaFatura.ClientId = null;
             clienteSelecionado = null;
+            // Opcional: Repor a data de vencimento padrão se desmarcar o cliente
+            novaFatura.DateDue = DateTime.Today.AddDays(0);
         }
     }
 
@@ -389,7 +436,6 @@
         CalcularTotais();
     }
 
-    // A Mágica do Auto-Preenchimento!
     private void OnProdutoSelecionado(InvoiceLineDto linha, ChangeEventArgs e)
     {
         if (Guid.TryParse(e.Value?.ToString(), out Guid produtoId))
@@ -397,18 +443,17 @@
             var produto = _produtosCatalogo.FirstOrDefault(p => p.Id == produtoId);
             if (produto != null)
             {
-                linha.ProdutId = produtoId;
+                linha.ProductId = produtoId;
                 linha.BasePrice = produto.BasePrice;
                 linha.TaxRate = Math.Round(produto.TaxRate);
             }
         }
         else
         {
-            linha.ProdutId = null;
+            linha.ProductId = null;
             linha.BasePrice = 0;
             linha.TaxRate = 0;
         }
-
         CalcularTotais();
     }
 
@@ -422,7 +467,6 @@
         var desconto = bruto * (linha.DiscountPercentage / 100);
         var valorAposDesconto = bruto - desconto;
         var iva = valorAposDesconto * (linha.TaxRate / 100);
-
         return valorAposDesconto + iva;
     }
 
@@ -448,23 +492,64 @@
         TotalFinal = SubtotalGeral - TotalDescontos + TotalIva;
     }
 
-    private async Task GuardarFatura()
+    // ====================================================================
+    // LÓGICA DE GRAVAÇÃO E MODAL
+    // ====================================================================
+
+    private bool ValidarFormulario()
     {
-        // Validações Manuais
+        // 1. Valida as Anotações de Dados (Required, etc)
+        bool formValido = _editContext.Validate();
+
+        // 2. Validações Manuais Extra
         if (novaFatura.ClientId == null)
         {
-            // Poderias mostrar um toast alert aqui
             Console.WriteLine("Erro: Cliente é obrigatório!");
-            return;
+            return false;
         }
 
-        if (!novaFatura.Lines.Any(l => l.ProdutId != null))
+        if (!novaFatura.Lines.Any(l => l.ProductId != null))
         {
             Console.WriteLine("Erro: A fatura precisa de ter pelo menos uma linha com produto!");
-            return;
+            return false;
         }
 
-        Console.WriteLine("Tudo Válido! A chamar a API...");
+        return formValido;
+    }
+
+    private async Task GravarComoRascunho()
+    {
+        if (!ValidarFormulario()) return;
+
+        novaFatura.Status = InvoiceStatus.Draft;
+        await GuardarFatura();
+    }
+
+    private void AbrirModalConfirmacao()
+    {
+        if (!ValidarFormulario()) return; // Só abre se estiver tudo bem preenchido
+        _mostrarModal = true;
+    }
+
+    private void FecharModal()
+    {
+        _mostrarModal = false;
+    }
+
+    private async Task ConfirmarEmissao()
+    {
+        _isSaving = true;
+        novaFatura.Status = InvoiceStatus.Issued;
+        await GuardarFatura();
+
+        _isSaving = false;
+        FecharModal();
+    }
+
+    private async Task GuardarFatura()
+    {
+        Console.WriteLine($"A enviar para API. Estado do Doc: {novaFatura.Status} | Pagamento: {novaFatura.PaymentStatus}");
+
         // await FaturaService.CriarFaturaAsync(novaFatura);
     }
 }
