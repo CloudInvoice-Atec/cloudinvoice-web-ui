@@ -1,21 +1,17 @@
-﻿@layout Layout.AdminLayout
-@inject IJSRuntime JS
-@page "/backoffice/clientes"
+﻿@page "/backoffice/clientes"
+@layout Layout.AdminLayout
 @using cloudinvoice_web_ui.Components.Modals
 @using cloudinvoice_web_ui.DTOs.Clientes
-@using cloudinvoice_web_ui.DTOs.Invoices
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 @inject cloudinvoice_web_ui.Services.Customers.ICustomerService CustomerService
+@inject NavigationManager Navigation
 
-
-<!-- Start Content-->
 <div class="container-fluid">
-
-    <!-- start page title -->
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
                 <div class="page-title-right">
-                    <!-- Botão de Adicionar Cliente -->
                     <button data-bs-toggle="modal" data-bs-target="#modalNovoCliente" class="btn btn-blue waves-effect waves-light">
                         <i class="mdi mdi-plus-circle me-1"></i> Adicionar Cliente
                     </button>
@@ -24,172 +20,235 @@
             </div>
         </div>
     </div>
-    <!-- end page title -->
-    <!-- Cartões de Estatísticas -->
-    <div class="row">
-        <div class="col-md-6 col-xl-3">
-            <div class="widget-rounded-circle card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="avatar-lg rounded-circle bg-soft-primary border-primary border">
-                                <i class="fe-users font-22 avatar-title text-primary"></i>
+
+    @if (_isLoadingOverview)
+    {
+        <div class="text-center my-3">
+            <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+            <span class="ms-2">A carregar estatísticas...</span>
+        </div>
+    }
+    else if (estatisticas != null)
+    {
+        <div class="row">
+            <div class="col-md-6 col-xl-3">
+                <div class="widget-rounded-circle card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="avatar-lg rounded-circle bg-soft-primary border-primary border">
+                                    <i class="fe-users font-22 avatar-title text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-end">
+                                    <h3 class="text-dark mt-1"><span>@estatisticas.TotalClientes</span></h3>
+                                    <p class="text-muted mb-1 text-truncate">Total Clientes</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="text-end">
-                                <h3 class="text-dark mt-1"><span>@estatisticas.TotalClientes</span></h3>
-                                <p class="text-muted mb-1 text-truncate">Total Clientes</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="widget-rounded-circle card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="avatar-lg rounded-circle bg-soft-success border-success border">
+                                    <i class="fe-user-check font-22 avatar-title text-success"></i>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-end">
+                                    <h3 class="text-dark mt-1"><span>@estatisticas.ClientesAtivos</span></h3>
+                                    <p class="text-muted mb-1 text-truncate">Ativos</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="widget-rounded-circle card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="avatar-lg rounded-circle bg-soft-info border-info border">
+                                    <i class="fe-user-plus font-22 avatar-title text-info"></i>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-end">
+                                    <h3 class="text-dark mt-1"><span>@estatisticas.NovosEsteMes</span></h3>
+                                    <p class="text-muted mb-1 text-truncate">Novos (Mês)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="widget-rounded-circle card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="avatar-lg rounded-circle bg-soft-warning border-warning border">
+                                    <i class="fe-alert-triangle font-22 avatar-title text-warning"></i>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-end">
+                                    <h3 class="text-dark mt-1"><span>@estatisticas.TotalEmDivida.ToString("C")</span></h3>
+                                    <p class="text-muted mb-1 text-truncate">Em Dívida</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    }
 
-        <div class="col-md-6 col-xl-3">
-            <div class="widget-rounded-circle card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="avatar-lg rounded-circle bg-soft-success border-success border">
-                                <i class="fe-user-check font-22 avatar-title text-success"></i>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-end">
-                                <h3 class="text-dark mt-1"><span>@estatisticas.ClientesAtivos</span></h3>
-                                <p class="text-muted mb-1 text-truncate">Ativos</p>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Secção de Filtros -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Pesquisa</label>
+                    <input type="text" class="form-control" placeholder="Nome, NIF ou Email..." @bind="_queryParams.Search" />
                 </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-xl-3">
-            <div class="widget-rounded-circle card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="avatar-lg rounded-circle bg-soft-info border-info border">
-                                <i class="fe-user-plus font-22 avatar-title text-info"></i>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-end">
-                                <h3 class="text-dark mt-1"><span>@estatisticas.NovosEsteMes</span></h3>
-                                <p class="text-muted mb-1 text-truncate">Novos (Mês)</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select class="form-select" @bind="_statusFilter">
+                        <option value="">Todos</option>
+                        <option value="true">Ativos</option>
+                        <option value="false">Inativos</option>
+                    </select>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-xl-3">
-            <div class="widget-rounded-circle card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="avatar-lg rounded-circle bg-soft-warning border-warning border">
-                                <i class="fe-alert-triangle font-22 avatar-title text-warning"></i>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-end">
-                                <h3 class="text-dark mt-1">€<span>@estatisticas.TotalEmDivida</span></h3>
-                                <p class="text-muted mb-1 text-truncate">Em Dívida</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-md-5 d-flex align-items-end gap-2">
+                    <button class="btn btn-secondary w-50" @onclick="ApplyFilters">
+                        <i class="fa fa-search me-1"></i> Filtrar
+                    </button>
+                    <button class="btn btn-light w-50" @onclick="ResetFilters">
+                        Limpar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- end row-->
-    <!-- Tabela de Listagem de Clientes -->
+
+    <!-- Tabela -->
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <div class="dropdown float-end">
-                        <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="mdi mdi-dots-vertical"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a href="javascript:void(0);" class="dropdown-item">Exportar Excel</a>
-                            <a href="javascript:void(0);" class="dropdown-item">Imprimir Lista</a>
-                        </div>
-                    </div>
-
                     <h4 class="header-title mb-3">Listagem de Clientes</h4>
 
-                    @if (_isLoading)
+                    @if (_isLoadingData)
                     {
-                        <div class="text-center my-4">
+                        <div class="text-center my-5">
                             <div class="spinner-border text-primary" role="status"></div>
                             <p class="mt-2">A carregar clientes...</p>
                         </div>
                     }
-                    else if (!_clientes.Any())
+                    else if (_loadError)
                     {
-                        <div class="alert alert-info text-center my-4">
-                            Não existem clientes registados no sistema. Clique em "Adicionar Cliente" para começar.
+                        <div class="alert alert-danger my-4" role="alert">
+                            Não foi possível carregar os clientes. Verifique a ligação à API.
                         </div>
                     }
                     else
                     {
                         <div class="table-responsive">
-                            <table id="tabela-clientes" class="table table-borderless table-hover table-nowrap table-centered m-0">
+                            <table class="table table-borderless table-hover table-nowrap table-centered m-0">
                                 <thead class="table-light">
                                     <tr>
                                         <th colspan="2">Cliente / Empresa</th>
                                         <th>NIF</th>
                                         <th>Email</th>
                                         <th>Estado</th>
-                                        <th>Ações</th>
+                                        <th class="text-center" style="width: 120px;">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var cliente in _clientes)
+                                    @if (!_clientes.Any())
                                     {
                                         <tr>
-                                            <td style="width: 36px;">
-                                                <div class="avatar-sm">
-                                                    <span class="avatar-title bg-soft-secondary text-secondary rounded-circle">
-                                                        @(!string.IsNullOrEmpty(cliente.Name) ? cliente.Name.Substring(0, 1).ToUpper() : "?")
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <h5 class="m-0 fw-normal">@cliente.Name</h5>
-                                                <p class="mb-0 text-muted"><small>Tel: @cliente.Phone</small></p>
-                                            </td>
-                                            <td>@cliente.TaxId</td>
-                                            <td>@cliente.Email</td>
-                                            <td>
-                                                @if (cliente.IsActive)
-                                                {
-                                                    <span class="badge bg-soft-success text-success">Ativo</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-soft-danger text-danger">Inativo</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                <a href="/backoffice/clientes/@cliente.Id" class="btn btn-xs btn-light" title="Ver Perfil">
-                                                    <i class="mdi mdi-eye"></i>
-                                                </a>
-                                                <a href="/backoffice/clientes/editar/@cliente.Id" class="btn btn-xs btn-light" title="Editar">
-                                                    <i class="mdi mdi-pencil"></i>
-                                                </a>
-                                            </td>
+                                            <td colspan="6" class="text-center py-4">Nenhum cliente encontrado.</td>
                                         </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var cliente in _clientes)
+                                        {
+                                            <tr>
+                                                <td style="width: 36px;">
+                                                    <div class="avatar-sm">
+                                                        <span class="avatar-title bg-soft-secondary text-secondary rounded-circle">
+                                                            @(!string.IsNullOrEmpty(cliente.Name) ? cliente.Name.Substring(0, 1).ToUpper() : "?")
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <h5 class="m-0 fw-normal">@cliente.Name</h5>
+                                                    <p class="mb-0 text-muted"><small>Tel: @cliente.Phone</small></p>
+                                                </td>
+                                                <td>@cliente.TaxId</td>
+                                                <td>@cliente.Email</td>
+                                                <td>
+                                                    @if (cliente.IsActive)
+                                                    {
+                                                        <span class="badge bg-soft-success text-success">Ativo</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-soft-danger text-danger">Inativo</span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="d-inline-flex gap-1 justify-content-center align-items-center">
+                                                        <button class="btn btn-xs btn-light" title="Ver Perfil" @onclick="() => NavigateToProfile(cliente.Id)">
+                                                            <i class="mdi mdi-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-xs btn-light" title="Editar" @onclick="() => NavigateToEdit(cliente.Id)">
+                                                            <i class="mdi mdi-pencil"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
                                     }
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Paginação Nativa -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span>Mostrar:</span>
+                                <select class="form-select form-select-sm w-auto" @bind="_queryParams.PageSize" @bind:after="LoadCustomersAsync">
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-3">
+                                <span>Página @_queryParams.Page de @_totalPages</span>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-secondary" @onclick="PreviousPage" disabled="@(_queryParams.Page <= 1)">
+                                        Anterior
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" @onclick="NextPage" disabled="@(_queryParams.Page >= _totalPages)">
+                                        Seguinte
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>
@@ -198,44 +257,120 @@
     </div>
 </div>
 
-<!-- Aqui deves colocar a tua Componente Modal se a extraíste para um ficheiro à parte -->
-<!-- <ModalNovoCliente /> -->
 @code {
-    // --- VARIÁVEIS DE ESTADO DA PÁGINA ---
-    private List<CustomerProfileDto> _clientes = new List<CustomerProfileDto>();
-    private OverviewClientesDto estatisticas = new OverviewClientesDto();
+    private IEnumerable<CustomerProfileDto> _clientes = new List<CustomerProfileDto>();
+    private OverviewClientesDto? estatisticas;
+    private CustomerQueryParameters _queryParams = new CustomerQueryParameters { Page = 1, PageSize = 10 };
+    private int _totalPages = 1;
+    private string? _statusFilter;
 
-    private bool _isLoading = true;
-    private bool _isDataTableInitialized = false;
+    private bool _isLoadingData = true;
+    private bool _isLoadingOverview = true;
+    private bool _loadError = false;
 
     protected override async Task OnInitializedAsync()
     {
-        _isLoading = true;
+        var overviewTask = LoadOverviewAsync();
+        var dataTask = LoadCustomersAsync();
 
-        // 1. Simular as Estatísticas do Topo (até teres o endpoint da API feito)
-        estatisticas = new OverviewClientesDto
-        {
-            TotalClientes = 124,
-            ClientesAtivos = 118,
-            NovosEsteMes = 12,
-            TotalEmDivida = 3250.75
-        };
-
-        // 2. Chamar a API Real
-        _clientes = await CustomerService.GetCustomersAsync();
-
-        _isLoading = false;
+        await Task.WhenAll(overviewTask, dataTask);
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task LoadOverviewAsync()
     {
-        // 💡 MAGIA DE ARQUITETURA:
-        // O DataTable (jQuery) só pode ser inicializado DEPOIS do Blazor ter desenhado a tabela no HTML.
-        // Por isso, só inicializamos quando o Loading acaba e se houver clientes.
-        if (!_isLoading && _clientes.Any() && !_isDataTableInitialized)
+        _isLoadingOverview = true;
+        try
         {
-            await JS.InvokeVoidAsync("iniciarMinhaDataTable", "#tabela-clientes");
-            _isDataTableInitialized = true;
+            // Substitui por CustomerService.GetCustomerOverviewAsync() assim que o endpoint existir
+            estatisticas = null;
         }
+        catch (Exception)
+        {
+            estatisticas = null;
+        }
+        finally
+        {
+            _isLoadingOverview = false;
+        }
+    }
+
+    private async Task LoadCustomersAsync()
+    {
+        _isLoadingData = true;
+        _loadError = false;
+
+        try
+        {
+            if (bool.TryParse(_statusFilter, out var parsedStatus))
+            {
+                _queryParams.IsActive = parsedStatus;
+            }
+            else
+            {
+                _queryParams.IsActive = null;
+            }
+
+            var result = await CustomerService.GetCustomersAsync(_queryParams);
+
+            if (result != null)
+            {
+                _clientes = result.Items;
+                _totalPages = result.TotalPages == 0 ? 1 : result.TotalPages;
+            }
+            else
+            {
+                _loadError = true;
+                _clientes = new List<CustomerProfileDto>();
+            }
+        }
+        catch (Exception)
+        {
+            _loadError = true;
+        }
+        finally
+        {
+            _isLoadingData = false;
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        _queryParams.Page = 1;
+        await LoadCustomersAsync();
+    }
+
+    private async Task ResetFilters()
+    {
+        _queryParams = new CustomerQueryParameters { Page = 1, PageSize = 10 };
+        _statusFilter = null;
+        await LoadCustomersAsync();
+    }
+
+    private async Task NextPage()
+    {
+        if (_queryParams.Page < _totalPages)
+        {
+            _queryParams.Page++;
+            await LoadCustomersAsync();
+        }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (_queryParams.Page > 1)
+        {
+            _queryParams.Page--;
+            await LoadCustomersAsync();
+        }
+    }
+
+    private void NavigateToProfile(Guid id)
+    {
+        Navigation.NavigateTo($"/backoffice/clientes/{id}");
+    }
+
+    private void NavigateToEdit(Guid id)
+    {
+        Navigation.NavigateTo($"/backoffice/clientes/editar/{id}");
     }
 }

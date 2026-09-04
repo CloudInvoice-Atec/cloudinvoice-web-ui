@@ -42,3 +42,64 @@
         </LayoutView>
     </NotFound>
 </Router>
+﻿@using cloudinvoice_web_ui.Auth
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager Navigation
+
+@if (_isCheckingAuth)
+{
+    <!-- Mostra um loading enquanto o JSInterop não está pronto para ler o token -->
+    <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">A verificar sessão...</p>
+        </div>
+    </div>
+}
+else
+{
+    <CascadingAuthenticationState>
+        <Router AppAssembly="typeof(Program).Assembly">
+            <Found Context="routeData">
+                <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)">
+                    <NotAuthorized>
+                        @{
+                            // Se após verificarmos o token, o utilizador continuar anónimo, redireciona
+                            Navigation.NavigateTo("/login", forceLoad: true);
+                        }
+                    </NotAuthorized>
+                </AuthorizeRouteView>
+                <FocusOnNavigate RouteData="routeData" Selector="h1" />
+            </Found>
+            <NotFound>
+                <LayoutView Layout="typeof(cloudinvoice_web_ui.Components.Layout.PublicLayout)">
+                    <p role="alert">Lamento, mas esta página não existe no Invoice Cloud.</p>
+                </LayoutView>
+            </NotFound>
+        </Router>
+    </CascadingAuthenticationState>
+}
+
+@code {
+    // Variável de estado crucial em C# para bloquear o Router
+    private bool _isCheckingAuth = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // 1. Agora o JS Interop é 100% seguro de executar
+            if (AuthProvider is CustomAuthenticationStateProvider customAuth)
+            {
+                await customAuth.LoadTokenFromBrowserAsync();
+            }
+
+            // 2. Liberta o bloqueio e permite que o Router faça o seu trabalho
+            _isCheckingAuth = false;
+
+            // 3. Força a UI a redesenhar para esconder o spinner e mostrar a aplicação
+            StateHasChanged();
+        }
+    }
+}

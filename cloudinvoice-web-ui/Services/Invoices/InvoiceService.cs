@@ -9,11 +9,13 @@ namespace cloudinvoice_web_ui.Services.Invoices
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
+        private readonly HttpClient _httpClientCatalog;
 
         public InvoiceService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
+            _httpClientCatalog = _httpClientFactory.CreateClient("CatalogAPI");
         }
 
         private HttpClient CreateAuthenticatedClient()
@@ -57,5 +59,23 @@ namespace cloudinvoice_web_ui.Services.Invoices
             // Usa o LINQ Take() para devolver apenas o número de faturas pedido (caso a API falhe)
             return fakeInvoices.Take(count).ToList();
         }
+
+        public async Task<List<InvoiceProductDto>> GetActiveProducts()
+        {
+            try
+            {
+                var products = await _httpClientCatalog.GetFromJsonAsync<List<InvoiceProductDto>>("api/products/all/active");
+                if (products != null)
+                {
+                    return products;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao obter produtos ativos: {ex.Message}. A carregar dados fictícios.");
+            }
+            return new List<InvoiceProductDto>();
+        }
+
     }
 }
