@@ -40,7 +40,7 @@ namespace cloudinvoice_web_ui.Services.Identity
             try
             {
                 // backend should always return 200 to avoid user enumeration
-                await _httpClientIdentity.PostAsJsonAsync("api/auth/forgot-password", new { Email = email });
+                await _httpCustomerIdentity.PostAsJsonAsync("api/auth/forgot-password", new { Email = email });
             }
             catch
             {
@@ -52,7 +52,7 @@ namespace cloudinvoice_web_ui.Services.Identity
         {
             try
             {
-                var resp = await _httpClientIdentity.PostAsJsonAsync("api/auth/reset-password", model);
+                var resp = await _httpCustomerIdentity.PostAsJsonAsync("api/auth/reset-password", model);
                 return resp.IsSuccessStatusCode;
             }
             catch
