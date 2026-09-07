@@ -10,5 +10,8 @@ namespace cloudinvoice_web_ui.Services.Invoices
         Task<List<InvoiceProductDto>> GetActiveProducts();
         Task<bool> CreateInvoiceAsync(InvoiceCreateDto invoice);
         Task<bool> UpdateInvoiceAsync(Guid id, InvoiceCreateDto invoiceUpdate);
+
+        Task<bool> DeleteInvoiceAsync(Guid id);
+
     }
 }
