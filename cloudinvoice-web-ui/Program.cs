@@ -41,7 +41,7 @@ builder.Services.AddAuthentication("Cookies")
 
 builder.Services.AddAuthorization(); // Ativa a verificação de Roles e Policies
 
-// 2. Named HttpClients para os Microserviços
+
 builder.Services.AddHttpClient("IdentityAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiUrls:IdentityApi"] ?? "https://localhost:5001");
@@ -50,7 +50,7 @@ builder.Services.AddHttpClient("IdentityAPI", client =>
 builder.Services.AddHttpClient("CatalogAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiUrls:CatalogApi"] ?? "https://localhost:5003");
-});
+}); // 👈 Sem o AddHttpMessageHandler
 
 builder.Services.AddHttpClient("BillingAPI", client =>
 {

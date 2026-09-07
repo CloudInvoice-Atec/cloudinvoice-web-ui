@@ -1,9 +1,7 @@
 ﻿using cloudinvoice_web_ui.Auth;
 using cloudinvoice_web_ui.DTOs.Invoices;
-using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Security.Claims;
 
 namespace cloudinvoice_web_ui.Services.Invoices
 {
@@ -11,77 +9,83 @@ namespace cloudinvoice_web_ui.Services.Invoices
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
-        private readonly HttpClient _httpClientBilling;
-        private readonly HttpClient _httpClientCatalog;
-        private readonly AuthenticationStateProvider _authStateProvider;
 
-        public InvoiceService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider, AuthenticationStateProvider authStateProvider)
+        public InvoiceService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
-            _httpClientBilling = _httpClientFactory.CreateClient("BillingAPI");
-            _httpClientCatalog = _httpClientFactory.CreateClient("CatalogAPI");
-            _authStateProvider = authStateProvider;
         }
 
-        private HttpClient CreateAuthenticatedClient()
+        // Método auxiliar seguro e confinado ao contexto deste utilizador
+        private HttpClient GetBillingClient()
         {
             var client = _httpClientFactory.CreateClient("BillingAPI");
-            if (!string.IsNullOrEmpty(_tokenProvider.Token))
+            var token = _tokenProvider.Token;
+
+            if (!string.IsNullOrEmpty(token))
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _tokenProvider.Token);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
+
             return client;
+        }
+
+        private HttpClient GetCatalogClient()
+        {
+            var client = _httpClientFactory.CreateClient("CatalogAPI");
+            // Se a Catalog API também precisar de token, descomenta as 3 linhas abaixo:
+            var token = _tokenProvider.Token;
+            if (!string.IsNullOrEmpty(token))
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            return client;
+        }
+
+        public async Task<bool> CreateInvoiceAsync(InvoiceCreateDto invoice)
+        {
+            try
+            {
+                var client = GetBillingClient();
+                // Agora o token vai garantidamente junto com o POST!
+                var response = await client.PostAsJsonAsync("api/invoices", invoice);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception)
+            {
+                // Regra 2: Devolve falso, a UI mostrará o erro ao utilizador
+                return false;
+            }
         }
 
         public async Task<List<InvoiceSummaryDto>> GetRecentCustomerInvoicesAsync(Guid customerId, int count)
         {
             try
             {
-                var client = CreateAuthenticatedClient();
-
-                // Passamos o count como query parameter para a API limitar os resultados
+                var client = GetBillingClient();
                 var invoices = await client.GetFromJsonAsync<List<InvoiceSummaryDto>>($"api/customers/{customerId}/invoices?count={count}");
-                if (invoices != null)
-                {
-                    return invoices;
-                }
+                return invoices ?? new List<InvoiceSummaryDto>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Erro ao obter faturas: {ex.Message}. A carregar dados fictícios.");
+                return new List<InvoiceSummaryDto>(); // Sem fake data
             }
-
-            // FAKE DATA de Fallback
-            var fakeInvoices = new List<InvoiceSummaryDto>
-        {
-            new InvoiceSummaryDto { InvoiceNumber = "FT 2026/0045", IssueDate = DateTime.Now.AddDays(-5), DueDate = DateTime.Now.AddDays(25), TotalAmount = 750.00m, Status = "Unpaid" },
-            new InvoiceSummaryDto { InvoiceNumber = "FT 2026/0012", IssueDate = DateTime.Now.AddDays(-40), DueDate = DateTime.Now.AddDays(-10), TotalAmount = 500.00m, Status = "Overdue" },
-            new InvoiceSummaryDto { InvoiceNumber = "FT 2026/0003", IssueDate = DateTime.Now.AddDays(-60), DueDate = DateTime.Now.AddDays(-30), TotalAmount = 1250.00m, Status = "Paid" },
-            new InvoiceSummaryDto { InvoiceNumber = "FT 2026/0002", IssueDate = DateTime.Now.AddDays(-90), DueDate = DateTime.Now.AddDays(-60), TotalAmount = 300.00m, Status = "Paid" },
-            new InvoiceSummaryDto { InvoiceNumber = "FT 2026/0001", IssueDate = DateTime.Now.AddDays(-120), DueDate = DateTime.Now.AddDays(-90), TotalAmount = 1500.00m, Status = "Paid" }
-        };
-
-            // Usa o LINQ Take() para devolver apenas o número de faturas pedido (caso a API falhe)
-            return fakeInvoices.Take(count).ToList();
         }
+
         public async Task<InvoiceResponseDto?> GetInvoiceByIdAsync(Guid id)
         {
             try
             {
-                var client = CreateAuthenticatedClient();
+                var client = GetBillingClient();
                 var response = await client.GetAsync($"api/Invoices/{id}");
 
                 if (!response.IsSuccessStatusCode)
-                {
                     return null;
-                }
 
                 return await response.Content.ReadFromJsonAsync<InvoiceResponseDto>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Erro ao obter fatura da Billing.API: {ex.Message}");
                 return null;
             }
         }
@@ -90,23 +94,18 @@ namespace cloudinvoice_web_ui.Services.Invoices
         {
             try
             {
-                var client = CreateAuthenticatedClient();
-
+                var client = GetBillingClient();
                 var query = $"api/Invoices?pageNumber={parameters.PageNumber}&pageSize={parameters.PageSize}";
-
                 var response = await client.GetAsync(query);
 
                 if (!response.IsSuccessStatusCode)
-                {
                     return null;
-                }
 
                 var pagedResult = await response.Content.ReadFromJsonAsync<InvoicePagedResultDto<InvoiceResponseDto>>();
                 return pagedResult?.Items;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Erro ao obter faturas da Billing.API: {ex.Message}");
                 return null;
             }
         }
@@ -115,59 +114,28 @@ namespace cloudinvoice_web_ui.Services.Invoices
         {
             try
             {
-                var products = await _httpClientCatalog.GetFromJsonAsync<List<InvoiceProductDto>>("api/products/all/active");
-                if (products != null)
-                {
-                    return products;
-                }
+                var client = GetCatalogClient();
+                var products = await client.GetFromJsonAsync<List<InvoiceProductDto>>("api/products/all/active");
+                return products ?? new List<InvoiceProductDto>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Erro ao obter produtos ativos: {ex.Message}. A carregar dados fictícios.");
-            }
-            return new List<InvoiceProductDto>();
-        }
-
-
-        public async Task<bool> CreateInvoiceAsync(InvoiceCreateDto invoice)
-        {
-            try
-            {
-                
-                var response = await _httpClientBilling.PostAsJsonAsync("api/invoices", invoice);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-
-                var erroApi = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Erro da API ({response.StatusCode}): {erroApi}");
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erro ao criar fatura: {ex.Message}");
-                return false;
+                return new List<InvoiceProductDto>();
             }
         }
-
 
         public async Task<bool> UpdateInvoiceAsync(Guid id, InvoiceCreateDto invoiceUpdate)
         {
             try
             {
-                // NOTA: O método da API Billing será provavelmente um PUT /api/invoices/{id}
-                var response = await _httpClientBilling.PutAsJsonAsync($"api/invoices/{id}", invoiceUpdate);
+                var client = GetBillingClient();
+                var response = await client.PutAsJsonAsync($"api/invoices/{id}", invoiceUpdate);
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Erro ao atualizar fatura: {ex.Message}");
                 return false;
             }
         }
-
     }
 }
