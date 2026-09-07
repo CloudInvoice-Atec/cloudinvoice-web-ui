@@ -140,13 +140,16 @@
                             <h5 class="text-uppercase bg-light p-2 mt-0 mb-3">Faturado A (Cliente) <span class="text-danger">*</span></h5>
 
                             <div class="mb-3">
-                                <select class="form-select select2" @onchange="OnClienteSelecionado" value="@novaFatura.CustomerId">
+                                <InputSelect class="form-select" @bind-Value="novaFatura.CustomerId" @bind-Value:after="OnClienteSelecionadoAtualizado">
                                     <option value="">Selecione um cliente...</option>
-                                    @foreach (var cliente in _clientesAtivos)
+                                    @if (_clientesAtivos != null)
                                     {
-                                        <option value="@cliente.Id">@cliente.Name (NIF: @cliente.TaxId)</option>
+                                        @foreach (var cliente in _clientesAtivos)
+                                        {
+                                            <option value="@cliente.Id">@cliente.Name (NIF: @cliente.TaxId)</option>
+                                        }
                                     }
-                                </select>
+                                </InputSelect>
                             </div>
 
                             @if (clienteSelecionado != null)
@@ -196,13 +199,16 @@
                                         {
                                             <tr>
                                                 <td>
-                                                    <select class="form-select" @onchange="@(e => OnProdutoSelecionado(linha, e))" value="@linha.ProductId">
+                                                    <InputSelect class="form-select" @bind-Value="linha.ProductId" @bind-Value:after="() => OnProdutoSelecionadoAtualizado(linha)">
                                                         <option value="">Selecione...</option>
-                                                        @foreach (var prod in _produtosCatalogo)
+                                                        @if (_produtosCatalogo != null)
                                                         {
-                                                            <option value="@prod.Id">(@prod.Code) - @prod.Description</option>
+                                                            @foreach (var prod in _produtosCatalogo)
+                                                            {
+                                                                <option value="@prod.Id">(@prod.Code) - @prod.Description</option>
+                                                            }
                                                         }
-                                                    </select>
+                                                    </InputSelect>
                                                 </td>
                                                 <td>
                                                     <input type="number" class="form-control text-center" @bind="linha.Quantity" @bind:event="oninput" @onkeyup="CalcularTotais" min="1" />
@@ -413,7 +419,7 @@
                         Quantity = (int)linha.Quantity,
                         BasePrice = linha.UnitPrice,
                         DiscountPercentage = linha.DiscountPercentage,
-                        TaxRate = linha.TaxRate
+                        TaxRate = Math.Round(linha.TaxRate)
                     }).ToList();
 
                     clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == novaFatura.CustomerId);
@@ -444,12 +450,12 @@
     // LÓGICA DE INTERAÇÃO (Dropdowns e Tabela)
     // ====================================================================
 
-    private void OnClienteSelecionado(ChangeEventArgs e)
+    private void OnClienteSelecionadoAtualizado()
     {
-        if (Guid.TryParse(e.Value?.ToString(), out Guid customerId))
+        // O Blazor já meteu o valor correto no novaFatura.CustomerId graças ao @bind-Value
+        if (novaFatura.CustomerId.HasValue)
         {
-            novaFatura.CustomerId = customerId;
-            clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == customerId);
+            clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == novaFatura.CustomerId.Value);
 
             if (clienteSelecionado != null)
             {
@@ -459,7 +465,6 @@
         }
         else
         {
-            novaFatura.CustomerId = null;
             clienteSelecionado = null;
             novaFatura.DateDue = DateTime.Today;
         }
@@ -477,21 +482,20 @@
         CalcularTotais();
     }
 
-    private void OnProdutoSelecionado(InvoiceLineDto linha, ChangeEventArgs e)
+    private void OnProdutoSelecionadoAtualizado(InvoiceLineDto linha)
     {
-        if (Guid.TryParse(e.Value?.ToString(), out Guid produtoId))
+        // O Blazor já meteu o ID no linha.ProductId
+        if (linha.ProductId.HasValue)
         {
-            var produto = _produtosCatalogo.FirstOrDefault(p => p.Id == produtoId);
+            var produto = _produtosCatalogo.FirstOrDefault(p => p.Id == linha.ProductId.Value);
             if (produto != null)
             {
-                linha.ProductId = produtoId;
                 linha.BasePrice = produto.BasePrice;
                 linha.TaxRate = Math.Round(produto.TaxRate);
             }
         }
         else
         {
-            linha.ProductId = null;
             linha.BasePrice = 0;
             linha.TaxRate = 0;
         }
