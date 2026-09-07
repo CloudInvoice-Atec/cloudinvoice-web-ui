@@ -1,5 +1,6 @@
 ﻿@page "/backoffice/clientes"
 @layout Layout.AdminLayout
+@using Microsoft.AspNetCore.Components.Authorization
 @using cloudinvoice_web_ui.Components.Modals
 @using cloudinvoice_web_ui.DTOs.Clientes
 @using Microsoft.AspNetCore.Authorization
@@ -214,9 +215,11 @@
                                                         <button class="btn btn-xs btn-light" title="Ver Perfil" @onclick="() => NavigateToProfile(cliente.Id)">
                                                             <i class="mdi mdi-eye"></i>
                                                         </button>
+                                                        <AuthorizeView Roles="Admin">
                                                         <button class="btn btn-xs btn-light" title="Editar" @onclick="() => NavigateToEdit(cliente.Id)">
                                                             <i class="mdi mdi-pencil"></i>
                                                         </button>
+                                                        </AuthorizeView>
                                                     </div>
                                                 </td>
                                             </tr>

@@ -51,7 +51,6 @@
                                 <span class="menu-text"> Clientes </span>
                             </a>
                         </li>
-
                         <li class="menu-item">
                             <NavLink href="/backoffice/products" class="menu-link" Match="NavLinkMatch.Prefix">
                                 <span class="menu-icon"><i data-feather="box"></i></span>
@@ -107,6 +106,7 @@
                             </button>
 
                             <!-- Dropdown Menu -->
+                            <AuthorizeView Roles="Admin">
                             <div class="dropdown d-none d-xl-block">
                                 <a class="nav-link dropdown-toggle waves-effect waves-light" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
                                     Adicionar Novo
@@ -133,7 +133,7 @@
 
                                 </div>
                             </div>
-
+                            </AuthorizeView>
                         </div>
 
                         <ul class="topbar-menu d-flex align-items-center">
@@ -152,10 +152,10 @@
                                     <i class="fe-log-out font-22"></i>
                                 </button>
                             </li>
-
+                            <AuthorizeView Roles="Admin">
                             <li class="dropdown">
 
-                        <AuthorizeView Roles="Admin">
+                        
                                 <a class="nav-link waves-effect waves-light dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-haspopup="false" aria-expanded="false" href="#">
                                     <i class="fe-settings font-22"></i>
                                 </a>
@@ -173,9 +173,8 @@
                                             <span>Gestão Utilizadores</span>
                                         </a>
                                 </div>
-
-                        </AuthorizeView>
                             </li>
+                            </AuthorizeView>
                         </ul>
                     </div>
                 </div>

@@ -208,7 +208,7 @@
                                                 </td>
                                                 <td class="text-center">
                                                     <!-- Regra 3: NavigationManager em vez de tag <a> -->
-                                                    <button class="btn btn-xs btn-light" title="Ver Detalhes" @onclick="() => NavigateToInvoice(invoice.Id)">
+                                                    <button class="btn btn-xs btn-light" title="Ver Detalhes" @onclick="() => NavigateToDetalhes(invoice.Id)">
                                                         <i class="mdi mdi-eye"></i>
                                                     </button>
                                                 </td>
@@ -284,9 +284,8 @@
         _isLoading = false;
     }
 
-    private void NavigateToInvoice(Guid invoiceId)
+    private void NavigateToDetalhes(Guid id)
     {
-        // Navegação controlada
-        Navigation.NavigateTo($"/backoffice/faturas/{invoiceId}");
+        Navigation.NavigateTo($"/backoffice/faturas/detalhes/{id}");
     }
 }
