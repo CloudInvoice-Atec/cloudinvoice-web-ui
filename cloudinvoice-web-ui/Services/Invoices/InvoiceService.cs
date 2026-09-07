@@ -153,5 +153,21 @@ namespace cloudinvoice_web_ui.Services.Invoices
             }
         }
 
+
+        public async Task<bool> UpdateInvoiceAsync(Guid id, InvoiceCreateDto invoiceUpdate)
+        {
+            try
+            {
+                // NOTA: O método da API Billing será provavelmente um PUT /api/invoices/{id}
+                var response = await _httpClientBilling.PutAsJsonAsync($"api/invoices/{id}", invoiceUpdate);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao atualizar fatura: {ex.Message}");
+                return false;
+            }
+        }
+
     }
 }
