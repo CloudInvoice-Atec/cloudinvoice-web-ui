@@ -1,0 +1,55 @@
+﻿@page "/external-auth-callback"
+@page "/auth/callback"
+@using Microsoft.AspNetCore.Components.Authorization
+@using cloudinvoice_web_ui.Auth
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="account-pages mt-5 mb-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <div class="spinner-border text-primary" role="status"></div>
+                <h4 class="text-muted mt-3">A autenticar com sucesso...</h4>
+                <p class="text-muted">Por favor aguarde um momento.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Token { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Error))
+        {
+            Navigation.NavigateTo($"/?error={Uri.EscapeDataString(Error)}", forceLoad: false);
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(Token))
+        {
+            if (AuthStateProvider is CustomAuthenticationStateProvider customAuth)
+            {
+                // Grava o token e atualiza a sessão no Blazor
+                await customAuth.MarkUserAsAuthenticated(Token);
+            }
+
+            // Redireciona para o destino ou para o backoffice por omissão
+            var targetUrl = !string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/backoffice";
+            Navigation.NavigateTo(targetUrl, forceLoad: false);
+        }
+        else
+        {
+            Navigation.NavigateTo("/?error=Token_ausente", forceLoad: false);
+        }
+    }
+}
