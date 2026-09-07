@@ -1,7 +1,9 @@
 ﻿@page "/backoffice/faturas"
 @layout Layout.AdminLayout
 @using cloudinvoice_web_ui.DTOs.Invoices
+@using cloudinvoice_web_ui.Enums
 @using cloudinvoice_web_ui.Services.Invoices
+@using static cloudinvoice_web_ui.Enums.InvoiceEnums
 @inject IInvoiceService InvoiceService
 @inject NavigationManager Navigation
 @using Microsoft.AspNetCore.Authorization
@@ -10,8 +12,13 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="page-title-box">
+            <div class="page-title-box d-flex align-items-center justify-content-between">
                 <h4 class="page-title">Faturas</h4>
+                <div class="page-title-right">
+                    <button class="btn btn-primary" @onclick="NavigateToCreate">
+                        <i class="fa fa-plus me-1"></i> Nova Fatura
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -21,11 +28,32 @@
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Pesquisa</label>
-                    <input type="text" class="form-control" placeholder="Nr fatura ou cliente..." @bind="_queryParams.Search" />
+                    <input type="text" class="form-control" placeholder="Nº fatura ou cliente..." @bind="_search" />
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button class="btn btn-secondary" @onclick="LoadDataAsync">
-                        <i class="mdi mdi-magnify me-1"></i> Filtrar
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select class="form-select" @bind="_statusFilter">
+                        <option value="">Todos</option>
+                        <option value="Draft">Rascunho</option>
+                        <option value="Issued">Emitida</option>
+                        <option value="Canceled">Anulada</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Pagamento</label>
+                    <select class="form-select" @bind="_paymentStatusFilter">
+                        <option value="">Todos</option>
+                        <option value="Unpaid">Não Paga</option>
+                        <option value="PartiallyPaid">Paga Parcialmente</option>
+                        <option value="Paid">Paga</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button class="btn btn-secondary w-50" @onclick="ApplyFilters" title="Filtrar">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    <button class="btn btn-light w-50" @onclick="ResetFilters" title="Limpar">
+                        <i class="fa fa-times"></i>
                     </button>
                 </div>
             </div>
@@ -41,8 +69,8 @@
     }
     else if (_loadError)
     {
-        <div class="alert alert-warning mt-3" role="alert">
-            Nao foi possivel carregar as faturas. Este endpoint pode ainda nao estar disponivel na Billing.API.
+        <div class="alert alert-danger mt-3" role="alert">
+            Não foi possível carregar as faturas. Verifique a ligação à Billing.API.
         </div>
     }
     else
@@ -52,17 +80,17 @@
                 <table class="table table-hover table-centered mb-0">
                     <thead>
                         <tr>
-                            <th>Nr Fatura</th>
+                            <th>Nº Fatura</th>
                             <th>Data</th>
                             <th>Cliente</th>
                             <th>Estado</th>
                             <th>Pagamento</th>
                             <th>Total</th>
-                            <th class="text-center" style="width: 100px;">Acoes</th>
+                            <th class="text-center" style="width: 80px;">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (!_invoices.Any())
+                        @if (!_filteredInvoices.Any())
                         {
                             <tr>
                                 <td colspan="7" class="text-center">Nenhuma fatura encontrada.</td>
@@ -70,18 +98,22 @@
                         }
                         else
                         {
-                            @foreach (var invoice in _invoices)
+                            @foreach (var invoice in _filteredInvoices)
                             {
                                 <tr>
                                     <td>@invoice.InvoiceNumber</td>
                                     <td>@invoice.IssueDate.ToString("dd/MM/yyyy")</td>
                                     <td>@invoice.CustomerName</td>
-                                    <td>@invoice.Status</td>
-                                    <td>@invoice.PaymentStatus</td>
+                                    <td>
+                                        <span class="badge @StatusBadgeClass(invoice.Status)">@StatusLabel(invoice.Status)</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @PaymentBadgeClass(invoice.PaymentStatus)">@PaymentLabel(invoice.PaymentStatus)</span>
+                                    </td>
                                     <td>@invoice.TotalAmount.ToString("C")</td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-light" title="Pre-visualizar" @onclick="() => NavigateToDetalhes(invoice.Id)">
-                                            <i class="mdi mdi-eye"></i>
+                                        <button class="btn btn-sm btn-light" title="Ver detalhes" @onclick="() => NavigateToDetalhes(invoice.Id)">
+                                            <i class="fa fa-eye"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -89,14 +121,47 @@
                         }
                     </tbody>
                 </table>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span>Mostrar:</span>
+                        <select class="form-select form-select-sm w-auto" @bind="_pageSize" @bind:after="LoadDataAsync">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                        <span>registos por página</span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <span>Página @_pageNumber</span>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-secondary" @onclick="PreviousPage" disabled="@(_pageNumber <= 1)">
+                                Anterior
+                            </button>
+                            <button class="btn btn-sm btn-secondary" @onclick="NextPage" disabled="@(_pageNumber >= _totalPages)">
+                                Seguinte
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     }
 </div>
 
 @code {
-    private IEnumerable<InvoiceResponseDto> _invoices = new List<InvoiceResponseDto>();
-    private InvoiceQueryParametersDto _queryParams = new();
+    private List<InvoiceResponseDto> _invoices = new();
+    private IEnumerable<InvoiceResponseDto> _filteredInvoices = new List<InvoiceResponseDto>();
+
+    private int _pageNumber = 1;
+    private int _pageSize = 10;
+    private int _totalPages = 1;
+
+    private string? _search;
+    private string _statusFilter = "";
+    private string _paymentStatusFilter = "";
 
     private bool _isLoading = true;
     private bool _loadError = false;
@@ -111,11 +176,19 @@
         _isLoading = true;
         _loadError = false;
 
-        var result = await InvoiceService.GetInvoicesAsync(_queryParams);
+        var parameters = new InvoiceQueryParametersDto
+        {
+            PageNumber = _pageNumber,
+            PageSize = _pageSize
+        };
+
+        var result = await InvoiceService.GetInvoicesAsync(parameters);
 
         if (result is not null)
         {
-            _invoices = result;
+            _invoices = result.ToList();
+            _totalPages = _invoices.Count < _pageSize && _pageNumber == 1 ? 1 : Math.Max(_pageNumber, _totalPages);
+            ApplyClientSideFilters();
         }
         else
         {
@@ -125,8 +198,99 @@
         _isLoading = false;
     }
 
+    private void ApplyClientSideFilters()
+    {
+        var query = _invoices.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(_search))
+        {
+            var term = _search.Trim();
+            query = query.Where(i =>
+                i.InvoiceNumber.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                i.CustomerName.Contains(term, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrEmpty(_statusFilter) && Enum.TryParse<InvoiceStatus>(_statusFilter, out var status))
+        {
+            query = query.Where(i => i.Status == status);
+        }
+
+        if (!string.IsNullOrEmpty(_paymentStatusFilter) && Enum.TryParse<PaymentStatus>(_paymentStatusFilter, out var paymentStatus))
+        {
+            query = query.Where(i => i.PaymentStatus == paymentStatus);
+        }
+
+        _filteredInvoices = query.ToList();
+    }
+
+    private void ApplyFilters()
+    {
+        ApplyClientSideFilters();
+    }
+
+    private async Task ResetFilters()
+    {
+        _search = null;
+        _statusFilter = "";
+        _paymentStatusFilter = "";
+        _pageNumber = 1;
+        await LoadDataAsync();
+    }
+
+    private async Task NextPage()
+    {
+        _pageNumber++;
+        await LoadDataAsync();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (_pageNumber > 1)
+        {
+            _pageNumber--;
+            await LoadDataAsync();
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        Navigation.NavigateTo("/backoffice/faturas/nova");
+    }
+
     private void NavigateToDetalhes(Guid id)
     {
         Navigation.NavigateTo($"/backoffice/faturas/detalhes/{id}");
     }
+
+    private string StatusLabel(InvoiceStatus status) => status switch
+    {
+        InvoiceStatus.Draft => "Rascunho",
+        InvoiceStatus.Issued => "Emitida",
+        InvoiceStatus.Canceled => "Anulada",
+        _ => status.ToString()
+    };
+
+    private string PaymentLabel(PaymentStatus status) => status switch
+    {
+        PaymentStatus.Unpaid => "Não Paga",
+        PaymentStatus.PartiallyPaid => "Paga Parcialmente",
+        PaymentStatus.Paid => "Paga",
+        _ => status.ToString()
+    };
+
+    private string StatusBadgeClass(InvoiceStatus status) => status switch
+    {
+        InvoiceStatus.Draft => "bg-secondary",
+        InvoiceStatus.Issued => "bg-success",
+        InvoiceStatus.Canceled => "bg-danger",
+        _ => "bg-light text-dark"
+    };
+
+    private string PaymentBadgeClass(PaymentStatus status) => status switch
+    {
+        PaymentStatus.Unpaid => "bg-danger",
+        PaymentStatus.PartiallyPaid => "bg-warning text-dark",
+        PaymentStatus.Paid => "bg-success",
+        _ => "bg-light text-dark"
+    };
 }

@@ -137,5 +137,19 @@ namespace cloudinvoice_web_ui.Services.Invoices
                 return false;
             }
         }
+
+        public async Task<bool> DeleteInvoiceAsync(Guid id)
+        {
+            try
+            {
+                var client = GetBillingClient();
+                var response = await client.DeleteAsync($"api/invoices/{id}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }
