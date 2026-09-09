@@ -237,6 +237,13 @@
     {
         _chartOptions = new ApexChartOptions<MonthlyRevenueDto>
         {
+            Chart = new Chart
+            {
+                Toolbar = new Toolbar
+                {
+                    Show = false
+                }
+            },
             Colors = new List<string> { "#6610f2" },
             PlotOptions = new PlotOptions
             {

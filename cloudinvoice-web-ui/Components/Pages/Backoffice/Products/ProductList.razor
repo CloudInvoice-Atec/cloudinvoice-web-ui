@@ -61,7 +61,7 @@
         </div>
     </div>
 
-    @if (_isLoading)
+@if (_isLoading)
     {
         <div class="text-center mt-5">
             <div class="spinner-border text-primary" role="status"></div>
@@ -88,7 +88,7 @@
                             <th>Taxa de IVA</th>
                             <th>Estado</th>
                             <AuthorizeView Roles="Admin">
-                            <th class="text-center" style="width: 160px;">Ações</th>
+                                <th class="text-center" style="width: 160px;">Ações</th>
                             </AuthorizeView>
                         </tr>
                     </thead>
@@ -120,34 +120,34 @@
                                         }
                                     </td>
                                     <AuthorizeView Roles="Admin">
-                                    <td class="text-center">
-                                        <div class="d-inline-flex gap-1 justify-content-center align-items-center">
-                                            <!-- Botão Editar (Lápis) -->
-                                            <button class="btn btn-sm btn-light" title="Editar" @onclick="() => NavigateToEdit(product.Id)">
-                                                <i class="fa fa-pencil-alt"></i>
-                                            </button>
-                                    
-                                            @if (product.IsActive)
-                                            {
-                                                <!-- Botão Desativar (Ícone de Bloqueio/Ban amarelo) -->
-                                                <button class="btn btn-sm btn-warning text-white" title="Desativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
-                                                    <i class="fa fa-ban"></i>
+                                        <td class="text-center">
+                                            <div class="d-inline-flex gap-1 justify-content-center align-items-center">
+                                                <!-- Botão Editar (Lápis) -->
+                                                <button class="btn btn-sm btn-light" title="Editar" @onclick="() => NavigateToEdit(product.Id)">
+                                                    <i class="fa fa-pencil-alt"></i>
                                                 </button>
-                                            }
-                                            else
-                                            {
-                                                <!-- Botão Ativar (Ícone de Círculo com Confirmação verde) -->
-                                                <button class="btn btn-sm btn-success" title="Ativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
-                                                    <i class="fa fa-check-circle"></i>
-                                                </button>
-                                            }
 
-                                            <!-- Botão Eliminar (Caixote do Lixo vermelho) -->
+                                                @if (product.IsActive)
+                                                {
+                                                    <!-- Botão Desativar (Ícone de Bloqueio/Ban amarelo) -->
+                                                    <button class="btn btn-sm btn-warning text-white" title="Desativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
+                                                        <i class="fa fa-ban"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <!-- Botão Ativar (Ícone de Círculo com Confirmação verde) -->
+                                                    <button class="btn btn-sm btn-success" title="Ativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
+                                                        <i class="fa fa-check-circle"></i>
+                                                    </button>
+                                                }
+
+                                                <!-- Botão Eliminar (Caixote do Lixo vermelho) -->
                                                 <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => OpenDeleteModal(product.Id)" disabled="@_isProcessing">
                                                     <i class="fa fa-trash-alt"></i>
                                                 </button>
-                                        </div>
-                                    </td>
+                                            </div>
+                                        </td>
                                     </AuthorizeView>
                                 </tr>
                             }
@@ -375,5 +375,4 @@
 
         _isProcessing = false;
     }
-}
 }
