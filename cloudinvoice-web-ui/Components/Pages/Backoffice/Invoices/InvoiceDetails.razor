@@ -1,5 +1,6 @@
 ﻿@page "/backoffice/faturas/detalhes/{Id:guid}"
 @layout Layout.AdminLayout
+@using Microsoft.AspNetCore.Components.Authorization
 @using cloudinvoice_web_ui.DTOs.Invoices
 @using cloudinvoice_web_ui.Enums
 @using cloudinvoice_web_ui.Services.Invoices
@@ -39,9 +40,11 @@
                                     <i class="mdi mdi-cash-check me-1"></i> Confirmar Pagamento
                                 </button>
                             }
+                            <AuthorizeView Roles="Admin">
                             <button class="btn btn-warning" @onclick="AbrirModalCancelar">
                                 <i class="mdi mdi-cancel me-1"></i> Cancelar Fatura
                             </button>
+                            </AuthorizeView>
                         }
                     }
                 </div>
