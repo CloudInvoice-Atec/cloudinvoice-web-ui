@@ -101,7 +101,7 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Data de Emissão <span class="text-danger">*</span></label>
-                                    <InputDate @bind-Value="novaFatura.DateEmission" class="form-control" disabled />
+                                    <InputDate @bind-Value="novaFatura.IssueDate" class="form-control" disabled />
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label d-flex justify-content-between align-items-center">
@@ -114,7 +114,7 @@
                                         }
                                     </label>
                                     <!-- Adicionado min para bloquear datas anteriores a hoje -->
-                                    <InputDate @bind-Value="novaFatura.DateDue"
+                                    <InputDate @bind-Value="novaFatura.DueDate"
                                                class="form-control"
                                                min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                                 </div>
@@ -407,8 +407,8 @@
                 {
                     novaFatura.CustomerId = faturaExistente.CustomerId;
                     novaFatura.Reference = faturaExistente.Reference;
-                    novaFatura.DateEmission = faturaExistente.IssueDate;
-                    novaFatura.DateDue = faturaExistente.DueDate;
+                    novaFatura.IssueDate = faturaExistente.IssueDate;
+                    novaFatura.DueDate = faturaExistente.DueDate;
                     novaFatura.Status = faturaExistente.Status;
                     novaFatura.PaymentStatus = faturaExistente.PaymentStatus;
                     novaFatura.Notes = faturaExistente.Notes;
@@ -432,6 +432,9 @@
             }
             else
             {
+                novaFatura.IssueDate = DateTime.Today;
+                novaFatura.DueDate = DateTime.Today;
+
                 AdicionarLinha();
             }
         }
@@ -460,13 +463,13 @@
             if (clienteSelecionado != null)
             {
                 int dias = clienteSelecionado.PaymentTermsDays ?? 0;
-                novaFatura.DateDue = DateTime.Today.AddDays((double)dias);
+                novaFatura.DueDate = DateTime.Today.AddDays((double)dias);
             }
         }
         else
         {
             clienteSelecionado = null;
-            novaFatura.DateDue = DateTime.Today;
+            novaFatura.DueDate = DateTime.Today;
         }
     }
 

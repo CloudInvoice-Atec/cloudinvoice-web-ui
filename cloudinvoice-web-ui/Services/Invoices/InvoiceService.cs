@@ -151,5 +151,62 @@ namespace cloudinvoice_web_ui.Services.Invoices
                 return false;
             }
         }
+
+        public async Task<bool> CancelInvoiceAsync(Guid id)
+        {
+            try
+            {
+                var client = GetBillingClient();
+
+                // Em vez de null, enviamos um conteúdo vazio válido para evitar rejeições de protocolo (Erro 415)
+                var emptyContent = new StringContent("", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PutAsync($"api/invoices/{id}/cancel", emptyContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+
+                // Lê o erro devolvido pelo backend e imprime na consola do Visual Studio
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[CancelInvoice Falhou] Status: {response.StatusCode} | Erro: {errorMessage}");
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CancelInvoice Exceção]: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> MarkAsPaidAsync(Guid id)
+        {
+            try
+            {
+                var client = GetBillingClient();
+
+                // Enviamos um JSON vazio válido para evitar rejeições de validação no .NET
+                var emptyContent = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
+
+                // Assumindo que o endpoint no backend será /api/invoices/{id}/pay
+                var response = await client.PutAsync($"api/invoices/{id}/pay", emptyContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+
+                // Regra 2: Se falhar, lemos o erro para debug interno e devolvemos false
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[MarkAsPaid Falhou] Status: {response.StatusCode} | Erro: {errorMessage}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[MarkAsPaid Exceção]: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

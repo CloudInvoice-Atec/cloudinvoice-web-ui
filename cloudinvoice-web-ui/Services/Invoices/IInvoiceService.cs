@@ -12,6 +12,8 @@ namespace cloudinvoice_web_ui.Services.Invoices
         Task<bool> UpdateInvoiceAsync(Guid id, InvoiceCreateDto invoiceUpdate);
 
         Task<bool> DeleteInvoiceAsync(Guid id);
+        Task<bool> CancelInvoiceAsync(Guid id);
+        Task<bool> MarkAsPaidAsync(Guid id);
 
     }
 }
