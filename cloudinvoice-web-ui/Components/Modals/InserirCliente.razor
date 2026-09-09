@@ -28,8 +28,8 @@
 
                     <div class="mb-3">
                         <label class="form-label">NIF/VAT <span class="text-danger">*</span></label>
-                        <InputText @bind-Value="InserirClienteDto.TaxNumber" class="form-control" />
-                        <ValidationMessage For="@(() => InserirClienteDto.TaxNumber)" class="text-danger mt-1" />
+                        <InputText @bind-Value="InserirClienteDto.TaxId" class="form-control" />
+                        <ValidationMessage For="@(() => InserirClienteDto.TaxId)" class="text-danger mt-1" />
                     </div>
 
                     <div class="mb-3">
@@ -39,7 +39,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Email da Empresa <span class="text-danger">*</span></label>
+                        <label class="form-label">Email do Responável <span class="text-danger">*</span></label>
                         <InputText @bind-Value="InserirClienteDto.ContactPersonEmail" class="form-control" placeholder="Ex: joao.silva@empresa.com" />
                         <ValidationMessage For="@(() => InserirClienteDto.ContactPersonEmail)" class="text-danger mt-1" />
                     </div>
@@ -82,7 +82,7 @@
             InserirClienteDto = new InserirClienteDto();
 
             // 3. Redireciona para o Perfil Completo do cliente recém-criado
-            NavigationManager.NavigateTo($"/backoffice/clientes/{novoId}");
+            NavigationManager.NavigateTo($"/backoffice/clientes/editar/{novoId}");
         }
         else
         {
