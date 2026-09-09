@@ -143,9 +143,9 @@
                                             }
 
                                             <!-- Botão Eliminar (Caixote do Lixo vermelho) -->
-                                            <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => DeleteProduct(product.Id)" disabled="@_isProcessing">
-                                                <i class="fa fa-trash-alt"></i>
-                                            </button>
+                                                <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => OpenDeleteModal(product.Id)" disabled="@_isProcessing">
+                                                    <i class="fa fa-trash-alt"></i>
+                                                </button>
                                         </div>
                                     </td>
                                     </AuthorizeView>
@@ -184,6 +184,42 @@
         </div>
     }
 </div>
+@if (_showDeleteModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Eliminar Produto</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDeleteModal" disabled="@_isProcessing"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem a certeza que deseja eliminar este produto?</p>
+                    <p class="text-danger mb-0"><small><i class="mdi mdi-alert"></i> Esta ação é irreversível.</small></p>
+
+                    @if (!string.IsNullOrEmpty(_deleteErrorMessage))
+                    {
+                        <div class="alert alert-danger mt-3 mb-0">@_deleteErrorMessage</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" @onclick="CloseDeleteModal" disabled="@_isProcessing">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDelete" disabled="@_isProcessing">
+                        @if (_isProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span>A eliminar...</span>
+                        }
+                        else
+                        {
+                            <span>Confirmar Eliminação</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private IEnumerable<ProductDto> _products = new List<ProductDto>();
@@ -195,6 +231,9 @@
     private bool _isLoading = true;
     private bool _loadError = false;
     private bool _isProcessing = false;
+    private bool _showDeleteModal = false;
+    private Guid? _productToDelete;
+    private string? _deleteErrorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -294,4 +333,47 @@
         
         _isProcessing = false;
     }
+    private void OpenDeleteModal(Guid id)
+    {
+        _deleteErrorMessage = null;
+        _productToDelete = id;
+        _showDeleteModal = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        if (_isProcessing) return; // Evita fechar enquanto comunica com a API
+
+        _showDeleteModal = false;
+        _productToDelete = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_productToDelete == null) return;
+
+        _deleteErrorMessage = null;
+        _isProcessing = true;
+
+        // Regra 2: Chamada real à API
+        var success = await ProductService.DeleteProductAsync(_productToDelete.Value);
+
+        if (success)
+        {
+            _showDeleteModal = false;
+            _productToDelete = null;
+
+            // Regra 3: Recarregar a grelha e atualizar a UI
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+        else
+        {
+            // Regra 2: Capturar e propagar o erro para a UI
+            _deleteErrorMessage = "Ocorreu um erro ao comunicar com a API. Não foi possível eliminar o produto.";
+        }
+
+        _isProcessing = false;
+    }
+}
 }
