@@ -33,6 +33,12 @@
                         }
                         else if (_invoice.Status == InvoiceStatus.Issued)
                         {
+                            @if (_invoice.PaymentStatus == PaymentStatus.Unpaid || _invoice.PaymentStatus == PaymentStatus.PartiallyPaid)
+                            {
+                                <button class="btn btn-success" @onclick="AbrirModalPagamento">
+                                    <i class="mdi mdi-cash-check me-1"></i> Confirmar Pagamento
+                                </button>
+                            }
                             <button class="btn btn-warning" @onclick="AbrirModalCancelar">
                                 <i class="mdi mdi-cancel me-1"></i> Cancelar Fatura
                             </button>
@@ -203,7 +209,80 @@
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog modal-dialog-centered">
-            <!-- ... O CONTEÚDO DA MODAL CANCELAR FICA IGUAL ... -->
+            @if (_showCancelModal)
+            {
+                <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Cancelar Fatura</h5>
+                                <button type="button" class="btn-close" @onclick="FecharModalCancelar" disabled="@_isProcessing"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Tem a certeza que deseja cancelar a fatura <strong>@_invoice?.InvoiceNumber</strong>?</p>
+                                <p class="text-danger mb-0"><small><i class="mdi mdi-alert"></i> Esta ação é irreversível e o documento será comunicado à AT como anulado.</small></p>
+
+                                @if (!string.IsNullOrEmpty(_cancelErrorMessage))
+                                {
+                                    <div class="alert alert-danger mt-3 mb-0">@_cancelErrorMessage</div>
+                                }
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-light" @onclick="FecharModalCancelar" disabled="@_isProcessing">Voltar</button>
+                                <button type="button" class="btn btn-danger" @onclick="ConfirmarCancelar" disabled="@_isProcessing">
+                                    @if (_isProcessing)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                        <span>A processar...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Confirmar Cancelamento</span>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Modal Confirmar Pagamento -->
+@if (_showPayModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Pagamento</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModalPagamento" disabled="@_isProcessing"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Pretende marcar a fatura <strong>@_invoice?.InvoiceNumber</strong> como paga?</p>
+                    <p class="text-success mb-0"><small><i class="mdi mdi-check-circle"></i> O estado da fatura passará a "Paga".</small></p>
+
+                    @if (!string.IsNullOrEmpty(_payErrorMessage))
+                    {
+                        <div class="alert alert-danger mt-3 mb-0">@_payErrorMessage</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" @onclick="FecharModalPagamento" disabled="@_isProcessing">Voltar</button>
+                    <button type="button" class="btn btn-success" @onclick="ConfirmarPagamento" disabled="@_isProcessing">
+                        @if (_isProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span>A processar...</span>
+                        }
+                        else
+                        {
+                            <span>Confirmar Pagamento</span>
+                        }
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 }
@@ -220,6 +299,9 @@
     // Controlo de Modais
     private bool _showDeleteModal = false;
     private bool _showCancelModal = false;
+    private string? _cancelErrorMessage;
+    private bool _showPayModal = false;
+    private string? _payErrorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -301,7 +383,74 @@
     private void FecharModalEliminar() => _showDeleteModal = false;
     private async Task ConfirmarEliminar() { /* ... */ }
 
-    private void AbrirModalCancelar() => _showCancelModal = true;
-    private void FecharModalCancelar() => _showCancelModal = false;
-    private async Task ConfirmarCancelar() { /* ... */ }
+    private void AbrirModalCancelar()
+    {
+        _cancelErrorMessage = null;
+        _showCancelModal = true;
+    }
+
+    private void FecharModalCancelar()
+    {
+        if (_isProcessing) return; // Evita fechar a modal enquanto o pedido HTTP está em curso
+        _showCancelModal = false;
+    }
+
+    private async Task ConfirmarCancelar()
+    {
+        _cancelErrorMessage = null;
+        _isProcessing = true;
+
+        var sucesso = await InvoiceService.CancelInvoiceAsync(Id);
+
+        if (sucesso)
+        {
+            _showCancelModal = false;
+            // 1. Vai buscar a fatura novamente à API com o novo estado (Canceled)
+            await CarregarFatura();
+            // 2. Obriga o Blazor a redesenhar a página para atualizar as badges
+            StateHasChanged();
+        }
+        else
+        {
+            _cancelErrorMessage = "Ocorreu um erro ao comunicar com a API. Não foi possível cancelar a fatura.";
+        }
+
+        _isProcessing = false;
+    }
+    private void AbrirModalPagamento()
+    {
+        _payErrorMessage = null;
+        _showPayModal = true;
+    }
+
+    private void FecharModalPagamento()
+    {
+        if (_isProcessing) return;
+        _showPayModal = false;
+    }
+
+    private async Task ConfirmarPagamento()
+    {
+        _payErrorMessage = null;
+        _isProcessing = true;
+
+        var sucesso = await InvoiceService.MarkAsPaidAsync(Id);
+
+        if (sucesso)
+        {
+            _showPayModal = false;
+
+            // Vai buscar os dados atualizados (PaymentStatus passará a Paid)
+            await CarregarFatura();
+
+            // Força a UI a redesenhar as badges (Regra 3)
+            StateHasChanged();
+        }
+        else
+        {
+            _payErrorMessage = "Ocorreu um erro ao comunicar com a API. Não foi possível registar o pagamento.";
+        }
+
+        _isProcessing = false;
+    }
 }

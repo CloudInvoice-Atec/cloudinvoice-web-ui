@@ -9,8 +9,8 @@ namespace cloudinvoice_web_ui.DTOs.Invoices
 {
         public Guid? CustomerId { get; set; } // Alterado para bater certo com a API
         public string Reference { get; set; }
-        public DateTime DateEmission { get; set; } = DateTime.Today;
-        public DateTime DateDue { get; set; } = DateTime.Today.AddDays(30);
+        public DateTime IssueDate { get; set; } = DateTime.Today;
+        public DateTime DueDate { get; set; } = DateTime.Today.AddDays(30);
         public InvoiceStatus Status { get; set; } = InvoiceStatus.Draft;
         public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
         public string Notes { get; set; }
