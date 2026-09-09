@@ -6,7 +6,7 @@ namespace cloudinvoice_web_ui.Services.Invoices
 {
         Task<List<InvoiceSummaryDto>> GetRecentCustomerInvoicesAsync(Guid customerId, int count);
         Task<InvoiceResponseDto?> GetInvoiceByIdAsync(Guid id);
-        Task<IEnumerable<InvoiceResponseDto>?> GetInvoicesAsync(InvoiceQueryParametersDto parameters);
+        Task<InvoicePagedResultDto<InvoiceResponseDto>?> GetInvoicesAsync(InvoiceQueryParametersDto parameters);
         Task<List<InvoiceProductDto>> GetActiveProducts();
         Task<bool> CreateInvoiceAsync(InvoiceCreateDto invoice);
         Task<bool> UpdateInvoiceAsync(Guid id, InvoiceCreateDto invoiceUpdate);

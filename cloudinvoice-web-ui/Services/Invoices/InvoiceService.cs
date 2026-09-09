@@ -16,7 +16,6 @@ namespace cloudinvoice_web_ui.Services.Invoices
             _tokenProvider = tokenProvider;
         }
 
-        // Método auxiliar seguro e confinado ao contexto deste utilizador
         private HttpClient GetBillingClient()
         {
             var client = _httpClientFactory.CreateClient("BillingAPI");
@@ -33,7 +32,6 @@ namespace cloudinvoice_web_ui.Services.Invoices
         private HttpClient GetCatalogClient()
         {
             var client = _httpClientFactory.CreateClient("CatalogAPI");
-            // Se a Catalog API também precisar de token, descomenta as 3 linhas abaixo:
             var token = _tokenProvider.Token;
             if (!string.IsNullOrEmpty(token))
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -46,14 +44,12 @@ namespace cloudinvoice_web_ui.Services.Invoices
             try
             {
                 var client = GetBillingClient();
-                // Agora o token vai garantidamente junto com o POST!
                 var response = await client.PostAsJsonAsync("api/invoices", invoice);
 
                 return response.IsSuccessStatusCode;
             }
             catch (Exception)
             {
-                // Regra 2: Devolve falso, a UI mostrará o erro ao utilizador
                 return false;
             }
         }
@@ -68,7 +64,7 @@ namespace cloudinvoice_web_ui.Services.Invoices
             }
             catch (Exception)
             {
-                return new List<InvoiceSummaryDto>(); // Sem fake data
+                return new List<InvoiceSummaryDto>();
             }
         }
 
@@ -90,7 +86,7 @@ namespace cloudinvoice_web_ui.Services.Invoices
             }
         }
 
-        public async Task<IEnumerable<InvoiceResponseDto>?> GetInvoicesAsync(InvoiceQueryParametersDto parameters)
+        public async Task<InvoicePagedResultDto<InvoiceResponseDto>?> GetInvoicesAsync(InvoiceQueryParametersDto parameters)
         {
             try
             {
@@ -101,8 +97,7 @@ namespace cloudinvoice_web_ui.Services.Invoices
                 if (!response.IsSuccessStatusCode)
                     return null;
 
-                var pagedResult = await response.Content.ReadFromJsonAsync<InvoicePagedResultDto<InvoiceResponseDto>>();
-                return pagedResult?.Items;
+                return await response.Content.ReadFromJsonAsync<InvoicePagedResultDto<InvoiceResponseDto>>();
             }
             catch (Exception)
             {
@@ -158,7 +153,6 @@ namespace cloudinvoice_web_ui.Services.Invoices
             {
                 var client = GetBillingClient();
 
-                // Em vez de null, enviamos um conteúdo vazio válido para evitar rejeições de protocolo (Erro 415)
                 var emptyContent = new StringContent("", System.Text.Encoding.UTF8, "application/json");
                 var response = await client.PutAsync($"api/invoices/{id}/cancel", emptyContent);
 
@@ -167,7 +161,6 @@ namespace cloudinvoice_web_ui.Services.Invoices
                     return true;
                 }
 
-                // Lê o erro devolvido pelo backend e imprime na consola do Visual Studio
                 var errorMessage = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"[CancelInvoice Falhou] Status: {response.StatusCode} | Erro: {errorMessage}");
 
@@ -186,10 +179,8 @@ namespace cloudinvoice_web_ui.Services.Invoices
             {
                 var client = GetBillingClient();
 
-                // Enviamos um JSON vazio válido para evitar rejeições de validação no .NET
                 var emptyContent = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
 
-                // Assumindo que o endpoint no backend será /api/invoices/{id}/pay
                 var response = await client.PutAsync($"api/invoices/{id}/pay", emptyContent);
 
                 if (response.IsSuccessStatusCode)
@@ -197,7 +188,6 @@ namespace cloudinvoice_web_ui.Services.Invoices
                     return true;
                 }
 
-                // Regra 2: Se falhar, lemos o erro para debug interno e devolvemos false
                 var errorMessage = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"[MarkAsPaid Falhou] Status: {response.StatusCode} | Erro: {errorMessage}");
                 return false;
