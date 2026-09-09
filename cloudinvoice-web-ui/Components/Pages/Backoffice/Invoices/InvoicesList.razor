@@ -186,8 +186,8 @@
 
         if (result is not null)
         {
-            _invoices = result.ToList();
-            _totalPages = _invoices.Count < _pageSize && _pageNumber == 1 ? 1 : Math.Max(_pageNumber, _totalPages);
+            _invoices = result.Items.ToList();
+            _totalPages = result.TotalPages;
             ApplyClientSideFilters();
         }
         else
