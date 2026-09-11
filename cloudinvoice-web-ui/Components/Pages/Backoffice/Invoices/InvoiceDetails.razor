@@ -95,8 +95,8 @@
                             </div>
                             <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex flex-column align-items-md-end justify-content-center">
                                 <div class="mb-2">
-                                    <span class="badge @StatusBadgeClass(_invoice.Status) fs-5 me-2">@_invoice.Status</span>
-                                    <span class="badge @PaymentBadgeClass(_invoice.PaymentStatus) fs-5">@_invoice.PaymentStatus</span>
+                                    <span class="badge @StatusBadgeClass(_invoice.Status) fs-5 me-2">@StatusLabel(_invoice.Status)</span>
+                                    <span class="badge @PaymentBadgeClass(_invoice.PaymentStatus) fs-5">@PaymentLabel(_invoice.PaymentStatus)</span>
                                 </div>
                                 @if (FaturaEmAtraso())
                                 {
@@ -384,6 +384,24 @@
         PaymentStatus.Paid => "bg-success",
         _ => "bg-light text-dark"
     };
+
+    private string StatusLabel(InvoiceStatus status) => status switch
+    {
+        InvoiceStatus.Draft => "Rascunho",
+        InvoiceStatus.Issued => "Emitida",
+        InvoiceStatus.Canceled => "Anulada",
+        _ => status.ToString()
+    };
+
+    private string PaymentLabel(PaymentStatus status) => status switch
+    {
+        PaymentStatus.Unpaid => "Não Paga",
+        PaymentStatus.PartiallyPaid => "Paga Parcialmente",
+        PaymentStatus.Paid => "Paga",
+        _ => status.ToString()
+    };
+
+
 
     // --- (O resto da lógica das Modais de Eliminar e Cancelar mantêm-se iguais) ---
     private void AbrirModalEliminar() => _showDeleteModal = true;
