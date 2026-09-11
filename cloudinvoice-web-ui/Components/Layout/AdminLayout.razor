@@ -137,7 +137,31 @@
                         </div>
 
                         <ul class="topbar-menu d-flex align-items-center">
-                            <!-- Topbar Search Form -->
+                    <!-- Topbar Search Form -->
+                    <AuthorizeView Roles="Admin">
+                        <li class="dropdown">
+
+                        
+                            <a class="nav-link waves-effect waves-light dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-haspopup="false" aria-expanded="false" href="#">
+                                <i class="fe-settings font-22"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end profile-dropdown ">
+
+                                <!-- item-->
+                                <a href="/backoffice/configuracoes/empresa" class="dropdown-item notify-item">
+                                    <i class="fe-briefcase"></i>
+                                    <span>Dados Empresa</span>
+                                </a>
+
+                                <!-- item-->
+                                <a href="/backoffice/users" class="dropdown-item notify-item">
+                                    <i class="fe-users"></i>
+                                    <span>Gestão Utilizadores</span>
+                                </a>
+                            </div>
+                        </li>
+                    </AuthorizeView>
+
                             
 
 
@@ -152,29 +176,7 @@
                                     <i class="fe-log-out font-22"></i>
                                 </button>
                             </li>
-                            <AuthorizeView Roles="Admin">
-                            <li class="dropdown">
-
-                        
-                                <a class="nav-link waves-effect waves-light dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-haspopup="false" aria-expanded="false" href="#">
-                                    <i class="fe-settings font-22"></i>
-                                </a>
-                                    <div class="dropdown-menu dropdown-menu-end profile-dropdown ">
-
-                                        <!-- item-->
-                                        <a href="/backoffice/configuracoes/empresa" class="dropdown-item notify-item">
-                                            <i class="fe-briefcase"></i>
-                                            <span>Dados Empresa</span>
-                                        </a>
-
-                                        <!-- item-->
-                                        <a href="/backoffice/users" class="dropdown-item notify-item">
-                                            <i class="fe-users"></i>
-                                            <span>Gestão Utilizadores</span>
-                                        </a>
-                                </div>
-                            </li>
-                            </AuthorizeView>
+                            
                         </ul>
                     </div>
                 </div>
