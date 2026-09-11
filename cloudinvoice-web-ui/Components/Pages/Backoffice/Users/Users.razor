@@ -4,11 +4,13 @@
 @using cloudinvoice_web_ui.DTOs.Identity
 @using cloudinvoice_web_ui.Services.Users
 @using Microsoft.AspNetCore.Authorization
-@using Components.Modals
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @attribute [Authorize(Roles = "Admin")]
 
 @inject IUserService UserService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 
 <div class="container-fluid">
     <!-- Cabeçalho com o Título e o Botão de Novo Utilizador -->
@@ -118,11 +120,17 @@
                                     <td class="text-center">
                                         <div class="d-inline-flex gap-1 justify-content-center align-items-center">
                                             <button class="btn btn-sm btn-light" title="Ver Detalhes" @onclick="() => NavigateToDetails(user.Id)">
-                                                <i class="fa fa-pencil-alt"></i>
+                                                <i class="mdi mdi-eye"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => OpenDeleteModal(user)">
-                                                <i class="fa fa-trash-alt"></i>
-                                            </button>
+
+                                            @* Só desenha o botão eliminar se este NÃO for o utilizador com sessão iniciada *@
+                                            @if (!string.Equals(user.Id, _currentUserId, StringComparison.OrdinalIgnoreCase) &&
+                                                 !string.Equals(user.Email, _currentUserEmail, StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => OpenDeleteModal(user)">
+                                                    <i class="mdi mdi-trash-can"></i>
+                                                </button>
+                                            }
                                         </div>
                                     </td>
                                 </tr>
@@ -133,14 +141,12 @@
             </div>
         </div>
     }
-    
 </div>
 
-
-<DeleteUser IsVisible="_isDeleteModalOpen" 
-                 User="_userToDelete" 
-                 OnCancel="CloseDeleteModal" 
-                 OnConfirm="HandleDeleteConfirmed" />
+<DeleteUser IsVisible="_isDeleteModalOpen"
+            User="_userToDelete"
+            OnCancel="CloseDeleteModal"
+            OnConfirm="HandleDeleteConfirmed" />
 
 @code {
     private List<UserResponseDto> _users = new();
@@ -153,25 +159,41 @@
     private bool _loadError = false;
     private bool _isProcessing = false;
 
+    // NOVO: Guarda o ID do utilizador que está autenticado no momento
+    private string? _currentUserId;
+
     // Variáveis de controlo do modal
     private bool _isDeleteModalOpen = false;
     private UserResponseDto? _userToDelete = null;
+    private string? _currentUserEmail; // NOVO
 
-    // Método chamado quando clica no caixote do lixo na tabela
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        // O ID do utilizador no teu TokenService é gravado na claim "sub"
+        _currentUserId = authState.User.FindFirst("sub")?.Value
+                      ?? authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        // O email está gravado na claim "email" ou ClaimTypes.Email
+        _currentUserEmail = authState.User.FindFirst(ClaimTypes.Email)?.Value
+                         ?? authState.User.FindFirst("email")?.Value;
+
+        await LoadDataAsync();
+    }
+
     private void OpenDeleteModal(UserResponseDto user)
     {
         _userToDelete = user;
         _isDeleteModalOpen = true;
     }
 
-    // Método para fechar o modal
     private void CloseDeleteModal()
     {
         _isDeleteModalOpen = false;
         _userToDelete = null;
     }
 
-    // Método executado quando clica em "Sim, Eliminar" no modal
     private async Task HandleDeleteConfirmed(UserResponseDto user)
     {
         var (success, message) = await UserService.DeleteUserAsync(user.Id);
@@ -183,14 +205,12 @@
         CloseDeleteModal(); // Fecha o modal
     }
 
-    // Propriedade computada que filtra a lista original em memória em tempo real
     private IEnumerable<UserResponseDto> FilteredUsers
     {
         get
         {
             var query = _users.AsEnumerable();
 
-            // Filtro por Texto (Nome ou Email)
             if (!string.IsNullOrWhiteSpace(_searchTerm))
             {
                 var term = _searchTerm.Trim();
@@ -201,13 +221,11 @@
                 );
             }
 
-            // Filtro por Estado (Ativo/Inativo)
             if (!string.IsNullOrEmpty(_statusFilter) && bool.TryParse(_statusFilter, out var isActive))
             {
                 query = query.Where(u => u.IsActive == isActive);
             }
 
-            // Filtro por Perfil (Role)
             if (!string.IsNullOrEmpty(_roleFilter))
             {
                 query = query.Where(u => string.Equals(u.Role, _roleFilter, StringComparison.OrdinalIgnoreCase));
@@ -215,11 +233,6 @@
 
             return query;
         }
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadDataAsync();
     }
 
     private async Task LoadDataAsync()
@@ -256,23 +269,5 @@
     private void NavigateToDetails(string id)
     {
         Navigation.NavigateTo($"/backoffice/users/{id}");
-    }
-
-    private async Task ToggleStatus(string id)
-    {
-        _isProcessing = true;
-        // Adiciona aqui a tua lógica de alteração de estado se aplicável
-        _isProcessing = false;
-    }
-
-    private async Task DeleteUser(string id)
-    {
-        _isProcessing = true;
-        var (success, message) = await UserService.DeleteUserAsync(id);
-        if (success)
-        {
-            await LoadDataAsync();
-        }
-        _isProcessing = false;
     }
 }

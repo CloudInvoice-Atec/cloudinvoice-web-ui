@@ -9,19 +9,32 @@
 @inject NavigationManager Navigation
 
 <div class="container-fluid mt-2">
-    <!-- Título da Página e Breadcrumb -->
+    <!-- Título da Página, Breadcrumb e Botões -->
     <div class="row mb-2">
         <div class="col-12">
             <div class="page-title-box d-flex justify-content-between align-items-center">
-                <h4 class="page-title m-0">Detalhes do Utilizador</h4>
+                <div>
+                    <h4 class="page-title m-0">Detalhes do Utilizador</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item"><a href="/backoffice">Backoffice</a></li>
+                            <li class="breadcrumb-item"><a href="/backoffice/users">Utilizadores</a></li>
+                            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Detalhes</li>
+                        </ol>
+                    </nav>
+                </div>
 
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="/backoffice">Backoffice</a></li>
-                        <li class="breadcrumb-item"><a href="/backoffice/users">Utilizadores</a></li>
-                        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Detalhes</li>
-                    </ol>
-                </nav>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light waves-effect" @onclick="NavigateToUsers">
+                        <i class="mdi mdi-arrow-left me-1"></i> Voltar
+                    </button>
+                    @if (_user != null)
+                    {
+                        <button type="button" class="btn btn-primary waves-effect waves-light" @onclick="NavigateToEdit">
+                            <i class="mdi mdi-pencil me-1"></i> Editar
+                        </button>
+                    }
+                </div>
             </div>
         </div>
     </div>
@@ -37,9 +50,6 @@
     {
         <div class="alert alert-danger mt-3 shadow-sm" role="alert">
             <i class="mdi mdi-alert-circle-outline me-1"></i> Não foi possível carregar os dados deste utilizador ou ele não existe. Verifique a ligação à API.
-            <div class="mt-2">
-                <button class="btn btn-sm btn-outline-danger" @onclick="NavigateToUsers">Voltar à Lista</button>
-            </div>
         </div>
     }
     else
@@ -73,38 +83,47 @@
                                     <input type="text" class="form-control bg-light font-monospace font-13" value="@_user.Id" readonly disabled />
                                 </div>
                             </div>
-                        </div><div class="row mb-4">
-                        <div class="col-12">
-                            <div class="border rounded p-3 bg-light d-flex align-items-center justify-content-between shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-sm me-3 flex-shrink-0">
-                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle">
-                                            <i class="mdi mdi-power font-20"></i>
-                                        </span>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="border rounded p-3 bg-light d-flex align-items-center justify-content-between shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3 flex-shrink-0">
+                                            <span class="avatar-title @(_user.IsActive ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") rounded-circle">
+                                                <i class="mdi mdi-power font-20"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <label class="form-label mb-0 fw-bold text-dark font-15">
+                                                Estado da Conta
+                                            </label>
+                                            <p class="text-muted font-13 mb-0">
+                                                @if (_user.IsActive)
+                                                {
+                                                    <span>O utilizador tem acesso e pode iniciar sessão no sistema.</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>O acesso encontra-se revogado. O utilizador não pode iniciar sessão.</span>
+                                                }
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="form-label mb-0 fw-bold text-dark font-15" for="isActiveSwitch" style="cursor: pointer;">
-                                            Estado da Conta
-                                        </label>
-                                        <p class="text-muted font-13 mb-0">
-                                            Se desativado, o utilizador não conseguirá iniciar sessão no sistema.
-                                        </p>
+                                    <div class="flex-shrink-0">
+                                        @if (_user.IsActive)
+                                        {
+                                            <span class="badge bg-success fs-5"><i class="mdi mdi-check-circle me-1"></i> Ativo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger fs-5"><i class="mdi mdi-cancel me-1"></i> Inativo</span>
+                                        }
                                     </div>
-                                </div>
-                                <div class="form-check form-switch m-0 flex-shrink-0">
-                                    <InputCheckbox class="form-check-input" type="checkbox" id="isActiveSwitch" role="switch" @bind-Value="_user.IsActive" style="font-size: 1.5rem; cursor: pointer; margin-top: 0;" />
                                 </div>
                             </div>
                         </div>
-                    </div>
-                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                            <button type="button" class="btn btn-light waves-effect" @onclick="NavigateToUsers">
-                                <i class="mdi mdi-arrow-left me-1"></i> Voltar à Lista
-                            </button>
-                            <button type="button" class="btn btn-primary waves-effect waves-light" @onclick="NavigateToEdit">
-                                <i class="mdi mdi-pencil me-1"></i> Editar Utilizador
-                            </button>
-                        </div>
+
                     </div>
                 </div>
             </div>
