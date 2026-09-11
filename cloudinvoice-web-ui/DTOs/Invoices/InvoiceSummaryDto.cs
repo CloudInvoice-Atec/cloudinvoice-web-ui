@@ -2,6 +2,7 @@
 {
     public class InvoiceSummaryDto
     {
+        public Guid Id { get; set; }
         public string InvoiceNumber { get; set; }
         public DateTime IssueDate { get; set; }
         public DateTime DueDate { get; set; }

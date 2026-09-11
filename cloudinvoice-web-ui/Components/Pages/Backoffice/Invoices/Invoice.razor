@@ -22,7 +22,7 @@
 
                 @if (Id.HasValue)
                 {
-                    <button class="btn btn-light" type="button" @onclick='() => Navigation.NavigateTo("/backoffice/faturas")'>
+                    <button class="btn btn-light" type="button" @onclick="NavigateBack">
                         <i class="mdi mdi-arrow-left me-1"></i> Voltar
                     </button>
                 }
@@ -305,7 +305,7 @@
             <!-- Botões de Ação -->
             <div class="row mb-4">
                 <div class="col-12 text-end">
-                    <button type="button" class="btn btn-light me-2" @onclick='() => Navigation.NavigateTo("/backoffice/faturas")'>Cancelar</button>
+                    <button type="button" class="btn btn-light me-2" @onclick="NavigateBack">Cancelar</button>
                     <button type="button" class="btn btn-secondary me-2" @onclick="GravarComoRascunho">
                         <i class="mdi mdi-content-save-edit me-1"></i> Guardar Rascunho
                     </button>
@@ -540,6 +540,16 @@
         }
 
         TotalFinal = SubtotalLiquidoGeral + TotalIva;
+    }
+
+    // ====================================================================
+    // NAVEGAÇÃO
+    // ====================================================================
+
+    private async Task NavigateBack()
+    {
+        // Utiliza a instância 'JS' já injetada no topo do teu ficheiro
+        await JS.InvokeVoidAsync("history.back");
     }
 
     // ====================================================================

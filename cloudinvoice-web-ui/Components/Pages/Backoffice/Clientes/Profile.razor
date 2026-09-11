@@ -8,6 +8,7 @@
 
 @inject ICustomerService CustomerService
 @inject IInvoiceService InvoiceService
+@inject NavigationManager Navigation
 
 
 <div class="container-fluid">
@@ -183,7 +184,7 @@
                                                 <th>Vencimento</th>
                                                 <th>Valor Total</th>
                                                 <th>Estado</th>
-                                                <th style="width: 100px;">Ações</th>
+                                                <th style="width: 100px;" class="text-center">Ações</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -219,12 +220,9 @@
                                                                 <span class="badge bg-danger">Atrasado</span>
                                                             }
                                                         </td>
-                                                        <td>
-                                                            <button class="btn btn-sm btn-outline-primary" title="Ver Documento">
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-outline-primary" title="Ver Documento" @onclick="() => NavigateToInvoice(invoice.Id)">
                                                                 <i class="mdi mdi-eye"></i>
-                                                            </button>
-                                                            <button class="btn btn-sm btn-outline-secondary" title="Descarregar PDF">
-                                                                <i class="mdi mdi-download"></i>
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -266,5 +264,10 @@
 
         // 2. Obter as últimas 5 Faturas via InvoiceService
         customerInvoices = await InvoiceService.GetRecentCustomerInvoicesAsync(customerId, count: 5);
+    }
+
+    private void NavigateToInvoice(Guid invoiceId)
+    {
+        Navigation.NavigateTo($"/backoffice/faturas/detalhes/{invoiceId}");
     }
 }

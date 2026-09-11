@@ -5,18 +5,11 @@
 @using cloudinvoice_web_ui.Services.Catalog
 @inject IProductService ProductService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin")]
 
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-title-box">
-                <h4 class="page-title">@(IsEditMode ? "Editar Produto" : "Novo Produto")</h4>
-            </div>
-        </div>
-    </div>
-
     @if (_isLoading)
     {
         <div class="text-center mt-5">
@@ -27,14 +20,45 @@
     else if (_loadError)
     {
         <div class="alert alert-danger mt-3" role="alert">
-            Erro ao carregar os dados. Por favor, tente novamente.
+            <i class="mdi mdi-block-helper me-2"></i> Erro ao carregar os dados. Por favor, tente novamente.
         </div>
     }
     else
     {
+        <!-- Envolvemos também o cabeçalho no EditForm para que o botão de Submit funcione no topo -->
         <EditForm Model="@_formModel" OnValidSubmit="SaveDataAsync">
             <DataAnnotationsValidator />
 
+            <!-- Cabeçalho com Título e Botões alinhados à direita -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="page-title-box d-flex justify-content-between align-items-center">
+                        <h4 class="page-title">@(IsEditMode ? "Editar Produto" : "Novo Produto")</h4>
+
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-light" @onclick="NavigateBack">
+                                <i class="mdi mdi-arrow-left me-1"></i> Cancelar
+                            </button>
+
+                            @if (_isSaving)
+                            {
+                                <button type="button" class="btn btn-success" disabled>
+                                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                    A guardar...
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="submit" class="btn btn-success">
+                                    <i class="mdi mdi-content-save me-1"></i> Guardar Produto
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cartão com os Campos do Formulário -->
             <div class="card">
                 <div class="card-body">
                     <div class="row">
@@ -85,22 +109,6 @@
                             <ValidationMessage For="@(() => _formModel.UnitOfMeasure)" class="text-danger mt-1" />
                         </div>
                     </div>
-
-                    <div class="text-end mt-3">
-                        <button type="button" class="btn btn-light me-2" @onclick="NavigateBack">Cancelar</button>
-
-                        @if (_isSaving)
-                        {
-                            <button type="button" class="btn btn-success" disabled>
-                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                A guardar...
-                            </button>
-                        }
-                        else
-                        {
-                            <button type="submit" class="btn btn-success">Guardar Produto</button>
-                        }
-                    </div>
                 </div>
             </div>
         </EditForm>
@@ -125,6 +133,7 @@
         _isLoading = true;
         _loadError = false;
 
+        // Regra 2: Chamada real à API
         _categories = await ProductService.GetCategoriesAsync();
 
         if (IsEditMode)
@@ -179,7 +188,7 @@
 
         if (success)
         {
-            NavigateBack();
+            await NavigateBack();
         }
         else
         {
@@ -187,8 +196,8 @@
         }
     }
 
-    private void NavigateBack()
+    private async Task NavigateBack()
     {
-        Navigation.NavigateTo("/backoffice/products");
+        await JS.InvokeVoidAsync("history.back");
     }
 }

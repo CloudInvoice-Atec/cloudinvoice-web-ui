@@ -147,11 +147,6 @@
                                     <i class="ri-moon-line font-22"></i>
                                 </div>
                             </li>
-                            <li class="d-inline-block">
-                                <button @onclick="HandleLogout" class="btn btn-link nav-link waves-effect waves-light border-0 p-0 d-flex align-items-center" style="background: transparent;">
-                                    <i class="fe-log-out font-22"></i>
-                                </button>
-                            </li>
                             <AuthorizeView Roles="Admin">
                             <li class="dropdown">
 
@@ -175,6 +170,11 @@
                                 </div>
                             </li>
                             </AuthorizeView>
+                            <li class="d-inline-block">
+                                <button @onclick="HandleLogout" class="btn btn-link nav-link waves-effect waves-light border-0 p-0 d-flex align-items-center" style="background: transparent;">
+                                    <i class="fe-log-out font-22"></i>
+                                </button>
+                            </li>
                         </ul>
                     </div>
                 </div>
