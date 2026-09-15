@@ -45,6 +45,21 @@
     }
     else
     {
+        @if (!string.IsNullOrEmpty(_mensagemErroAPI))
+        {
+            <div class="alert alert-danger mb-3" role="alert">
+                <i class="mdi mdi-alert-circle-outline me-2"></i> <strong>Atenção:</strong> @_mensagemErroAPI
+            </div>
+        }
+        @if (_temProdutosInativos)
+        {
+            <div class="alert alert-warning alert-dismissible fade show mt-3 mb-4" role="alert">
+                <i class="mdi mdi-alert-outline me-2 fs-4 align-middle"></i>
+                <strong>Atenção!</strong> Este rascunho contém um ou mais produtos que foram <strong>inativados</strong> no catálogo desde que a fatura foi criada.
+                Terá de remover a linha ou substituir o produto antes de poder emitir a fatura definitivamente.
+            </div>
+        }
+
         <!-- EditContext permite-nos ter dois botões (Rascunho e Emitir) controlando a validação manualmente -->
         <EditForm EditContext="@_editContext">
             <DataAnnotationsValidator />
@@ -382,6 +397,8 @@
     private decimal TotalIva = 0;
     private decimal TotalFinal = 0;
 
+    private bool _temProdutosInativos = false;
+
     protected override async Task OnInitializedAsync()
     {
         _isLoading = true;
@@ -413,13 +430,36 @@
                     novaFatura.PaymentStatus = faturaExistente.PaymentStatus;
                     novaFatura.Notes = faturaExistente.Notes;
 
-                    novaFatura.Items = faturaExistente.Lines.Select(linha => new InvoiceLineDto
+                    // Reinicia a flag antes de verificar as linhas
+                    _temProdutosInativos = false;
+
+                    novaFatura.Items = faturaExistente.Lines.Select(linha =>
                     {
-                        ProductId = linha.ProductId,
-                        Quantity = (int)linha.Quantity,
-                        BasePrice = linha.UnitPrice,
-                        DiscountPercentage = linha.DiscountPercentage,
-                        TaxRate = Math.Round(linha.TaxRate)
+                        // VERIFICAÇÃO DE PRODUTO INATIVO
+                        // Se o produto da linha não estiver no catálogo de ativos, injetamos temporariamente
+                        if (linha.ProductId != Guid.Empty && !_produtosCatalogo.Any(p => p.Id == linha.ProductId))
+                        {
+                            _produtosCatalogo.Add(new InvoiceProductDto
+                            {
+                                Id = linha.ProductId,
+                                Code = "⚠️ INATIVO",
+                                Description = $"{linha.Description} (Descontinuado)", // Usa a descrição que ficou guardada na fatura
+                                BasePrice = linha.UnitPrice,
+                                TaxRate = Math.Round(linha.TaxRate)
+                            });
+
+                            // Ativa o alerta para a UI
+                            _temProdutosInativos = true;
+                        }
+
+                        return new InvoiceLineDto
+                        {
+                            ProductId = linha.ProductId,
+                            Quantity = (int)linha.Quantity,
+                            BasePrice = linha.UnitPrice,
+                            DiscountPercentage = linha.DiscountPercentage,
+                            TaxRate = Math.Round(linha.TaxRate)
+                        };
                     }).ToList();
 
                     clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == novaFatura.CustomerId);
@@ -590,26 +630,26 @@
         FecharModal();
     }
 
+    private string? _mensagemErroAPI;
+
     private async Task GuardarFatura()
     {
-        bool sucesso;
+        // Limpa erros anteriores
+        _mensagemErroAPI = null;
 
-        if (Id.HasValue)
-        {
-            sucesso = await InvoiceService.UpdateInvoiceAsync(Id.Value, novaFatura);
-        }
-        else
-        {
-            sucesso = await InvoiceService.CreateInvoiceAsync(novaFatura);
-        }
+        var resultado = Id.HasValue
+            ? await InvoiceService.UpdateInvoiceAsync(Id.Value, novaFatura)
+            : await InvoiceService.CreateInvoiceAsync(novaFatura);
 
-        if (sucesso)
+        if (resultado.Success)
         {
             Navigation.NavigateTo("/backoffice/faturas");
         }
         else
         {
-            Console.WriteLine("Falha ao gravar fatura.");
+            // Atribui a mensagem de erro para o ecrã mostrar e fecha a modal se estiver aberta
+            _mensagemErroAPI = resultado.Error;
+            FecharModal();
         }
     }
 }
