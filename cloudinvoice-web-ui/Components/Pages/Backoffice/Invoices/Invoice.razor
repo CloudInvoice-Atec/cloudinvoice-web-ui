@@ -12,9 +12,9 @@
 @using cloudinvoice_web_ui.DTOs.Invoices
 @inject cloudinvoice_web_ui.Services.Invoices.IInvoiceService InvoiceService
 
-<!-- Start Content-->
+
 <div class="container-fluid">
-    <!-- start page title -->
+    
     <div class="row">
         <div class="col-12">
             <div class="page-title-box d-flex justify-content-between align-items-center">
@@ -29,7 +29,7 @@
             </div>
         </div>
     </div>
-    <!-- end page title -->
+    
     @if (_isLoading)
     {
         <div class="text-center my-5">
@@ -60,14 +60,14 @@
             </div>
         }
 
-        <!-- EditContext permite-nos ter dois botões (Rascunho e Emitir) controlando a validação manualmente -->
+        
         <EditForm EditContext="@_editContext">
             <DataAnnotationsValidator />
 
-            <!-- TOPO: Detalhes da Fatura, Emissor e Cliente -->
+            
             <div class="row mb-3">
 
-                <!-- 1. Emissor (A tua Empresa) -->
+                
                 <div class="col-lg-4 mb-3 mb-lg-0">
                     <div class="card h-100">
                         <div class="card-body">
@@ -96,7 +96,7 @@
                     </div>
                 </div>
 
-                <!-- 2. Detalhes da Fatura -->
+                
                 <div class="col-lg-4 mb-3 mb-lg-0">
                     <div class="card h-100">
                         <div class="card-body">
@@ -128,14 +128,14 @@
                                             </span>
                                         }
                                     </label>
-                                    <!-- Adicionado min para bloquear datas anteriores a hoje -->
+                                    
                                     <InputDate @bind-Value="novaFatura.DueDate"
                                                class="form-control"
                                                min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                                 </div>
                             </div>
 
-                            <!-- Estado do Pagamento -->
+                            
                             <div class="mb-0">
                                 <label class="form-label">Estado do Pagamento <span class="text-danger">*</span></label>
                                 <InputSelect @bind-Value="novaFatura.PaymentStatus" class="form-select">
@@ -148,7 +148,7 @@
                     </div>
                 </div>
 
-                <!-- 3. Cliente -->
+                
                 <div class="col-lg-4 mb-3 mb-lg-0">
                     <div class="card h-100">
                         <div class="card-body">
@@ -189,7 +189,7 @@
                 </div>
             </div>
 
-            <!-- TABELA DE PRODUTOS / LINHAS DA FATURA -->
+            
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -266,9 +266,9 @@
                 </div>
             </div>
 
-            <!-- RODAPÉ: Notas e Totais -->
+            
             <div class="row">
-                <!-- Esquerda: Notas Adicionais -->
+                
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-body">
@@ -281,7 +281,7 @@
                     </div>
                 </div>
 
-                <!-- Direita: Resumo Financeiro -->
+                
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-body">
@@ -317,7 +317,7 @@
                 </div>
             </div>
 
-            <!-- Botões de Ação -->
+            
             <div class="row mb-4">
                 <div class="col-12 text-end">
                     <button type="button" class="btn btn-light me-2" @onclick='() => Navigation.NavigateTo("/backoffice/faturas")'>Cancelar</button>
@@ -333,7 +333,7 @@
     }
 </div>
 
-<!-- Modal de Confirmação de Emissão -->
+
 @if (_mostrarModal)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
@@ -370,9 +370,9 @@
 }
 
 @code {
-    // ====================================================================
-    // ESTADO DA PÁGINA
-    // ====================================================================
+    
+    
+    
     [Parameter]
     public Guid? Id { get; set; }
 
@@ -384,13 +384,13 @@
     private InvoiceCreateDto novaFatura = new InvoiceCreateDto();
     private EditContext _editContext;
 
-    // Dados que virão das APIs
+    
     private List<InvoiceProductDto> _produtosCatalogo = new();
     private EmpresaDto _empresa = new EmpresaDto();
     private List<CustomerProfileDto> _clientesAtivos = new List<CustomerProfileDto>();
     private CustomerProfileDto clienteSelecionado;
 
-    // Totais Calculados
+    
     private decimal SubtotalBrutoGeral = 0;
     private decimal SubtotalLiquidoGeral = 0;
     private decimal TotalDescontos = 0;
@@ -416,7 +416,7 @@
             var resultProducts = await InvoiceService.GetActiveProducts();
             if (resultProducts != null && resultProducts.Any()) _produtosCatalogo = resultProducts; else { _loadError = true; return; }
 
-            // Lógica para carregar se for Edição
+            
             if (Id.HasValue)
             {
                 var faturaExistente = await InvoiceService.GetInvoiceByIdAsync(Id.Value);
@@ -430,25 +430,25 @@
                     novaFatura.PaymentStatus = faturaExistente.PaymentStatus;
                     novaFatura.Notes = faturaExistente.Notes;
 
-                    // Reinicia a flag antes de verificar as linhas
+                    
                     _temProdutosInativos = false;
 
                     novaFatura.Items = faturaExistente.Lines.Select(linha =>
                     {
-                        // VERIFICAÇÃO DE PRODUTO INATIVO
-                        // Se o produto da linha não estiver no catálogo de ativos, injetamos temporariamente
+                        
+                        
                         if (linha.ProductId != Guid.Empty && !_produtosCatalogo.Any(p => p.Id == linha.ProductId))
                         {
                             _produtosCatalogo.Add(new InvoiceProductDto
                             {
                                 Id = linha.ProductId,
                                 Code = "⚠️ INATIVO",
-                                Description = $"{linha.Description} (Descontinuado)", // Usa a descrição que ficou guardada na fatura
+                                Description = $"{linha.Description} (Descontinuado)", 
                                 BasePrice = linha.UnitPrice,
                                 TaxRate = Math.Round(linha.TaxRate)
                             });
 
-                            // Ativa o alerta para a UI
+                            
                             _temProdutosInativos = true;
                         }
 
@@ -489,13 +489,13 @@
         }
     }
 
-    // ====================================================================
-    // LÓGICA DE INTERAÇÃO (Dropdowns e Tabela)
-    // ====================================================================
+    
+    
+    
 
     private void OnClienteSelecionadoAtualizado()
     {
-        // O Blazor já meteu o valor correto no novaFatura.CustomerId graças ao @bind-Value
+        
         if (novaFatura.CustomerId.HasValue)
         {
             clienteSelecionado = _clientesAtivos.FirstOrDefault(c => c.Id == novaFatura.CustomerId.Value);
@@ -527,7 +527,7 @@
 
     private void OnProdutoSelecionadoAtualizado(InvoiceLineDto linha)
     {
-        // O Blazor já meteu o ID no linha.ProductId
+        
         if (linha.ProductId.HasValue)
         {
             var produto = _produtosCatalogo.FirstOrDefault(p => p.Id == linha.ProductId.Value);
@@ -545,9 +545,9 @@
         CalcularTotais();
     }
 
-    // ====================================================================
-    // LÓGICA DE CÁLCULO FINANCEIRO
-    // ====================================================================
+    
+    
+    
 
     private decimal CalcularTotalLinha(InvoiceLineDto linha)
     {
@@ -582,9 +582,9 @@
         TotalFinal = SubtotalLiquidoGeral + TotalIva;
     }
 
-    // ====================================================================
-    // LÓGICA DE GRAVAÇÃO E MODAL
-    // ====================================================================
+    
+    
+    
 
     private bool ValidarFormulario()
     {
@@ -634,7 +634,7 @@
 
     private async Task GuardarFatura()
     {
-        // Limpa erros anteriores
+        
         _mensagemErroAPI = null;
 
         var resultado = Id.HasValue
@@ -647,7 +647,7 @@
         }
         else
         {
-            // Atribui a mensagem de erro para o ecrã mostrar e fecha a modal se estiver aberta
+            
             _mensagemErroAPI = resultado.Error;
             FecharModal();
         }

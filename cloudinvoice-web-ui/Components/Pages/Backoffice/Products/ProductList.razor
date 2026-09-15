@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <!-- Secção de Filtros baseada nos QueryParameters -->
+    
     <div class="card mb-3">
         <div class="card-body">
             <div class="row g-3">
@@ -122,27 +122,27 @@
                                     <AuthorizeView Roles="Admin">
                                         <td class="text-center">
                                             <div class="d-inline-flex gap-1 justify-content-center align-items-center">
-                                                <!-- Botão Editar (Lápis) -->
+                                                
                                                 <button class="btn btn-sm btn-light" title="Editar" @onclick="() => NavigateToEdit(product.Id)">
                                                     <i class="fa fa-pencil-alt"></i>
                                                 </button>
 
                                                 @if (product.IsActive)
                                                 {
-                                                    <!-- Botão Desativar (Ícone de Bloqueio/Ban amarelo) -->
+                                                    
                                                     <button class="btn btn-sm btn-warning text-white" title="Desativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
                                                         <i class="fa fa-ban"></i>
                                                     </button>
                                                 }
                                                 else
                                                 {
-                                                    <!-- Botão Ativar (Ícone de Círculo com Confirmação verde) -->
+                                                    
                                                     <button class="btn btn-sm btn-success" title="Ativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
                                                         <i class="fa fa-check-circle"></i>
                                                     </button>
                                                 }
 
-                                                <!-- Botão Eliminar (Caixote do Lixo vermelho) -->
+                                                
                                                 <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => OpenDeleteModal(product.Id)" disabled="@_isProcessing">
                                                     <i class="fa fa-trash-alt"></i>
                                                 </button>
@@ -155,7 +155,7 @@
                     </tbody>
                 </table>
 
-                <!-- Controlo completo de Paginação -->
+                
                 <div class="d-flex justify-content-between align-items-center mt-3">
                     <div class="d-flex align-items-center gap-2">
                         <span>Mostrar:</span>
@@ -225,7 +225,7 @@
     private IEnumerable<ProductDto> _products = new List<ProductDto>();
     private ProductQueryParameters _queryParams = new ProductQueryParameters { Page = 1, PageSize = 10 };
     
-    // Variável auxiliar temporária para gerizar o select do estado booleano nos filtros
+    
     private string? _statusFilter { get; set; }
 
     private bool _isLoading = true;
@@ -245,7 +245,7 @@
         _isLoading = true;
         _loadError = false;
 
-        // Converter o filtro de texto do select para o booleano do QueryParameters
+        
         if (bool.TryParse(_statusFilter, out var parsedStatus))
         {
             _queryParams.IsActive = parsedStatus;
@@ -271,7 +271,7 @@
 
     private async Task ApplyFilters()
     {
-        _queryParams.Page = 1; // Reset para a primeira página ao filtrar
+        _queryParams.Page = 1; 
         await LoadDataAsync();
     }
 
@@ -342,7 +342,7 @@
 
     private void CloseDeleteModal()
     {
-        if (_isProcessing) return; // Evita fechar enquanto comunica com a API
+        if (_isProcessing) return; 
 
         _showDeleteModal = false;
         _productToDelete = null;
@@ -355,7 +355,7 @@
         _deleteErrorMessage = null;
         _isProcessing = true;
 
-        // Regra 2: Chamada real à API
+        
         var success = await ProductService.DeleteProductAsync(_productToDelete.Value);
 
         if (success)
@@ -363,13 +363,13 @@
             _showDeleteModal = false;
             _productToDelete = null;
 
-            // Regra 3: Recarregar a grelha e atualizar a UI
+            
             await LoadDataAsync();
             StateHasChanged();
         }
         else
         {
-            // Regra 2: Capturar e propagar o erro para a UI
+            
             _deleteErrorMessage = "Ocorreu um erro ao comunicar com a API. Não foi possível eliminar o produto.";
         }
 

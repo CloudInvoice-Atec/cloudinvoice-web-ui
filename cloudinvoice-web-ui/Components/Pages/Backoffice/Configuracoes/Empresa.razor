@@ -10,7 +10,7 @@
 
 <div class="container-fluid">
 
-    <!-- start page title -->
+    
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
@@ -24,7 +24,7 @@
             </div>
         </div>
     </div>
-    <!-- end page title -->
+    
 
     @if (_isLoading)
     {
@@ -104,8 +104,8 @@
                                 <ValidationMessage For="@(() => _empresaDto.Country)" class="text-danger mt-1" />
                             </div>
                         </div>
-                    </div> <!-- end card -->
-                </div> <!-- end col -->
+                    </div> 
+                </div> 
 
                 <div class="col-lg-6">
                     <div class="card">
@@ -180,7 +180,7 @@
                             </div>
                         </div>
                     </div>
-                </div> <!-- end col -->
+                </div> 
 
                 <div class="col-lg-6">
                     <div class="card">
@@ -205,7 +205,7 @@
                     </div>
                 </div>
             </div>
-            <!-- end row -->
+            
 
             <div class="row">
                 <div class="col-12">
@@ -225,23 +225,23 @@
                 </div>
             </div>
 
-            <!-- end row -->
+            
 
         </EditForm>
     }
 
-</div> <!-- container -->
+</div> 
 
 @code {
     private EmpresaDto _empresaDto = new EmpresaDto();
 
-    // Variáveis de controlo da interface
+    
     private bool _isLoading = true;
     private bool _isSaving = false;
     private bool _loadError = false;
 
     private string _logoError;
-    private long _maxFileSize = 10485760; // 10 MB em Bytes
+    private long _maxFileSize = 10485760; 
 
     private string _saveSuccessMessage;
     private string _saveErrorMessage;
@@ -259,7 +259,7 @@
         }
         else
         {
-            // Mostra erro caso a API devolva null (falha na ligação ou empresa não encontrada)
+            
             _loadError = true;
         }
 
@@ -292,7 +292,7 @@
     private async Task SaveData()
     {
         _isSaving = true;
-        _saveSuccessMessage = null; // Limpa mensagens anteriores
+        _saveSuccessMessage = null; 
         _saveErrorMessage = null;
 
         var success = await CompanyService.SaveCompanySettingsAsync(_empresaDto);

@@ -21,14 +21,14 @@ var localizationOptions = new RequestLocalizationOptions
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents(options =>
     {
-        options.DetailedErrors = true; // Ligar os erros detalhados!
+        options.DetailedErrors = true; 
     });
 
-// 1. Core Auth Services (A nossa implementação JWT)
+
 builder.Services.AddScoped<TokenProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
@@ -36,10 +36,10 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>
     {
-        options.LoginPath = "/"; // A tua página de login
+        options.LoginPath = "/"; 
     });
 
-builder.Services.AddAuthorization(); // Ativa a verificação de Roles e Policies
+builder.Services.AddAuthorization(); 
 
 
 builder.Services.AddHttpClient("IdentityAPI", client =>
@@ -50,14 +50,14 @@ builder.Services.AddHttpClient("IdentityAPI", client =>
 builder.Services.AddHttpClient("CatalogAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiUrls:CatalogApi"] ?? "https://localhost:5003");
-}); // 👈 Sem o AddHttpMessageHandler
+}); 
 
 builder.Services.AddHttpClient("BillingAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiUrls:BillingApi"] ?? "https://localhost:5005");
 });
 
-// 3. Domain Services
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
@@ -68,7 +68,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

@@ -2,7 +2,7 @@
 
 namespace cloudinvoice_web_ui.Models.Catalog
 {
-    // DTO para a criação de um novo Produto
+    
     public class ProductCreateDto
     {
         [Required(ErrorMessage = "The product code is required.")]

@@ -1,7 +1,7 @@
 ﻿using cloudinvoice_web_ui.DTOs.Configuracoes;
 using cloudinvoice_web_ui.Auth;
 using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Hosting; // 1. OBRIGATÓRIO: Para aceder às pastas físicas do servidor
+using Microsoft.AspNetCore.Hosting; 
 
 namespace cloudinvoice_web_ui.Services.Settings
 {
@@ -10,9 +10,9 @@ namespace cloudinvoice_web_ui.Services.Settings
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
         private readonly HttpClient _httpClientBilling;
-        private readonly IWebHostEnvironment _env; // Variável para as pastas
+        private readonly IWebHostEnvironment _env; 
 
-        // 2. Injetamos o IWebHostEnvironment no construtor
+        
         public CompanyService(
             IHttpClientFactory httpClientFactory,
             TokenProvider tokenProvider,

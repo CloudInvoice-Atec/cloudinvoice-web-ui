@@ -7,7 +7,7 @@ namespace cloudinvoice_web_ui.DTOs.Invoices
 {
     public class InvoiceCreateDto
 {
-        public Guid? CustomerId { get; set; } // Alterado para bater certo com a API
+        public Guid? CustomerId { get; set; } 
         public string Reference { get; set; }
         public DateTime IssueDate { get; set; } = DateTime.Today;
         public DateTime DueDate { get; set; } = DateTime.Today.AddDays(30);

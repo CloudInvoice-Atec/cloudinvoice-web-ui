@@ -10,17 +10,17 @@ namespace cloudinvoice_web_ui.Services.Customers
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TokenProvider _tokenProvider;
-        private readonly HttpClient _httpClientBilling; // <-- Declarado no topo como na Empresa
+        private readonly HttpClient _httpClientBilling; 
 
-        // O construtor injeta as dependências e prepara logo o HttpClient
+        
         public CustomerService(IHttpClientFactory httpClientFactory, TokenProvider tokenProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
-            _httpClientBilling = CreateAuthenticatedClient("BillingAPI"); // <-- Instanciado no início
+            _httpClientBilling = CreateAuthenticatedClient("BillingAPI"); 
         }
 
-        // Método auxiliar idêntico ao do CompanyService
+        
         private HttpClient CreateAuthenticatedClient(string clientName)
         {
             var client = _httpClientFactory.CreateClient(clientName);
@@ -71,7 +71,7 @@ namespace cloudinvoice_web_ui.Services.Customers
         {
             try
             {
-                // Usamos diretamente o _httpClientBilling instanciado no construtor
+                
                 var invoices = await _httpClientBilling.GetFromJsonAsync<List<InvoiceSummaryDto>>($"api/customers/{id}/invoices");
 
                 return invoices ?? new List<InvoiceSummaryDto>();
@@ -87,7 +87,7 @@ namespace cloudinvoice_web_ui.Services.Customers
         {
             try
             {
-                // Usamos diretamente o _httpClientBilling instanciado no construtor
+                
                 var response = await _httpClientBilling.PutAsJsonAsync($"api/customers/{id}", customer);
                 return response.IsSuccessStatusCode;
             }

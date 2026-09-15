@@ -6,6 +6,6 @@
         public DateTime IssueDate { get; set; }
         public DateTime DueDate { get; set; }
         public decimal TotalAmount { get; set; }
-        public string Status { get; set; } // Paid, Unpaid, Overdue
+        public string Status { get; set; } 
     }
 }

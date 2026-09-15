@@ -12,7 +12,7 @@
 
 <div class="container-fluid">
 
-    <!-- Cabeçalho da Página -->
+    
     <div class="row">
         <div class="col-12">
             <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -32,7 +32,7 @@
 
     @if (customer == null)
     {
-        <!-- Estado de Carregamento -->
+        
         <div class="text-center mt-5">
             <div class="spinner-border text-primary" role="status"></div>
             <p class="mt-2">A carregar dados do cliente...</p>
@@ -41,11 +41,11 @@
     else
     {
         <div class="row mt-3">
-            <!-- COLUNA ESQUERDA: Resumo Rápido e Contactos -->
+            
             <div class="col-xl-4 col-lg-5">
                 <div class="card text-center">
                     <div class="card-body">
-                        <!-- Avatar -->
+                        
                         <div class="avatar-xl mx-auto mb-3">
                             <span class="avatar-title bg-soft-primary text-primary rounded-circle font-24">
                                 @(string.IsNullOrEmpty(customer.Name) ? "?" : customer.Name.Substring(0, 1).ToUpper())
@@ -65,14 +65,7 @@
                                 <span class="badge bg-danger font-13 p-1 px-2">Cliente Inativo</span>
                             }
                         </div>
-@* 
-                        <div class="text-start mt-4 pt-2 border-top">
-                            <h4 class="font-13 text-uppercase mb-3">Resumo Financeiro</h4>
-                            <p class="text-muted mb-2 font-13"><strong>Em Dívida:</strong> <span class="ms-2 text-danger">@customer.CurrentDebt</span></p>
-                            <p class="text-muted mb-2 font-13"><strong>Limite Crédito:</strong> <span class="ms-2">@customer.CreditLimit</span></p>
-                            <p class="text-muted mb-2 font-13"><strong>Total Faturado:</strong> <span class="ms-2 text-success">@customer.TotalInvoiced</span></p>
-                            <p class="text-muted mb-2 font-13"><strong>Condições Pag.:</strong> <span class="ms-2">@customer.PaymentTermsDays Dias</span></p>
-                        </div> *@
+
 
                         <div class="text-start mt-4 pt-2 border-top">
                             <h4 class="font-13 text-uppercase mb-3">Contactos Gerais</h4>
@@ -92,11 +85,11 @@
                 </div>
             </div>
 
-            <!-- COLUNA DIREITA -->
+            
             <div class="col-xl-8 col-lg-7">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Menu das Tabs -->
+                        
                         <ul class="nav nav-pills nav-fill navtab-bg">
                             <li class="nav-item">
                                 <a href="#detalhes" data-bs-toggle="tab" aria-expanded="true" class="nav-link active">
@@ -110,10 +103,10 @@
                             </li>
                         </ul>
 
-                        <!-- Conteúdo das Tabs -->
+                        
                         <div class="tab-content mt-3">
 
-                            <!-- TAB 1: Detalhes -->
+                            
                             <div class="tab-pane show active" id="detalhes">
                                 <h5 class="mb-3 text-uppercase bg-light p-2"><i class="mdi mdi-office-building me-1"></i> Informação Geral</h5>
                                 <div class="row mb-4">
@@ -172,7 +165,7 @@
                                 </div>
                             </div>
 
-                            <!-- TAB 2: Faturas -->
+                            
                             <div class="tab-pane" id="faturas">
                                 <div class="table-responsive">
                                     <table class="table table-centered table-nowrap table-hover mb-0">
@@ -261,10 +254,10 @@
     {
         var customerId = Id ?? Guid.NewGuid();
 
-        // 1. Obter Perfil do Cliente via CustomerService
+        
         customer = await CustomerService.GetCustomerProfileAsync(customerId);
 
-        // 2. Obter as últimas 5 Faturas via InvoiceService
+        
         customerInvoices = await InvoiceService.GetRecentCustomerInvoicesAsync(customerId, count: 5);
     }
 }

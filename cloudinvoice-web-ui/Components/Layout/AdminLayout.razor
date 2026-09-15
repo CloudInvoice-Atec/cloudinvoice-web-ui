@@ -6,30 +6,30 @@
 @inject NavigationManager NavManager
 @implements IDisposable
 
-        <!-- Begin page -->
+        
         <div id="wrapper">
-            <!-- ========== Menu ========== -->
+            
             <div class="app-menu">  
 
-                <!-- Brand Logo -->
+                
                 <div class="logo-box">
-                    <!-- Brand Logo Light -->
+                    
                     <a href="/backoffice" class="logo-light">
                         <img src="assets/images/logo-horizontal-dark.png" style="height:50px" alt="logo" class="logo-lg">
                         <img src="assets/images/logo-sm.png" alt="small logo" class="logo-sm">
                     </a>
 
-                    <!-- Brand Logo Dark -->
+                    
                     <a href="/backoffice" class="logo-dark">
                 <img src="assets/images/logo-horizontal.png" style="height:50px" alt="dark logo" class="logo-lg">
                         <img src="assets/images/logo-sm.png" alt="small logo" class="logo-sm">
                     </a>
                 </div>
 
-                <!-- menu-left -->
+                
                 <div class="scrollbar">
 
-                    <!-- User box (simplified: only logout) -->
+                    
                     <div class="user-box text-center">
                         <a href="/logout" class="btn btn-danger btn-sm">
                             <i class="fe-log-out me-1"></i>
@@ -64,48 +64,48 @@
                             </NavLink>
                         </li>
                     </ul>
-                    <!--- End Menu -->
+                    
                     <div class="clearfix"></div>
                 </div>
             </div>
-            <!-- ========== Left menu End ========== -->
-
             
 
             
 
-            <!-- ============================================================== -->
-            <!-- Start Page Content here -->
-            <!-- ============================================================== -->
+            
+
+            
+            
+            
 
             <div class="content-page">
 
-                <!-- ========== Topbar Start ========== -->
+                
                 <div class="navbar-custom">
                     <div class="topbar">
                         <div class="topbar-menu d-flex align-items-center gap-1">
 
-                            <!-- Topbar Brand Logo -->
+                            
                             <div class="logo-box">
-                                <!-- Brand Logo Light -->
+                                
                                 <a href="/backoffice" class="logo-light">
                                     <img src="assets/images/logo-light.png" alt="logo" class="logo-lg">
                                     <img src="assets/images/logo-sm.png" alt="small logo" class="logo-sm">
                                 </a>
 
-                                <!-- Brand Logo Dark -->
+                                
                                 <a href="/backoffice" class="logo-dark">
                                     <img src="assets/images/logo-dark.png" alt="dark logo" class="logo-lg">
                                     <img src="assets/images/logo-sm.png" alt="small logo" class="logo-sm">
                                 </a>
                             </div>
 
-                            <!-- Sidebar Menu Toggle Button -->
+                            
                             <button class="button-toggle-menu">
                                 <i class="mdi mdi-menu"></i>
                             </button>
 
-                            <!-- Dropdown Menu -->
+                            
                             <AuthorizeView Roles="Admin">
                             <div class="dropdown d-none d-xl-block">
                                 <a class="nav-link dropdown-toggle waves-effect waves-light" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
@@ -113,19 +113,19 @@
                                     <i class="mdi mdi-chevron-down ms-1"></i>
                                 </a>
                                 <div class="dropdown-menu">
-                                    <!-- item-->
+                                    
                                     <a href="javascript:void(0);" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalNovoCliente">
                                         <i class="fe-briefcase me-1"></i>
                                         <span>Novo Cliente</span>
                                     </a>
 
-                                    <!-- item-->
+                                    
                                     <a href="/backoffice/faturas/nova" class="dropdown-item">
                                         <i class="fe-user me-1"></i>
                                         <span>Nova Fatura</span>
                                     </a>
 
-                                    <!-- item-->
+                                    
                                     <a href="/backoffice/products/edit" class="dropdown-item">
                                         <i class="fe-box me-1"></i>
                                         <span>Novo Produto</span>
@@ -137,11 +137,11 @@
                         </div>
 
                         <ul class="topbar-menu d-flex align-items-center">
-                            <!-- Topbar Search Form -->
+                            
                             
 
 
-                            <!-- Light/Dark Mode Toggle Button -->
+                            
                             <li class="d-none d-sm-inline-block">
                                 <div class="nav-link waves-effect waves-light" id="light-dark-mode">
                                     <i class="ri-moon-line font-22"></i>
@@ -161,13 +161,13 @@
                                 </a>
                                     <div class="dropdown-menu dropdown-menu-end profile-dropdown ">
 
-                                        <!-- item-->
+                                        
                                         <a href="/backoffice/configuracoes/empresa" class="dropdown-item notify-item">
                                             <i class="fe-briefcase"></i>
                                             <span>Dados Empresa</span>
                                         </a>
 
-                                        <!-- item-->
+                                        
                                         <a href="/backoffice/users" class="dropdown-item notify-item">
                                             <i class="fe-users"></i>
                                             <span>Gestão Utilizadores</span>
@@ -178,38 +178,38 @@
                         </ul>
                     </div>
                 </div>
-                <!-- ========== Topbar End ========== -->
+                
 
                 <div class="content">
                     @Body
                 </div>
-                <!-- Footer Start -->
+                
                 <footer class="footer">
                     <div class="container-fluid">
                         
                     </div>
                 </footer>
-                <!-- end Footer -->
+                
 
                 
 
             </div>
 
-            <!-- ============================================================== -->
-            <!-- End Page content -->
-            <!-- ============================================================== -->
+            
+            
+            
 
 
         </div>
-        <!-- END wrapper -->
+        
 
         
         <InserirCliente />
 
-        <!-- Theme Settings -->
+        
         <div class="offcanvas offcanvas-end right-bar" tabindex="-1" id="theme-settings-offcanvas">
             <div class="d-flex align-items-center w-100 p-0 offcanvas-header">
-                <!-- Nav tabs -->
+                
                 <ul class="nav nav-tabs nav-bordered nav-justified w-100" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link py-2" data-bs-toggle="tab" href="#chat-tab" role="tab">
@@ -230,7 +230,7 @@
             </div>
 
             <div class="offcanvas-body p-3 h-100" data-simplebar>
-                <!-- Tab panes -->
+                
                 <div class="tab-content pt-0">
                     <div class="tab-pane" id="chat-tab" role="tabpanel">
 
@@ -669,16 +669,16 @@
         </div>
         
 @code {
-    // Referência para podermos falar com a modal
     
     
-    // 1. Quando o Layout arranca, ficamos à escuta de mudanças de URL
+    
+    
     protected override void OnInitialized()
     {
         NavManager.LocationChanged += OnLocationChanged;
     }
 
-    // 2. Quando o Blazor acaba de desenhar o ecrã pela primeira vez, recarrega o JS
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -687,7 +687,7 @@
         }
     }
 
-    // 3. Sempre que o utilizador clica num link do menu e muda de página, recarrega o JS
+    
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         try
@@ -696,7 +696,7 @@
         }
         catch (Exception ex) when (ex is JSDisconnectedException || ex is TaskCanceledException)
         {
-            // O circuito foi fechado, não faz nada
+            
         }
     }
 
@@ -709,27 +709,27 @@
     private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
     [Inject]
-    private HttpClient Http { get; set; } = default!; // Injetamos o HttpClient caso queiras chamar a API
+    private HttpClient Http { get; set; } = default!; 
 
     private async Task HandleLogout()
     {
         try
         {
-            // Opcional: Avisa a API para invalidar a sessão se necessário
+            
             await Http.PostAsync("https://localhost:5001/api/auth/logout", null);
         }
         catch
         {
-            // Se a API falhar ou estiver offline, não impedimos o utilizador de sair
+            
         }
 
-        // Limpa o token do localStorage e atualiza o estado de autenticação no Blazor
+        
         if (AuthStateProvider is CustomAuthenticationStateProvider customProvider)
         {
             await customProvider.MarkUserAsLoggedOut();
         }
 
-        // Redireciona para a página de login com forceLoad para limpar qualquer estado residual
+        
         NavManager.NavigateTo("/", forceLoad: true);
     }
 }

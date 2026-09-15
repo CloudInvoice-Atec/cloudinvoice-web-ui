@@ -20,14 +20,14 @@ namespace cloudinvoice_web_ui.Services.Users
             _tokenProvider = tokenProvider;
             _jsRuntime = jsRuntime;
 
-            // Aponta estritamente para a IdentityAPI
+            
             _httpCustomerIdentity = CreateAuthenticatedClient("IdentityAPI");
         }
 
         private HttpClient CreateAuthenticatedClient(string clientName)
         {
             var client = _httpClientFactory.CreateClient(clientName);
-            if (!string.IsNullOrEmpty(_tokenProvider.Token)) // Confirma se no teu TokenProvider a propriedade é JwtToken ou Token
+            if (!string.IsNullOrEmpty(_tokenProvider.Token)) 
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _tokenProvider.Token);
             }
@@ -38,7 +38,7 @@ namespace cloudinvoice_web_ui.Services.Users
         {
             try
             {
-                // Faz o GET ao endpoint que acabaste de criar na API
+                
                 var users = await _httpCustomerIdentity.GetFromJsonAsync<List<UserResponseDto>>("api/users");
 
                 return users ?? new List<UserResponseDto>();
@@ -46,7 +46,7 @@ namespace cloudinvoice_web_ui.Services.Users
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao obter a lista de utilizadores: {ex.Message}");
-                // Retorna nulo para a UI saber que houve uma falha de comunicação e apresentar erro
+                
                 return null;
             }
         }
@@ -81,7 +81,7 @@ namespace cloudinvoice_web_ui.Services.Users
                 return (true, "Utilizador eliminado com sucesso.");
             }
 
-            // Capture the error message from the response
+            
             var content = await response.Content.ReadAsStringAsync();
             try
             {
@@ -99,22 +99,22 @@ namespace cloudinvoice_web_ui.Services.Users
         {
             try
             {
-                // 1. Ir buscar o token guardado (via JSRuntime/localStorage ou TokenProvider)
-                // Nota: Precisas de ter o IJSRuntime injetado no construtor do teu UserService
+                
+                
                 var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
 
-                // 2. Adicionar o token ao cabeçalho de Autorização do HttpClient
+                
                 if (!string.IsNullOrWhiteSpace(token))
                 {
                     _httpCustomerIdentity.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
 
-                // 3. Fazer o pedido à API já com o token incluído
+                
                 return await _httpCustomerIdentity.GetFromJsonAsync<UserResponseDto>($"api/Users/{id}");
             }
             catch (Exception ex)
             {
-                // Opcional: Podes fazer um Console.WriteLine(ex.Message) aqui para veres no F12 se houver outros erros
+                
                 return null;
             }
         }

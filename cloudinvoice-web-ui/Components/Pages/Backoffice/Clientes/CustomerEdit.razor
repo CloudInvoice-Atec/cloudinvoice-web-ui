@@ -11,14 +11,14 @@
 
 <div class="container-fluid">
 
-<!-- Cabeçalho da Página -->
+
 <div class="row">
     <div class="col-12">
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="page-title mb-0 font-size-18">Editar Cliente</h4>
 
             <div class="page-title-right">
-            <!-- Voltar atrás cancela a edição -->
+            
             <a href="/backoffice/clientes/@(Id)" type="button" class="btn btn-secondary waves-effect waves-light">
                 <i class="mdi mdi-arrow-left me-1"></i> Cancelar
             </a>
@@ -41,9 +41,9 @@ else if (customer != null)
 
         <div class="row mt-3">
 
-            <!-- COLUNA ESQUERDA -->
+            
             <div class="col-xl-6">
-                <!-- DADOS GERAIS -->
+                
                 <div class="card">
                     <div class="card-body">
                         <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-office-building me-1"></i> Dados Gerais</h5>
@@ -74,7 +74,7 @@ else if (customer != null)
                     </div>
                 </div>
 
-                <!-- MORADA -->
+                
                 <div class="card">
                     <div class="card-body">
                         <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-map-marker me-1"></i> Localização</h5>
@@ -111,9 +111,9 @@ else if (customer != null)
                 </div>
             </div>
 
-            <!-- COLUNA DIREITA -->
+            
             <div class="col-xl-6">
-                <!-- CONTACTOS DA EMPRESA -->
+                
                 <div class="card">
                     <div class="card-body">
                         <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-phone me-1"></i> Contactos Gerais</h5>
@@ -135,7 +135,7 @@ else if (customer != null)
                     </div>
                 </div>
 
-                <!-- PESSOA RESPONSÁVEL -->
+                
                 <div class="card">
                     <div class="card-body">
                         <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-account-tie me-1"></i> Pessoa Responsável</h5>
@@ -163,7 +163,7 @@ else if (customer != null)
                     </div>
                 </div>
 
-                <!-- DADOS FINANCEIROS -->
+                
                 <div class="card">
                     <div class="card-body">
                         <h5 class="text-uppercase bg-light p-2 mt-0 mb-3"><i class="mdi mdi-currency-eur me-1"></i> Faturação e Financeiro</h5>
@@ -187,7 +187,7 @@ else if (customer != null)
             </div>
         </div>
 
-        <!-- BOTÕES DE AÇÃO -->
+        
         <div class="row mb-5">
             <div class="col-12 text-end">
                 <button type="button" class="btn btn-light me-2 waves-effect">Cancelar</button>
@@ -219,7 +219,7 @@ else
 
 @code {
     [Parameter]
-    public Guid? Id { get; set; } // Agora é opcional (Guid?)
+    public Guid? Id { get; set; } 
 
     private CustomerProfileDto customer = new();
     private bool _isLoading = true;
@@ -229,8 +229,8 @@ else
     {
         _isLoading = true;
 
-        // Se abrires a rota de teste (/editar-teste), o Id vem nulo.
-        // Usamos um Guid temporário para o serviço carregar os dados Fake.
+        
+        
         var customerId = Id ?? Guid.NewGuid();
 
         customer = await CustomerService.GetCustomerProfileAsync(customerId);
@@ -247,7 +247,7 @@ else
 
         _isSaving = false;
 
-        // Redireciona de volta para a página de perfil (ou perfil de teste)
+        
         if (Id.HasValue)
         {
             Navigation.NavigateTo($"/backoffice/clientes/{Id.Value}");

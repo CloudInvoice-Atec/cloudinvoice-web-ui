@@ -1,6 +1,6 @@
 ﻿namespace cloudinvoice_web_ui.Models.Catalog
 {
-    // Classe para gerir paginação e filtros no frontend
+    
     public class ProductQueryParameters
     {
         private const int MaxPageSize = 100;

@@ -13,7 +13,7 @@
     <div class="col-md-2 offset-md-2 text-center">
         @if (!isBillingAPISuccess && !isBillingAPIFailure)
         {
-            //coloar um botao com animação de loading enquanto o teste está a decorrer
+            
             @if(!isBillingAPILoading && !isBillingAPISuccess && !isBillingAPIFailure)
             {
                 <button class="btn btn-primary" id="billing-api-button" @onclick="TestBillingAPI">Testar</button>
@@ -53,7 +53,7 @@
     <div class="col-md-2 offset-md-2 text-center">
         @if (!isCatalogAPISuccess && !isCatalogAPIFailure)
         {
-            //coloar um botao com animação de loading enquanto o teste está a decorrer
+            
             @if(!isCatalogAPILoading && !isCatalogAPISuccess && !isCatalogAPIFailure)
             {
                 <button class="btn btn-primary" id="catalog-api-button" @onclick="TestCatalogAPI">Testar</button>
@@ -94,7 +94,7 @@
     <div class="col-md-2 offset-md-2 text-center">
         @if (!isIdentityAPISuccess && !isIdentityAPIFailure)
         {
-            //coloar um botao com animação de loading enquanto o teste está a decorrer
+            
             @if (!isIdentityAPILoading && !isIdentityAPISuccess && !isIdentityAPIFailure)
             {
                 <button class="btn btn-primary" id="identity-api-button" @onclick="TestIdentityAPI">Testar</button>

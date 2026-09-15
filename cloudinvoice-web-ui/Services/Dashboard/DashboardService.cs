@@ -32,13 +32,13 @@ namespace cloudinvoice_web_ui.Services.Dashboard
         {
             try
             {
-                // Devolve os dados reais da API. Se falhar, o bloco catch apanha a exceção.
+                
                 return await _httpClientBilling.GetFromJsonAsync<DashboardOverviewDto>("api/dashboard/overview");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao obter dados do dashboard: {ex.Message}");
-                // Regra 2: Sem mocks. Devolvemos null e a UI que lide com o erro.
+                
                 return null;
             }
         }

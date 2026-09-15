@@ -70,18 +70,18 @@
         isSaving = true;
         mostrarErro = false;
 
-        // 1. Grava na API e recebe o novo ID gerado
+        
         var novoId = await CustomerService.CreateCustomerAsync(InserirClienteDto);
 
         if (novoId != null)
         {
-            // 2. Fecha a Modal
+            
             await JS.InvokeVoidAsync("eval", "var modalEl = document.getElementById('modalNovoCliente'); var modal = bootstrap.Modal.getInstance(modalEl); modal.hide();");
 
-            // Limpa o formulário em background para a próxima vez que a modal abrir
+            
             InserirClienteDto = new InserirClienteDto();
 
-            // 3. Redireciona para o Perfil Completo do cliente recém-criado
+            
             NavigationManager.NavigateTo($"/backoffice/clientes/editar/{novoId}");
         }
         else

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace cloudinvoice_web_ui.Models.Catalog
 {
-    // DTO principal para criação, edição e listagem de produtos
+    
     public class ProductDto
     {
         public Guid Id { get; set; }

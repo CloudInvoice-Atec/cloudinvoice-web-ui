@@ -39,11 +39,11 @@
         {
             if (AuthStateProvider is CustomAuthenticationStateProvider customAuth)
             {
-                // Grava o token e atualiza a sessão no Blazor
+                
                 await customAuth.MarkUserAsAuthenticated(Token);
             }
 
-            // Redireciona para o destino ou para o backoffice por omissão
+            
             var targetUrl = !string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/backoffice";
             Navigation.NavigateTo(targetUrl, forceLoad: false);
         }

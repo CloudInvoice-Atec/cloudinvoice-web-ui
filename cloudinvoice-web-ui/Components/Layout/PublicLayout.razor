@@ -5,11 +5,11 @@
 
 <div class="auth-fluid-pages pb-0">
     <div class="auth-fluid">
-        <!--Auth fluid left content -->
+        
         <div class="auth-fluid-form-box">
             <div class="align-items-center d-flex h-100">
                 <div class="p-3">
-                    <!-- Logo -->
+                    
                     <div class="auth-brand text-center text-lg-start">
                         <div class="auth-brand">
                             <a href="/" class="logo logo-dark text-center">
@@ -29,28 +29,28 @@
                 </div>
             </div>
         </div>
-        <!-- end auth-fluid-form-box-->
+        
 
-        <!-- Auth fluid right content -->
+        
         <div class="auth-fluid-right text-center">
             
         </div>
-        <!-- end Auth fluid right content -->
+        
     </div>
-    <!-- end auth-fluid-->
+    
 </div>
 
 @code {
-    // Referência para podermos falar com a modal
+    
 
     
-    // 1. Quando o Layout arranca, ficamos à escuta de mudanças de URL
+    
     protected override void OnInitialized()
     {
         NavManager.LocationChanged += OnLocationChanged;
     }
 
-    // 2. Quando o Blazor acaba de desenhar o ecrã pela primeira vez, recarrega o JS
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -59,13 +59,13 @@
         }
     }
 
-    // 3. Sempre que o utilizador clica num link do menu e muda de página, recarrega o JS
+    
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         await JS.InvokeVoidAsync("recarregarScriptsDoTemplate");
     }
 
-    // 4. Limpeza de memória (Boas práticas de Arquitetura)
+    
     public void Dispose()
     {
         NavManager.LocationChanged -= OnLocationChanged;

@@ -56,7 +56,7 @@ namespace cloudinvoice_web_ui.Services.Invoices
                     return (true, string.Empty);
                 }
 
-                // Lê a mensagem que vem do BadRequest da API
+                
                 var errorData = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
                 return (false, errorData?.Message ?? "Erro ao gravar a fatura na API.");
             }

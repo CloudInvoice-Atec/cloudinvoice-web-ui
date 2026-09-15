@@ -21,7 +21,7 @@
         public decimal? DefaultDiscount { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        // Responsável Principal
+        
         public string? ContactPersonName { get; set; }
         public string? ContactPersonRole { get; set; }
         public string? ContactPersonEmail { get; set; }

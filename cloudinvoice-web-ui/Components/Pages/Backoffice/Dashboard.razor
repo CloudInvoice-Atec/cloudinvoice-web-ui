@@ -8,7 +8,7 @@
 @inject NavigationManager Navigation
 
 <div class="container-fluid">
-    <!-- start page title -->
+    
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
@@ -16,7 +16,7 @@
             </div>
         </div>
     </div>
-    <!-- end page title -->
+    
 
     @if (_isLoading)
     {
@@ -29,7 +29,7 @@
     }
     else if (_loadError || _dashboardData == null)
     {
-        <!-- Regra 2: UI reage graciosamente à ausência de dados, sem popular mocks -->
+        
         <div class="alert alert-danger my-4" role="alert">
             <i class="mdi mdi-alert-circle-outline me-2"></i> 
             Não foi possível carregar os dados do Dashboard. Por favor, verifique a ligação ao servidor ou tente novamente mais tarde.
@@ -40,7 +40,7 @@
     }
     else
     {
-        <!-- Nível Superior: KPIs -->
+        
         <div class="row">
             <div class="col-md-6 col-xl-3">
                 <div class="widget-rounded-circle card">
@@ -124,7 +124,7 @@
         </div>
 
         <div class="row">
-            <!-- Nível Intermédio: Gráfico (Placeholder para componentes nativos Blazor) -->
+            
             <div class="col-xl-4">
                 <div class="card">
                     <div class="card-body" style="min-height: 380px;">
@@ -156,7 +156,7 @@
                 </div>
             </div>
 
-            <!-- Nível Inferior: Atividade Recente -->
+            
             <div class="col-xl-8">
                 <div class="card">
                     <div class="card-body">
@@ -207,7 +207,7 @@
                                                     }
                                                 </td>
                                                 <td class="text-center">
-                                                    <!-- Regra 3: NavigationManager em vez de tag <a> -->
+                                                    
                                                     <button class="btn btn-xs btn-light" title="Ver Detalhes" @onclick="() => NavigateToDetalhes(invoice.Id)">
                                                         <i class="mdi mdi-eye"></i>
                                                     </button>
@@ -228,7 +228,7 @@
 @code {
     private DashboardOverviewDto? _dashboardData;
     
-    // Regra 3: Controlo de UI puramente baseado no estado C#
+    
     private bool _isLoading = true;
     private bool _loadError = false;
     private ApexChartOptions<MonthlyRevenueDto> _chartOptions = new();

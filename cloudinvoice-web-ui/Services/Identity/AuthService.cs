@@ -11,7 +11,7 @@ namespace cloudinvoice_web_ui.Services.Identity
         public AuthService(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
-            // Cria o cliente nomeado configurado para a Identity.API
+            
             _httpCustomerIdentity = _httpClientFactory.CreateClient("IdentityAPI");
         }
 
@@ -39,12 +39,12 @@ namespace cloudinvoice_web_ui.Services.Identity
         {
             try
             {
-                // backend should always return 200 to avoid user enumeration
+                
                 await _httpCustomerIdentity.PostAsJsonAsync("api/auth/forgot-password", new { Email = email });
             }
             catch
             {
-                // swallow exceptions to preserve UX; consider logging in production
+                
             }
         }
 

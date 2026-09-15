@@ -19,7 +19,7 @@ namespace cloudinvoice_web_ui.Services.Catalog
             _httpClientFactory = httpClientFactory;
             _tokenProvider = tokenProvider;
 
-            // Usa o Named Client exigido nas regras
+            
             _httpClientCatalog = CreateAuthenticatedClient("CatalogAPI");
         }
 
@@ -37,7 +37,7 @@ namespace cloudinvoice_web_ui.Services.Catalog
         {
             try
             {
-                // Construção dinâmica da query string
+                
                 var query = new List<string>
                 {
                     $"page={parameters.Page}",
@@ -52,22 +52,22 @@ namespace cloudinvoice_web_ui.Services.Catalog
 
                 var queryString = string.Join("&", query);
 
-                // 1. Criar as opções de configuração do JSON
+                
                 var jsonOptions = new JsonSerializerOptions
                 {
-                    PropertyNameCaseInsensitive = true, // Ignora diferenças de Maiúsculas/Minúsculas
-                    Converters = { new JsonStringEnumConverter() } // Ensina o Blazor a converter Strings para Enums
+                    PropertyNameCaseInsensitive = true, 
+                    Converters = { new JsonStringEnumConverter() } 
                 };
 
-                // 2. Passar as opções diretamente no GetFromJsonAsync
+                
                 var response = await _httpClientCatalog.GetFromJsonAsync<PagedResultDto<ProductDto>>($"api/products?{queryString}", jsonOptions);
 
-                // Devolve apenas a lista de items para a UI, ou uma lista vazia como fallback de segurança
+                
                 return response?.Items ?? new List<ProductDto>();
             }
             catch (Exception ex)
             {
-                // Regra de Ouro: Propagar erro silenciosamente e não usar mocks
+                
                 Console.WriteLine($"Error fetching products: {ex.Message}");
                 return new List<ProductDto>();
             }
@@ -79,16 +79,16 @@ namespace cloudinvoice_web_ui.Services.Catalog
             {
                 var jsonOptions = new JsonSerializerOptions
                 {
-                    PropertyNameCaseInsensitive = true, // Ignora diferenças de Maiúsculas/Minúsculas
-                    Converters = { new JsonStringEnumConverter() } // Ensina o Blazor a converter Strings para Enums
+                    PropertyNameCaseInsensitive = true, 
+                    Converters = { new JsonStringEnumConverter() } 
                 };
-                // Certifica-te de que passas o _jsonOptions como segundo argumento!
+                
                 return await _httpClientCatalog.GetFromJsonAsync<ProductDto>($"api/products/{id}", jsonOptions);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching product {id}: {ex.Message}");
-                return null; // Faz com que a UI apanhe o erro e mostre a caixa vermelha da imagem
+                return null; 
             }
         }
 

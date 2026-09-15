@@ -11,7 +11,7 @@
 @attribute [Authorize]
 
 <div class="container-fluid">
-    <!-- Título e Botões Superiores -->
+    
     <div class="row mb-3">
         <div class="col-12">
             <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -67,13 +67,13 @@
     }
     else
     {
-        <!-- Informação Principal -->
+        
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
 
-                        <!-- Cabeçalho do Documento e Status -->
+                        
                         <div class="row mb-4 border-bottom pb-3">
                             <div class="col-md-6">
                                 <h3 class="mb-1 text-primary">Fatura Nº @(_invoice.InvoiceNumber ?? "RASCUNHO")</h3>
@@ -104,7 +104,7 @@
                             </div>
                         </div>
 
-                        <!-- Dados Apenas do Cliente -->
+                        
                         <div class="row mb-4">
                             <div class="col-12">
                                 <div class="bg-light p-3 rounded border">
@@ -116,7 +116,7 @@
                             </div>
                         </div>
 
-                        <!-- Tabela de Artigos -->
+                        
                         <div class="table-responsive mb-4">
                             <table class="table table-bordered table-centered mb-0">
                                 <thead class="table-light">
@@ -154,7 +154,7 @@
                             </table>
                         </div>
 
-                        <!-- Totais e Notas -->
+                        
                         <div class="row">
                             <div class="col-sm-6">
                                 <div class="clearfix pt-3">
@@ -197,17 +197,17 @@
     }
 </div>
 
-<!-- Modal Eliminar Rascunho -->
+
 @if (_showDeleteModal)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog modal-dialog-centered">
-            <!-- ... O CONTEÚDO DA MODAL ELIMINAR FICA IGUAL ... -->
+            
         </div>
     </div>
 }
 
-<!-- Modal Cancelar Fatura Emitida -->
+
 @if (_showCancelModal)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
@@ -252,7 +252,7 @@
     </div>
 }
 
-<!-- Modal Confirmar Pagamento -->
+
 @if (_showPayModal)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
@@ -299,7 +299,7 @@
     private bool _loadError = false;
     private bool _isProcessing = false;
 
-    // Controlo de Modais
+    
     private bool _showDeleteModal = false;
     private bool _showCancelModal = false;
     private string? _cancelErrorMessage;
@@ -320,9 +320,9 @@
         _isLoading = false;
     }
 
-    // ====================================================================
-    // LÓGICA FINANCEIRA E CÁLCULOS NO FRONT-END
-    // ====================================================================
+    
+    
+    
 
     private decimal CalcularTotalLinha(InvoiceLineResponseDto linha)
     {
@@ -349,17 +349,17 @@
     {
         if (_invoice == null) return false;
 
-        // Se está anulada ou já foi paga, não está em atraso
+        
         if (_invoice.Status == InvoiceStatus.Canceled || _invoice.PaymentStatus == PaymentStatus.Paid)
             return false;
 
-        // Verifica se hoje já passou da data de vencimento
+        
         return _invoice.DueDate.Date < DateTime.Today;
     }
 
-    // ====================================================================
-    // NAVEGAÇÃO E CORES DOS ESTADOS
-    // ====================================================================
+    
+    
+    
 
     private void NavigateBack() => Navigation.NavigateTo("/backoffice/faturas");
 
@@ -381,10 +381,10 @@
         _ => "bg-light text-dark"
     };
 
-    // --- (O resto da lógica das Modais de Eliminar e Cancelar mantêm-se iguais) ---
+    
     private void AbrirModalEliminar() => _showDeleteModal = true;
     private void FecharModalEliminar() => _showDeleteModal = false;
-    private async Task ConfirmarEliminar() { /* ... */ }
+    private async Task ConfirmarEliminar() { }
 
     private void AbrirModalCancelar()
     {
@@ -394,7 +394,7 @@
 
     private void FecharModalCancelar()
     {
-        if (_isProcessing) return; // Evita fechar a modal enquanto o pedido HTTP está em curso
+        if (_isProcessing) return; 
         _showCancelModal = false;
     }
 
@@ -408,9 +408,9 @@
         if (sucesso)
         {
             _showCancelModal = false;
-            // 1. Vai buscar a fatura novamente à API com o novo estado (Canceled)
+            
             await CarregarFatura();
-            // 2. Obriga o Blazor a redesenhar a página para atualizar as badges
+            
             StateHasChanged();
         }
         else
@@ -443,10 +443,10 @@
         {
             _showPayModal = false;
 
-            // Vai buscar os dados atualizados (PaymentStatus passará a Paid)
+            
             await CarregarFatura();
 
-            // Força a UI a redesenhar as badges (Regra 3)
+            
             StateHasChanged();
         }
         else
