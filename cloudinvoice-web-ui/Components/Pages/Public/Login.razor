@@ -1,0 +1,161 @@
+@page "/"
+@using Services.Identity
+@using cloudinvoice_web_ui.DTOs.Identity
+@layout Layout.PublicLayout
+@inject IJSRuntime JS
+
+@inject NavigationManager NavigationManager
+@inject cloudinvoice_web_ui.Services.Identity.IAuthService AuthService
+@inject cloudinvoice_web_ui.Auth.TokenProvider TokenProvider
+@using Microsoft.AspNetCore.Components.Authorization
+@using cloudinvoice_web_ui.Auth
+@inject AuthenticationStateProvider AuthStateProvider
+
+<h4 class="mt-0">Login</h4>
+<p class="text-muted mb-4">Introduza o seu email e password para aceder à sua conta.</p>
+
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="emailaddress" class="form-label">Endereço de email</label>
+        
+        <InputText @bind-Value="loginModel.Email" class="form-control" id="emailaddress" placeholder="Introduza o seu email" />
+        <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" />
+    </div>
+
+    <div class="mb-3">
+        <NavLink href="/account/forgot-password" class="text-muted float-end"><small>Esqueceu a sua password?</small></NavLink>
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group input-group-merge">
+            
+            <InputText @bind-Value="loginModel.Password" type="password" id="password" class="form-control" placeholder="Introduza a sua password" />
+            <div class="input-group-text" data-password="false">
+                <span class="password-eye"></span>
+            </div>
+        </div>
+        <ValidationMessage For="@(() => loginModel.Password)" class="text-danger" />
+    </div>
+
+    <div class="mb-3">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="checkbox-signin">
+            <label class="form-check-label" for="checkbox-signin">Lembrar-me</label>
+        </div>
+    </div>
+
+    <div class="text-center d-grid">
+        <button class="btn btn-primary" type="submit" disabled="@isLoading">
+            @if (isLoading)
+            {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span>A iniciar sessão</span>
+            }
+            else
+            {
+                <span>Iniciar Sessão</span>
+            }
+        </button>
+    </div>
+
+    
+    <div class="text-center mt-4">
+        <p class="text-muted font-16">Iniciar sessão com</p>
+        <ul class="social-list list-inline mt-3">
+            <li class="list-inline-item">
+                <a href="https://localhost:5001/api/auth/external-login?provider=Google" class="social-list-item border-danger text-danger">
+                    <i class="mdi mdi-google"></i>
+                </a>
+            </li>
+            <li class="list-inline-item">
+                <a href="https://localhost:5001/api/auth/external-login?provider=Microsoft" class="social-list-item border-info text-info">
+                    <i class="mdi mdi-microsoft"></i>
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</EditForm>
+
+
+<footer class="footer footer-alt">
+    <p class="text-muted">Testar as ligações às API's?  <a href="/connection-api" class="text-muted ms-1"><b>Testar aqui</b></a></p>
+</footer>
+
+@code {
+    private LoginRequestDto loginModel = new LoginRequestDto();
+    private bool isLoading = false;
+    private string? errorMessage;
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (AuthStateProvider is CustomAuthenticationStateProvider customAuth)
+            {
+                await customAuth.LoadTokenFromBrowserAsync();
+            }
+
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity != null && authState.User.Identity.IsAuthenticated)
+            {
+                RedirecionarUtilizador();
+            }
+            else if (!string.IsNullOrEmpty(ReturnUrl))
+            {
+                NavigationManager.NavigateTo("/", replace: true);
+            }
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await AuthService.LoginAsync(loginModel);
+
+            if (result.IsSuccess)
+            {
+                var customAuthStateProvider = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuthStateProvider.MarkUserAsAuthenticated(result.Token);
+                RedirecionarUtilizador();
+            }
+            else
+            {
+                errorMessage = result.Message ?? "Credenciais inválidas.";
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Ocorreu um erro ao contactar o servidor.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void RedirecionarUtilizador()
+    {
+        if (!string.IsNullOrEmpty(ReturnUrl) && Uri.IsWellFormedUriString(ReturnUrl, UriKind.Relative))
+        {
+            NavigationManager.NavigateTo(ReturnUrl, forceLoad: false);
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/backoffice", forceLoad: false);
+        }
+    }
+}

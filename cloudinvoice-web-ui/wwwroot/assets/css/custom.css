@@ -16,12 +16,13 @@ ul.nav.nav-pills.form-wizard-header .nav-link.active .d-none{
 .toggle-checkbox.disabled{
     background: #f2f2f2;
 }
+
 @media only screen and (max-width: 768px) {
-    ul.nav.nav-pills.form-wizard-header .nav-link.active .d-none{
+    ul.nav.nav-pills.form-wizard-header .nav-link.active .d-none {
         display: block !important;
     }
 
-    .nav.nav-pills.navtab-bg.nav-pills-tab.text-center{
+    .nav.nav-pills.navtab-bg.nav-pills-tab.text-center {
         flex-direction: column;
-    } 
+    }
 }

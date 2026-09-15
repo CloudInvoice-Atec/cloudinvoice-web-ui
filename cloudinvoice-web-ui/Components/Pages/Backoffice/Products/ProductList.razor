@@ -1,0 +1,378 @@
+﻿@page "/backoffice/products"
+@layout Layout.AdminLayout
+@using cloudinvoice_web_ui.Models.Catalog
+@using cloudinvoice_web_ui.Services.Catalog
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize]
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-flex align-items-center justify-content-between">
+                <h4 class="page-title">Produtos</h4>
+                
+                <AuthorizeView Roles="Admin">
+                        <div class="page-title-right">
+                            <button class="btn btn-primary" @onclick="NavigateToCreate">
+                                <i class="fa fa-plus me-1"></i> Novo Produto
+                            </button>
+                        </div>
+                </AuthorizeView>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Pesquisa</label>
+                    <input type="text" class="form-control" placeholder="Código ou Descrição..." @bind="_queryParams.Search" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Estado</label>
+                    <select class="form-select" @bind="_statusFilter">
+                        <option value="">Todos</option>
+                        <option value="true">Ativo</option>
+                        <option value="false">Inativo</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Preço Mínimo</label>
+                    <input type="number" step="0.01" class="form-control" @bind="_queryParams.MinPrice" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Preço Máximo</label>
+                    <input type="number" step="0.01" class="form-control" @bind="_queryParams.MaxPrice" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button class="btn btn-secondary w-50" @onclick="ApplyFilters">
+                        <i class="fa fa-search me-1"></i> Filtrar
+                    </button>
+                    <button class="btn btn-light w-50" @onclick="ResetFilters">
+                        Limpar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@if (_isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">A carregar produtos...</p>
+        </div>
+    }
+    else if (_loadError)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            Não foi possível carregar os produtos. Verifique a ligação à API.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-hover table-centered mb-0">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th>Preço Base</th>
+                            <th>Taxa de IVA</th>
+                            <th>Estado</th>
+                            <AuthorizeView Roles="Admin">
+                                <th class="text-center" style="width: 160px;">Ações</th>
+                            </AuthorizeView>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!_products.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center">Nenhum produto encontrado.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var product in _products)
+                            {
+                                <tr>
+                                    <td>@product.Code</td>
+                                    <td>@product.Description</td>
+                                    <td>@product.CategoryName</td>
+                                    <td>@product.BasePrice.ToString("C")</td>
+                                    <td>@product.TaxRate.ToString("0.00")%</td>
+                                    <td>
+                                        @if (product.IsActive)
+                                        {
+                                            <span class="badge bg-success">Ativo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inativo</span>
+                                        }
+                                    </td>
+                                    <AuthorizeView Roles="Admin">
+                                        <td class="text-center">
+                                            <div class="d-inline-flex gap-1 justify-content-center align-items-center">
+                                                
+                                                <button class="btn btn-sm btn-light" title="Editar" @onclick="() => NavigateToEdit(product.Id)">
+                                                    <i class="fa fa-pencil-alt"></i>
+                                                </button>
+
+                                                @if (product.IsActive)
+                                                {
+                                                    
+                                                    <button class="btn btn-sm btn-warning text-white" title="Desativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
+                                                        <i class="fa fa-ban"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    
+                                                    <button class="btn btn-sm btn-success" title="Ativar" @onclick="() => ToggleProductStatus(product.Id)" disabled="@_isProcessing">
+                                                        <i class="fa fa-check-circle"></i>
+                                                    </button>
+                                                }
+
+                                                
+                                                <button class="btn btn-sm btn-danger" title="Eliminar" @onclick="() => OpenDeleteModal(product.Id)" disabled="@_isProcessing">
+                                                    <i class="fa fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </AuthorizeView>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span>Mostrar:</span>
+                        <select class="form-select form-select-sm w-auto" @bind="_queryParams.PageSize" @bind:after="LoadDataAsync">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                        <span>registos por página</span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <span>Página @_queryParams.Page</span>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-secondary" @onclick="PreviousPage" disabled="@(_queryParams.Page <= 1)">
+                                Anterior
+                            </button>
+                            <button class="btn btn-sm btn-secondary" @onclick="NextPage">
+                                Seguinte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+@if (_showDeleteModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Eliminar Produto</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDeleteModal" disabled="@_isProcessing"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem a certeza que deseja eliminar este produto?</p>
+                    <p class="text-danger mb-0"><small><i class="mdi mdi-alert"></i> Esta ação é irreversível.</small></p>
+
+                    @if (!string.IsNullOrEmpty(_deleteErrorMessage))
+                    {
+                        <div class="alert alert-danger mt-3 mb-0">@_deleteErrorMessage</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" @onclick="CloseDeleteModal" disabled="@_isProcessing">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDelete" disabled="@_isProcessing">
+                        @if (_isProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span>A eliminar...</span>
+                        }
+                        else
+                        {
+                            <span>Confirmar Eliminação</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private IEnumerable<ProductDto> _products = new List<ProductDto>();
+    private ProductQueryParameters _queryParams = new ProductQueryParameters { Page = 1, PageSize = 10 };
+    
+    
+    private string? _statusFilter { get; set; }
+
+    private bool _isLoading = true;
+    private bool _loadError = false;
+    private bool _isProcessing = false;
+    private bool _showDeleteModal = false;
+    private Guid? _productToDelete;
+    private string? _deleteErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+
+        
+        if (bool.TryParse(_statusFilter, out var parsedStatus))
+        {
+            _queryParams.IsActive = parsedStatus;
+        }
+        else
+        {
+            _queryParams.IsActive = null;
+        }
+
+        var result = await ProductService.GetProductsAsync(_queryParams);
+        
+        if (result != null)
+        {
+            _products = result;
+        }
+        else
+        {
+            _loadError = true;
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task ApplyFilters()
+    {
+        _queryParams.Page = 1; 
+        await LoadDataAsync();
+    }
+
+    private async Task ResetFilters()
+    {
+        _queryParams = new ProductQueryParameters { Page = 1, PageSize = 10 };
+        _statusFilter = null;
+        await LoadDataAsync();
+    }
+
+    private async Task NextPage()
+    {
+        _queryParams.Page++;
+        await LoadDataAsync();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (_queryParams.Page > 1)
+        {
+            _queryParams.Page--;
+            await LoadDataAsync();
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        Navigation.NavigateTo("/backoffice/products/edit");
+    }
+
+    private void NavigateToEdit(Guid id)
+    {
+        Navigation.NavigateTo($"/backoffice/products/edit/{id}");
+    }
+
+    private async Task ToggleProductStatus(Guid id)
+    {
+        _isProcessing = true;
+
+        var success = await ProductService.ToggleProductStatusAsync(id);
+
+        if (success)
+        {
+            await LoadDataAsync();
+        }
+
+        _isProcessing = false;
+    }
+
+    private async Task DeleteProduct(Guid id)
+    {
+        _isProcessing = true;
+        var success = await ProductService.DeleteProductAsync(id);
+        
+        if (success) 
+        {
+            await LoadDataAsync();
+        }
+        
+        _isProcessing = false;
+    }
+    private void OpenDeleteModal(Guid id)
+    {
+        _deleteErrorMessage = null;
+        _productToDelete = id;
+        _showDeleteModal = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        if (_isProcessing) return; 
+
+        _showDeleteModal = false;
+        _productToDelete = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_productToDelete == null) return;
+
+        _deleteErrorMessage = null;
+        _isProcessing = true;
+
+        
+        var success = await ProductService.DeleteProductAsync(_productToDelete.Value);
+
+        if (success)
+        {
+            _showDeleteModal = false;
+            _productToDelete = null;
+
+            
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+        else
+        {
+            
+            _deleteErrorMessage = "Ocorreu um erro ao comunicar com a API. Não foi possível eliminar o produto.";
+        }
+
+        _isProcessing = false;
+    }
+}
