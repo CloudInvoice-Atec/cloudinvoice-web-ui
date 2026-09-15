@@ -5,6 +5,11 @@ using System.Net.Http.Json;
 
 namespace cloudinvoice_web_ui.Services.Invoices
 {
+    public class ApiErrorResponse
+    {
+        public string Message { get; set; }
+    }
+
     public class InvoiceService : IInvoiceService
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -39,20 +44,27 @@ namespace cloudinvoice_web_ui.Services.Invoices
             return client;
         }
 
-        public async Task<bool> CreateInvoiceAsync(InvoiceCreateDto invoice)
+        public async Task<(bool Success, string Error)> CreateInvoiceAsync(InvoiceCreateDto invoice)
         {
             try
             {
                 var client = GetBillingClient();
                 var response = await client.PostAsJsonAsync("api/invoices", invoice);
 
-                return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, string.Empty);
+                }
+
+                // Lê a mensagem que vem do BadRequest da API
+                var errorData = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+                return (false, errorData?.Message ?? "Erro ao gravar a fatura na API.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return false;
+                return (false, $"Erro de comunicação: {ex.Message}");
             }
-        }
+        } 
 
         public async Task<List<InvoiceSummaryDto>> GetRecentCustomerInvoicesAsync(Guid customerId, int count)
         {
@@ -119,17 +131,22 @@ namespace cloudinvoice_web_ui.Services.Invoices
             }
         }
 
-        public async Task<bool> UpdateInvoiceAsync(Guid id, InvoiceCreateDto invoiceUpdate)
+        
+        public async Task<(bool Success, string Error)> UpdateInvoiceAsync(Guid id, InvoiceCreateDto invoiceUpdate)
         {
             try
             {
                 var client = GetBillingClient();
                 var response = await client.PutAsJsonAsync($"api/invoices/{id}", invoiceUpdate);
-                return response.IsSuccessStatusCode;
+
+                if (response.IsSuccessStatusCode) return (true, string.Empty);
+
+                var errorData = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+                return (false, errorData?.Message ?? "Erro ao atualizar a fatura.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return false;
+                return (false, $"Erro de comunicação: {ex.Message}");
             }
         }
 
@@ -146,6 +163,7 @@ namespace cloudinvoice_web_ui.Services.Invoices
                 return false;
             }
         }
+
 
         public async Task<bool> CancelInvoiceAsync(Guid id)
         {

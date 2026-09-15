@@ -8,8 +8,8 @@ namespace cloudinvoice_web_ui.Services.Invoices
         Task<InvoiceResponseDto?> GetInvoiceByIdAsync(Guid id);
         Task<InvoicePagedResultDto<InvoiceResponseDto>?> GetInvoicesAsync(InvoiceQueryParametersDto parameters);
         Task<List<InvoiceProductDto>> GetActiveProducts();
-        Task<bool> CreateInvoiceAsync(InvoiceCreateDto invoice);
-        Task<bool> UpdateInvoiceAsync(Guid id, InvoiceCreateDto invoiceUpdate);
+        Task<(bool Success, string Error)> CreateInvoiceAsync(InvoiceCreateDto invoice);
+        Task<(bool Success, string Error)> UpdateInvoiceAsync(Guid id, InvoiceCreateDto invoiceUpdate);
 
         Task<bool> DeleteInvoiceAsync(Guid id);
         Task<bool> CancelInvoiceAsync(Guid id);
