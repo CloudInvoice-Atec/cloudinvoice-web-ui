@@ -6,7 +6,7 @@
 
 <div class="container-fluid">
 
-    <!-- Cabeçalho da Página -->
+    
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
@@ -22,7 +22,7 @@
 
     @if (cliente == null)
     {
-        <!-- Estado de Carregamento -->
+        
         <div class="text-center mt-5">
             <div class="spinner-border text-primary" role="status"></div>
             <p class="mt-2">A carregar dados do cliente...</p>
@@ -31,11 +31,11 @@
     else
     {
         <div class="row">
-            <!-- COLUNA ESQUERDA: Resumo Rápido -->
+            
             <div class="col-xl-4 col-lg-5">
                 <div class="card text-center">
                     <div class="card-body">
-                        <!-- Avatar / Iniciais do Cliente -->
+                        
                         <div class="avatar-xl mx-auto mb-3">
                             <span class="avatar-title bg-soft-primary text-primary rounded-circle font-24">
                                 @cliente.Nome.Substring(0, 1).ToUpper()
@@ -73,11 +73,11 @@
                 </div>
             </div>
 
-            <!-- COLUNA DIREITA: Separadores com a Informação Densa -->
+            
             <div class="col-xl-8 col-lg-7">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Menu das Tabs -->
+                        
                         <ul class="nav nav-pills nav-fill navtab-bg">
                             <li class="nav-item">
                                 <a href="#detalhes" data-bs-toggle="tab" aria-expanded="true" class="nav-link active">
@@ -96,10 +96,10 @@
                             </li>
                         </ul>
 
-                        <!-- Conteúdo das Tabs -->
+                        
                         <div class="tab-content">
 
-                            <!-- TAB 1: Detalhes -->
+                            
                             <div class="tab-pane show active" id="detalhes">
                                 <EditForm Model="@cliente" OnValidSubmit="GravarAlteracoes">
                                     <DataAnnotationsValidator />
@@ -139,7 +139,7 @@
                                 </EditForm>
                             </div>
 
-                            <!-- TAB 2: Pessoas -->
+                            
                             <div class="tab-pane" id="pessoas">
                                 <div class="text-end mb-3">
                                     <button class="btn btn-sm btn-primary">Adicionar Pessoa</button>
@@ -169,7 +169,7 @@
                                 </div>
                             </div>
 
-                            <!-- TAB 3: Faturas -->
+                            
                             <div class="tab-pane" id="faturas">
                                 <p class="text-muted">A listagem de faturas deste cliente aparecerá aqui.</p>
                             </div>
@@ -183,22 +183,22 @@
 </div>
 
 @code {
-    // 1. Receber o GUID do URL
+    
     [Parameter]
     public Guid? Id { get; set; }
 
-    // 2. A variável que vai segurar os dados (pode ser o teu DTO real)
+    
     private ClientePerfilDto cliente;
 
-    // 3. O método que corre quando a página abre
+    
     protected override async Task OnInitializedAsync()
     {
-        // Aqui farias: cliente = await MeuServicoApi.ObterClientePorIdAsync(Id);
+        
 
-        // Vamos simular um pequeno atraso de rede (meio segundo) para veres o Loading spinner a funcionar
+        
         await Task.Delay(500);
 
-        // Mock dos dados para a página não estoirar enquanto não ligas a API
+        
         cliente = new ClientePerfilDto
         {
             Id = this.Id ?? Guid.NewGuid(),
@@ -218,12 +218,12 @@
 
     private async Task GravarAlteracoes()
     {
-        // Aqui chamas a API para gravar os dados do tab "Detalhes"
-        // await MeuServicoApi.AtualizarClienteAsync(Id, cliente);
+        
+        
         Console.WriteLine($"Dados do cliente {cliente.Nome} guardados com sucesso!");
     }
 
-    // --- DTO Temporário apenas para o ficheiro compilar (depois removes e usas o teu) ---
+    
     public class ClientePerfilDto
     {
         public Guid? Id { get; set; }

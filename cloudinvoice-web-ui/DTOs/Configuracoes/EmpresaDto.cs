@@ -5,7 +5,7 @@ namespace cloudinvoice_web_ui.DTOs.Configuracoes
 {
     public class EmpresaDto
     {
-        // --- 1. Identity ---
+        
         [Required(ErrorMessage = "O nome é obrigatório.")]
         public string Name { get; set; }
 
@@ -14,7 +14,7 @@ namespace cloudinvoice_web_ui.DTOs.Configuracoes
 
         public string PrimaryActivityCode { get; set; }
 
-        // --- 2. Address ---
+        
         [Required(ErrorMessage = "A morada é obrigatória.")]
         public string Address { get; set; }
 
@@ -26,7 +26,7 @@ namespace cloudinvoice_web_ui.DTOs.Configuracoes
 
         public Guid CountryId { get; set; }
 
-        // logo
+        
         public IBrowserFile Logo { get; set; }
 
         [Required(ErrorMessage = "O email é obrigatório.")]
@@ -40,14 +40,14 @@ namespace cloudinvoice_web_ui.DTOs.Configuracoes
         [Url(ErrorMessage = "Website inválido.")]
         public string Website { get; set; }
 
-        // --- 3. Legal Data ---
+        
         public string RegistryOffice { get; set; }
         public string CommercialRegistrationNumber { get; set; }
 
         [Required(ErrorMessage = "O capital social é obrigatório.")]
         public decimal ShareCapital { get; set; }
 
-        // --- 5. Banking Data ---
+        
         [Required(ErrorMessage = "O nome do banco é obrigatório.")]
         public string BankName { get; set; }
 

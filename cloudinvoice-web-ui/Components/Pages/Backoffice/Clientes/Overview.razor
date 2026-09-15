@@ -3,15 +3,15 @@
 @page "/backoffice/clientes"
 @using cloudinvoice_web_ui.Components.Modals
 
-<!-- Start Content-->
+
 <div class="container-fluid">
 
-    <!-- start page title -->
+    
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
                 <div class="page-title-right">
-                    <!-- Botão de Adicionar Cliente movido para o topo direito -->
+                    
                     <button data-bs-toggle="modal" data-bs-target="#modalNovoCliente"  class="btn btn-blue waves-effect waves-light">
                         <i class="mdi mdi-plus-circle me-1"></i> Adicionar Cliente
                     </button>
@@ -20,8 +20,8 @@
             </div>
         </div>
     </div>
-    <!-- end page title -->
-    <!-- Cartões de Estatísticas -->
+    
+    
     <div class="row">
         <div class="col-md-6 col-xl-3">
             <div class="widget-rounded-circle card">
@@ -38,10 +38,10 @@
                                 <p class="text-muted mb-1 text-truncate">Total Clientes</p>
                             </div>
                         </div>
-                    </div> <!-- end row-->
+                    </div> 
                 </div>
-            </div> <!-- end widget-rounded-circle-->
-        </div> <!-- end col-->
+            </div> 
+        </div> 
 
         <div class="col-md-6 col-xl-3">
             <div class="widget-rounded-circle card">
@@ -58,10 +58,10 @@
                                 <p class="text-muted mb-1 text-truncate">Ativos</p>
                             </div>
                         </div>
-                    </div> <!-- end row-->
+                    </div> 
                 </div>
-            </div> <!-- end widget-rounded-circle-->
-        </div> <!-- end col-->
+            </div> 
+        </div> 
 
         <div class="col-md-6 col-xl-3">
             <div class="widget-rounded-circle card">
@@ -78,10 +78,10 @@
                                 <p class="text-muted mb-1 text-truncate">Novos (Mês)</p>
                             </div>
                         </div>
-                    </div> <!-- end row-->
+                    </div> 
                 </div>
-            </div> <!-- end widget-rounded-circle-->
-        </div> <!-- end col-->
+            </div> 
+        </div> 
 
         <div class="col-md-6 col-xl-3">
             <div class="widget-rounded-circle card">
@@ -98,13 +98,13 @@
                                 <p class="text-muted mb-1 text-truncate">Em Dívida</p>
                             </div>
                         </div>
-                    </div> <!-- end row-->
+                    </div> 
                 </div>
-            </div> <!-- end widget-rounded-circle-->
-        </div> <!-- end col-->
+            </div> 
+        </div> 
     </div>
-    <!-- end row-->
-    <!-- Tabela de Listagem de Clientes -->
+    
+    
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -137,7 +137,7 @@
                                 {
                                     <tr>
                                         <td style="width: 36px;">
-                                            <!-- Um pequeno truque: se não houver foto, podes gerar um avatar com as iniciais futuramente -->
+                                            
                                             <div class="avatar-sm">
                                                 <span class="avatar-title bg-soft-secondary text-secondary rounded-circle">
                                                     @cliente.Nome.Substring(0, 1)
@@ -165,11 +165,11 @@
                                             }
                                         </td>
                                         <td>
-                                            <!-- Botão para ir para o Perfil Completo que desenhámos anteriormente -->
+                                            
                                             <a href="/backoffice/clientes/@cliente.Id" class="btn btn-xs btn-light" title="Ver Perfil">
                                                 <i class="mdi mdi-eye"></i>
                                             </a>
-                                            <!-- Botão de Edição Rápida -->
+                                            
                                             <a href="/backoffice/clientes/editar/@cliente.Id" class="btn btn-xs btn-light" title="Editar">
                                                 <i class="mdi mdi-pencil"></i>
                                             </a>
@@ -179,18 +179,18 @@
                             </tbody>
                         </table>
                     </div>
-                </div> <!-- end card-body-->
-            </div> <!-- end card-->
-        </div> <!-- end col -->
+                </div> 
+            </div> 
+        </div> 
     </div>
-    <!-- end row -->
+    
 
 
     
 
-</div> <!-- container -->
+</div> 
 @code {
-	// --- CLASSES LOCAIS PARA SIMULAÇÃO (Depois passas para a pasta DTOs) ---
+	
 
 	private DTOs.Clientes.InserirClienteDto InserirClienteDto = new DTOs.Clientes.InserirClienteDto();
 	public class ClienteSimuladoDto
@@ -208,25 +208,25 @@
 		public int TotalClientes { get; set; }
 		public int ClientesAtivos { get; set; }
 		public int NovosEsteMes { get; set; }
-		public string TotalEmDivida { get; set; } // String para facilitar a formatação monetária por agora
+		public string TotalEmDivida { get; set; } 
 	}
 
-	// --- VARIÁVEIS DE ESTADO DA PÁGINA ---
+	
 	private List<ClienteSimuladoDto> meusClientes = new List<ClienteSimuladoDto>();
 	private DTOs.Clientes.OverviewClientesDto estatisticas = new DTOs.Clientes.OverviewClientesDto();
 
     protected override void OnInitialized()
     {
-        // 1. Simular as Estatísticas do Topo
+        
         estatisticas = new DTOs.Clientes.OverviewClientesDto
         {
             TotalClientes = 124,
             ClientesAtivos = 118,
             NovosEsteMes = 12,
-			TotalEmDivida = 3250.75 // Formata como moeda com duas casas decimais
+			TotalEmDivida = 3250.75 
         };
 
-        // 2. Simular a lista de Clientes
+        
         meusClientes = new List<ClienteSimuladoDto>
         {
             new ClienteSimuladoDto { Id = 1, Nome = "Tech Solutions Lda", Nif = "500123456", Email = "geral@tech.pt", Telemovel = "912345678", IsAtivo = true },
@@ -238,20 +238,20 @@
 
     private async Task GravarDados()
     {
-        // SE o código entrar aqui, é porque o formulário está 100% VÁLIDO!
-        // Não precisas de fazer "if (Empresa.Nome == null)". O Blazor já fez isso por ti.
+        
+        
 
-        // Podes chamar logo o teu serviço:
-        //await MeuServico.CriarEmpresaAsync(Empresa);
+        
+        
 
         Console.WriteLine("Tudo válido! A gravar na base de dados...");
     }
-    // Este evento dispara milissegundos depois de o HTML aparecer no ecrã
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Mandamos o browser ir buscar e executar o script de inicialização
+            
             await JS.InvokeVoidAsync("iniciarMinhaDataTable", "#tabela-clientes");
         }
     }

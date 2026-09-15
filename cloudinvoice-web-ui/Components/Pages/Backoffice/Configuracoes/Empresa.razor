@@ -6,7 +6,7 @@
 
 <div class="container-fluid">
 
-    <!-- start page title -->
+    
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
@@ -20,7 +20,7 @@
             </div>
         </div>
     </div>
-    <!-- end page title -->
+    
 
     <EditForm Model="@_empresaDto" OnValidSubmit="SaveData">
         <DataAnnotationsValidator />
@@ -65,8 +65,8 @@
                             <ValidationMessage For="@(() => _empresaDto.CountryId)" class="text-danger mt-1" />
                         </div>
                     </div>
-                </div> <!-- end card -->
-            </div> <!-- end col -->
+                </div> 
+            </div> 
 
             <div class="col-lg-6">
                 <div class="card">
@@ -132,7 +132,7 @@
                         </div>
                     </div>
                 </div>
-            </div> <!-- end col -->
+            </div> 
 
             <div class="col-lg-6">
                 <div class="card">
@@ -157,7 +157,7 @@
                 </div>
             </div>
         </div>
-        <!-- end row -->
+        
 
         <div class="row">
             <div class="col-12">
@@ -166,18 +166,18 @@
                     <button type="submit" class="btn w-sm btn-success waves-effect waves-light">Guardar</button>
                     <button type="button" class="btn w-sm btn-danger waves-effect waves-light">Eliminar</button>
                 </div>
-            </div> <!-- end col -->
+            </div> 
         </div>
-        <!-- end row -->
+        
 
     </EditForm>
 
-</div> <!-- container -->
+</div> 
 
 @code {
     private EmpresaDto _empresaDto = new EmpresaDto();
     private string _logoError;
-    private long _maxFileSize = 10485760; // 10 MB em Bytes
+    private long _maxFileSize = 10485760; 
 
     private void ReceiveFile(InputFileChangeEventArgs e)
     {
@@ -204,7 +204,7 @@
 
     private async Task SaveData()
     {
-        // await _empresaService.CreateAsync(_empresaDto);
+        
         Console.WriteLine("Tudo válido! A gravar na base de dados...");
     }
 

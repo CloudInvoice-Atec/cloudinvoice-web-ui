@@ -40,32 +40,32 @@
             </div>
 
             </EditForm>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+        </div>
+    </div>
+</div>
 @code {
     private DTOs.Clientes.InserirClienteDto InserirClienteDto = new DTOs.Clientes.InserirClienteDto();
     
 
-    // Método que o Layout vai chamar para abrir a modal!
+    
     public async Task Abrir()
     {
-        // Limpa o formulário sempre que a modal abre
+        
         
 
-        // Usa JS para abrir a modal do Bootstrap 5
-        //await JS.InvokeVoidAsync("eval", "var myModal = new bootstrap.Modal(document.getElementById('modalNovoCliente')); myModal.show();");
+        
+        
     }
 
     private async Task GravarCliente()
     {
-        // 1. Grava na API
-        // await ClienteService.CriarAsync(InserirClienteDto);
+        
+        
 
-        // 2. Fecha a Modal
-        //await JS.InvokeVoidAsync("eval", "var modalEl = document.getElementById('modalNovoCliente'); var modal = bootstrap.Modal.getInstance(modalEl); modal.hide();");
+        
+        
 
-        // 3. (Opcional) Redirecionar para o Perfil Completo do cliente recém-criado
-        // NavigationManager.NavigateTo($"/backoffice/clientes/{InserirClienteDto.Id}");
+        
+        
     }
 }
